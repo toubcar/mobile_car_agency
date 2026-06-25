@@ -31,7 +31,11 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.*
+!.env.example
 .env*.local
+npm
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +43,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local build/debug artifacts
+build-view.json
+build-view-err.txt
+npx

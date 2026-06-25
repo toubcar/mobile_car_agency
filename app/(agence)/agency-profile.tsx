@@ -1,0 +1,281 @@
+import {
+  View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
+  ActivityIndicator, Alert, Switch,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as DocumentPicker from 'expo-document-picker';
+import { COLORS } from '@/constants/api';
+import { agencyProfileService, type AgencyDocument, type AgencyProfile } from '@/services/agency-profile.service';
+
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+type Tab = 'general' | 'hours' | 'location' | 'security' | 'documents';
+
+export default function AgencyProfileScreen() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [tab, setTab] = useState<Tab>('general');
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['agency-profile'],
+    queryFn: () => agencyProfileService.get(),
+  });
+
+  const [general, setGeneral] = useState({ name: '', registration_number: '', description: '', phone: '', email: '' });
+  const [location, setLocation] = useState({ address: '', city: '', postal_code: '', country: 'Maroc' });
+  const [hours, setHours] = useState<NonNullable<AgencyProfile['opening_hours']>>([]);
+  const [security, setSecurity] = useState({ current_password: '', new_password: '', new_password_confirmation: '' });
+  const [docType, setDocType] = useState<AgencyDocument['type']>('license');
+
+  useEffect(() => {
+    if (!profile) return;
+    setGeneral({
+      name: profile.agency_name ?? '',
+      registration_number: profile.registration_number ?? '',
+      description: profile.description ?? '',
+      phone: profile.phone ?? '',
+      email: profile.email ?? '',
+    });
+    setLocation({
+      address: profile.address ?? '',
+      city: profile.city ?? '',
+      postal_code: profile.postal_code ?? '',
+      country: profile.country ?? 'Maroc',
+    });
+    if (profile.opening_hours?.length) {
+      setHours(profile.opening_hours);
+    } else {
+      setHours(DAYS.map((day) => ({ day, open_time: '09:00', close_time: '18:00', is_closed: false })));
+    }
+  }, [profile]);
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['agency-profile'] });
+
+  const saveGeneral = useMutation({
+    mutationFn: () => agencyProfileService.updateGeneral(general),
+    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Informations mises à jour.'); },
+  });
+
+  const saveHours = useMutation({
+    mutationFn: () => agencyProfileService.updateOpeningHours(hours),
+    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Horaires mis à jour.'); },
+  });
+
+  const saveLocation = useMutation({
+    mutationFn: () => agencyProfileService.updateLocations(location),
+    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Adresse mise à jour.'); },
+  });
+
+  const saveSecurity = useMutation({
+    mutationFn: () => agencyProfileService.updateSecurity(security),
+    onSuccess: () => {
+      setSecurity({ current_password: '', new_password: '', new_password_confirmation: '' });
+      Alert.alert('Succès', 'Mot de passe mis à jour.');
+    },
+    onError: () => Alert.alert('Erreur', 'Vérifiez le mot de passe actuel et la confirmation.'),
+  });
+
+  const uploadDoc = useMutation({
+    mutationFn: (file: { uri: string; name: string; type: string }) =>
+      agencyProfileService.uploadDocument({ document_type: docType, file }),
+    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Document envoyé.'); },
+  });
+
+  const deleteDoc = useMutation({
+    mutationFn: (index: number) => agencyProfileService.deleteDocument(index),
+    onSuccess: invalidate,
+  });
+
+  const pickDoc = async () => {
+    const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'], copyToCacheDirectory: true });
+    if (res.canceled || !res.assets?.[0]) return;
+    const a = res.assets[0];
+    uploadDoc.mutate({ uri: a.uri, name: a.name ?? 'document', type: a.mimeType ?? 'application/octet-stream' });
+  };
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'general', label: 'Général' },
+    { key: 'hours', label: 'Horaires' },
+    { key: 'location', label: 'Adresse' },
+    { key: 'documents', label: 'Docs' },
+    { key: 'security', label: 'Sécurité' },
+  ];
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.root} edges={['top']}>
+        <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => router.back()}><Ionicons name="chevron-back" size={24} color={COLORS.primary} /></TouchableOpacity>
+        <Text style={styles.topTitle}>Profil agence</Text>
+        {profile?.completion != null ? (
+          <Text style={styles.completion}>{profile.completion}%</Text>
+        ) : <View style={{ width: 40 }} />}
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+        {tabs.map((t) => (
+          <TouchableOpacity key={t.key} style={[styles.tab, tab === t.key && styles.tabOn]} onPress={() => setTab(t.key)}>
+            <Text style={[styles.tabTxt, tab === t.key && styles.tabTxtOn]}>{t.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+        {tab === 'general' ? (
+          <>
+            <Field label="Nom de l'agence" value={general.name} onChangeText={(v) => setGeneral((g) => ({ ...g, name: v }))} />
+            <Field label="N° registre" value={general.registration_number} onChangeText={(v) => setGeneral((g) => ({ ...g, registration_number: v }))} />
+            <Field label="Téléphone" value={general.phone} onChangeText={(v) => setGeneral((g) => ({ ...g, phone: v }))} />
+            <Field label="Email" value={general.email} onChangeText={(v) => setGeneral((g) => ({ ...g, email: v }))} keyboardType="email-address" />
+            <Field label="Description" value={general.description} onChangeText={(v) => setGeneral((g) => ({ ...g, description: v }))} multiline />
+            <SaveBtn loading={saveGeneral.isPending} onPress={() => saveGeneral.mutate()} />
+          </>
+        ) : null}
+
+        {tab === 'hours' ? (
+          <>
+            {hours.map((h, i) => (
+              <View key={h.day} style={styles.hourRow}>
+                <Text style={styles.hourDay}>{h.day}</Text>
+                <Switch
+                  value={!h.is_closed}
+                  onValueChange={(v) => {
+                    const next = [...hours];
+                    next[i] = { ...next[i], is_closed: !v };
+                    setHours(next);
+                  }}
+                />
+                <TextInput style={styles.hourInput} value={h.open_time} onChangeText={(v) => {
+                  const next = [...hours]; next[i] = { ...next[i], open_time: v }; setHours(next);
+                }} />
+                <Text style={styles.hourSep}>–</Text>
+                <TextInput style={styles.hourInput} value={h.close_time} onChangeText={(v) => {
+                  const next = [...hours]; next[i] = { ...next[i], close_time: v }; setHours(next);
+                }} />
+              </View>
+            ))}
+            <SaveBtn loading={saveHours.isPending} onPress={() => saveHours.mutate()} />
+          </>
+        ) : null}
+
+        {tab === 'location' ? (
+          <>
+            <Field label="Adresse" value={location.address} onChangeText={(v) => setLocation((l) => ({ ...l, address: v }))} />
+            <Field label="Ville" value={location.city} onChangeText={(v) => setLocation((l) => ({ ...l, city: v }))} />
+            <Field label="Code postal" value={location.postal_code} onChangeText={(v) => setLocation((l) => ({ ...l, postal_code: v }))} />
+            <Field label="Pays" value={location.country} onChangeText={(v) => setLocation((l) => ({ ...l, country: v }))} />
+            <SaveBtn loading={saveLocation.isPending} onPress={() => saveLocation.mutate()} />
+          </>
+        ) : null}
+
+        {tab === 'documents' ? (
+          <>
+            <View style={styles.docTypes}>
+              {(['license', 'insurance', 'registration', 'other'] as const).map((t) => (
+                <TouchableOpacity key={t} style={[styles.docChip, docType === t && styles.docChipOn]} onPress={() => setDocType(t)}>
+                  <Text style={[styles.docChipTxt, docType === t && styles.docChipTxtOn]}>{t}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.uploadBtn} onPress={pickDoc} disabled={uploadDoc.isPending}>
+              <Ionicons name="cloud-upload-outline" size={18} color="#FFF" />
+              <Text style={styles.uploadTxt}>{uploadDoc.isPending ? 'Envoi…' : 'Ajouter un document'}</Text>
+            </TouchableOpacity>
+            {(profile?.documents ?? []).map((doc, idx) => (
+              <View key={`${doc.filename}-${idx}`} style={styles.docRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.docName}>{doc.type} · {doc.filename}</Text>
+                  {doc.description ? <Text style={styles.docSub}>{doc.description}</Text> : null}
+                </View>
+                <TouchableOpacity onPress={() => deleteDoc.mutate(idx)}>
+                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </>
+        ) : null}
+
+        {tab === 'security' ? (
+          <>
+            <Field label="Mot de passe actuel" value={security.current_password} onChangeText={(v) => setSecurity((s) => ({ ...s, current_password: v }))} secure />
+            <Field label="Nouveau mot de passe" value={security.new_password} onChangeText={(v) => setSecurity((s) => ({ ...s, new_password: v }))} secure />
+            <Field label="Confirmation" value={security.new_password_confirmation} onChangeText={(v) => setSecurity((s) => ({ ...s, new_password_confirmation: v }))} secure />
+            <SaveBtn loading={saveSecurity.isPending} onPress={() => saveSecurity.mutate()} />
+          </>
+        ) : null}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function Field({ label, value, onChangeText, keyboardType, multiline, secure }: {
+  label: string; value: string; onChangeText: (v: string) => void;
+  keyboardType?: 'default' | 'email-address'; multiline?: boolean; secure?: boolean;
+}) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        style={[styles.fieldInput, multiline && styles.fieldMultiline]}
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType={keyboardType}
+        multiline={multiline}
+        secureTextEntry={secure}
+        placeholderTextColor="#9CA3AF"
+      />
+    </View>
+  );
+}
+
+function SaveBtn({ loading, onPress }: { loading: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={styles.saveBtn} onPress={onPress} disabled={loading}>
+      {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveTxt}>Enregistrer</Text>}
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  topBar: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF' },
+  topTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
+  completion: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+  tabs: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  tab: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB' },
+  tabOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  tabTxt: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  tabTxtOn: { color: '#FFF' },
+  form: { padding: 16, paddingBottom: 48, gap: 12 },
+  field: { backgroundColor: '#FFF', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#EEF2F7' },
+  fieldLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280', marginBottom: 6 },
+  fieldInput: { fontSize: 15, color: '#111827', paddingVertical: 4 },
+  fieldMultiline: { minHeight: 80, textAlignVertical: 'top' },
+  saveBtn: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
+  saveTxt: { color: '#FFF', fontWeight: '700', fontSize: 15 },
+  hourRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFF', borderRadius: 10, padding: 10, marginBottom: 6 },
+  hourDay: { width: 72, fontSize: 12, fontWeight: '600', color: '#374151' },
+  hourInput: { flex: 1, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 6, padding: 6, fontSize: 13 },
+  hourSep: { color: '#9CA3AF' },
+  docTypes: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  docChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB' },
+  docChipOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  docChipTxt: { fontSize: 11, color: '#6B7280', textTransform: 'capitalize' },
+  docChipTxtOn: { color: '#FFF', fontWeight: '600' },
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: 12, padding: 14 },
+  uploadTxt: { color: '#FFF', fontWeight: '700' },
+  docRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 10, padding: 12, marginTop: 8 },
+  docName: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  docSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+});
