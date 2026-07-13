@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AdminMessagesInbox from '@/components/AdminMessagesInbox';
+import { ADMIN_BG } from '@/constants/adminTheme';
 
 export default function AdminMessagesTab() {
   return (
@@ -11,5 +12,5 @@ export default function AdminMessagesTab() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
 });

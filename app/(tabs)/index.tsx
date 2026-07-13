@@ -66,13 +66,6 @@ export default function HomeScreen() {
   const { openAuthSheet } = useAuthSheet();
   const [activeCategory, setActiveCategory] = useState('all');
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      const t = setTimeout(() => openAuthSheet('signup'), 800);
-      return () => clearTimeout(t);
-    }
-  }, [isAuthenticated, openAuthSheet]);
-
   /* Featured cars */
   const featuredQuery = useQuery({
     queryKey: ['cars', 'featured'],

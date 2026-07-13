@@ -5,17 +5,22 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import apiClient from './api';
 
+/** false = pas de push (test local / Expo Go). Remettre à true pour un dev build. */
+export const PUSH_ENABLED = false;
+
 let cachedToken: string | null = null;
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (PUSH_ENABLED) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 function resolveProjectId(): string | null {
   const extra = Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined;
@@ -44,6 +49,7 @@ async function ensureAndroidChannels(): Promise<void> {
 }
 
 export async function requestPushPermissions(): Promise<boolean> {
+  if (!PUSH_ENABLED) return true;
   if (!Device.isDevice) return false;
 
   const current = (await Notifications.getPermissionsAsync()) as { status: PermissionStatus };
@@ -56,6 +62,7 @@ export async function requestPushPermissions(): Promise<boolean> {
 }
 
 export async function registerPushTokenWithBackend(): Promise<string | null> {
+  if (!PUSH_ENABLED) return null;
   if (!Device.isDevice) {
     return null;
   }
@@ -91,7 +98,7 @@ export async function registerPushTokenWithBackend(): Promise<string | null> {
 }
 
 export async function unregisterPushTokenFromBackend(): Promise<void> {
-  if (!cachedToken) return;
+  if (!PUSH_ENABLED || !cachedToken) return;
 
   try {
     await apiClient.delete('/device-tokens', { data: { token: cachedToken } });

@@ -2,15 +2,14 @@ import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { financeService } from '@/services/finance.service';
+import AdminStackHeader from '@/components/admin/AdminStackHeader';
+import { ADMIN_BG } from '@/constants/adminTheme';
 
 export default function AgenceFinanceScreen() {
-  const router = useRouter();
   const [amount, setAmount] = useState('');
   const [bankName, setBankName] = useState('');
   const [rib, setRib] = useState('');
@@ -47,13 +46,7 @@ export default function AgenceFinanceScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-        <Text style={styles.topTitle}>Paiements</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <AdminStackHeader title="Paiements" subtitle="Demande de virement" />
 
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
         <Text style={styles.intro}>
@@ -102,16 +95,7 @@ function Field({ label, value, onChangeText, keyboardType, multiline }: {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
-  },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   form: { padding: 16, paddingBottom: 40 },
   intro: { fontSize: 14, color: '#6B7280', marginBottom: 20, lineHeight: 20 },
   field: { marginBottom: 14 },

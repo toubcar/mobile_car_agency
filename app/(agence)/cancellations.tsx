@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { marketingService } from '@/services/marketing.service';
+import AdminStackHeader from '@/components/admin/AdminStackHeader';
+import { ADMIN_BG, adminShadow } from '@/constants/adminTheme';
 
 export default function AgenceCancellationsScreen() {
   const router = useRouter();
@@ -15,11 +17,7 @@ export default function AgenceCancellationsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="chevron-back" size={24} color={COLORS.primary} /></TouchableOpacity>
-        <Text style={styles.topTitle}>Annulations</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <AdminStackHeader title="Annulations" subtitle="Quota & statut du compte" />
 
       {isLoading ? (
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
@@ -70,16 +68,14 @@ function Card({ label, value, highlight }: { label: string; value: string; highl
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF' },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   scroll: { padding: 16, paddingBottom: 40 },
   warn: { flexDirection: 'row', gap: 10, backgroundColor: '#FEE2E2', padding: 14, borderRadius: 12, marginBottom: 12 },
   warnTxt: { flex: 1, color: '#991B1B', fontWeight: '600', fontSize: 13 },
   notice: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12, marginBottom: 12 },
   noticeTxt: { color: '#92400E', fontSize: 13, lineHeight: 18 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  card: { width: '30%', flexGrow: 1, backgroundColor: '#FFF', borderRadius: 14, padding: 14, alignItems: 'center' },
+  card: { width: '30%', flexGrow: 1, backgroundColor: '#FFF', borderRadius: 14, padding: 14, alignItems: 'center', ...adminShadow.card },
   cardHighlight: { borderWidth: 2, borderColor: COLORS.primary },
   cardVal: { fontSize: 22, fontWeight: '800', color: '#111827' },
   cardValHighlight: { color: COLORS.primary },

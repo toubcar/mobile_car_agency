@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
 import {
+  PUSH_ENABLED,
   registerPushTokenWithBackend,
   unregisterPushTokenFromBackend,
 } from '@/services/pushNotifications.service';
@@ -17,7 +18,7 @@ export function usePushNotifications() {
   const registeredRef = useRef(false);
 
   useEffect(() => {
-    if (!isAuthReady) return;
+    if (!PUSH_ENABLED || !isAuthReady) return;
 
     if (!isAuthenticated) {
       registeredRef.current = false;
@@ -47,6 +48,8 @@ export function usePushNotifications() {
   }, [isAuthReady, isAuthenticated]);
 
   useEffect(() => {
+    if (!PUSH_ENABLED) return;
+
     const onResponse = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as Record<string, unknown>;
       const route = resolvePushNotificationRoute(data, role ?? 'client');

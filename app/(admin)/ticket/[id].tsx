@@ -9,6 +9,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { COLORS } from '@/constants/api';
 import { supportService } from '@/services/support.service';
+import AdminStackHeader from '@/components/admin/AdminStackHeader';
+import { ADMIN_BG } from '@/constants/adminTheme';
 
 export default function AdminTicketDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,11 +54,7 @@ export default function AdminTicketDetailScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="chevron-back" size={24} color={COLORS.primary} /></TouchableOpacity>
-        <Text style={styles.topTitle} numberOfLines={1}>Ticket #{ticket.ticket_number ?? ticket.id}</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <AdminStackHeader title={`Ticket #${ticket.ticket_number ?? ticket.id}`} subtitle={ticket.subject} />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -113,10 +111,8 @@ export default function AdminTicketDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   flex: { flex: 1 },
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF' },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#111827' },
   scroll: { padding: 16, paddingBottom: 24 },
   subject: { fontSize: 20, fontWeight: '800', color: '#111827' },
   meta: { fontSize: 13, color: '#6B7280', marginTop: 6, marginBottom: 16, textTransform: 'capitalize' },

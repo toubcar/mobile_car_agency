@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  InteractionManager,
 } from 'react-native';
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -110,12 +111,19 @@ export default function AuthBottomSheet({
   });
 
   useEffect(() => {
-    if (visible) {
-      setView(mode);
-      translateY.setValue(SHEET_HEIGHT);
+    if (!visible) return;
+
+    setView(mode);
+    translateY.setValue(SHEET_HEIGHT);
+    backdropOpacity.setValue(0);
+
+    // Attendre la fin de la navigation (ex. logout agence → home) avant d’animer.
+    const handle = InteractionManager.runAfterInteractions(() => {
       open();
-    }
-  }, [visible, mode, open, translateY]);
+    });
+
+    return () => handle.cancel();
+  }, [visible, mode, open, translateY, backdropOpacity]);
 
   const navigateAfterClose = (path: string | { pathname: string; params?: Record<string, string> }) => {
     close();

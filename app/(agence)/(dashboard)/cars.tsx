@@ -12,7 +12,9 @@ import { carsService } from '@/services/cars.service';
 import { formatMoneyPerDay } from '@/utils/money';
 import type { Car } from '@/types';
 
-const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
+import { ADMIN_BG, adminShadow } from '@/constants/adminTheme';
+
+const SHADOW = adminShadow.card;
 
 export default function AgenceCarsScreen() {
   const router      = useRouter();
@@ -126,10 +128,12 @@ export default function AgenceCarsScreen() {
                   </View>
                 </View>
 
-                <View style={styles.specRow}>
-                  <View style={styles.spec}><Ionicons name="people-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.seats} pl.</Text></View>
-                  <View style={styles.spec}><Ionicons name="settings-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.transmission === 'automatic' ? 'Auto' : 'Manuelle'}</Text></View>
-                  {item.rating ? <View style={styles.spec}><Ionicons name="star" size={12} color="#F59E0B" /><Text style={styles.specTxt}>{item.rating.toFixed(1)}</Text></View> : null}
+                <View style={styles.cardBottom}>
+                  <View style={styles.specs}>
+                    <View style={styles.spec}><Ionicons name="people-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.seats}pl</Text></View>
+                    <View style={styles.spec}><Ionicons name="settings-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.transmission === 'automatic' ? 'Auto' : 'Man.'}</Text></View>
+                    {item.rating ? <View style={styles.spec}><Ionicons name="star" size={12} color="#F59E0B" /><Text style={styles.specTxt}>{item.rating.toFixed(1)}</Text></View> : null}
+                  </View>
                   <Text style={styles.price}>{formatMoneyPerDay(item.price_per_day)}</Text>
                 </View>
               </View>
@@ -152,7 +156,7 @@ export default function AgenceCarsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: '#F2F2F7' },
+  root:   { flex: 1, backgroundColor: ADMIN_BG },
   header: { alignItems: 'flex-end', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8 },
   addBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.28, shadowRadius: 8, elevation: 5 },
   heroCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: COLORS.primary, borderRadius: 22, padding: 16, marginHorizontal: 16, marginBottom: 12, shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 8 },
@@ -175,15 +179,15 @@ const styles = StyleSheet.create({
   carName:  { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 3 },
   carMeta:  { fontSize: 12, color: '#8E8E93' },
   actions:  { flexDirection: 'row', gap: 6 },
-  iconBtn:  { width: 32, height: 32, borderRadius: 9, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  specRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-  spec:     { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  iconBtn:  { width: 34, height: 34, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+  specs:      { flexDirection: 'row', gap: 10 },
   specTxt:  { fontSize: 12, color: '#8E8E93' },
-  availBadge: { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
-  availTxt:   { fontSize: 10, fontWeight: '700' },
-  price: { fontSize: 12, fontWeight: '800', color: COLORS.primary },
-  empty:      { alignItems: 'center', paddingTop: 80, gap: 10 },
-  emptyTitle: { fontSize: 16, fontWeight: '600', color: '#374151' },
+  availBadge: { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3, marginRight: 6 },
+  availTxt:   { fontSize: 10, fontWeight: '800' },
+  price: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  empty:      { alignItems: 'center', paddingTop: 80, gap: 8 },
+  emptyTitle: { fontSize: 15, fontWeight: '600', color: '#6B7280' },
   emptySub:   { fontSize: 13, color: '#8E8E93' },
   emptyBtn:   { backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12, marginTop: 8 },
   emptyBtnTxt:{ color: '#FFF', fontWeight: '700', fontSize: 14 },

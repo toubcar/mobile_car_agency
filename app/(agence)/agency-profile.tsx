@@ -4,19 +4,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
 import { COLORS } from '@/constants/api';
 import { agencyProfileService, type AgencyDocument, type AgencyProfile } from '@/services/agency-profile.service';
+import AdminStackHeader from '@/components/admin/AdminStackHeader';
+import { ADMIN_BG } from '@/constants/adminTheme';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 type Tab = 'general' | 'hours' | 'location' | 'security' | 'documents';
 
 export default function AgencyProfileScreen() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('general');
 
@@ -108,6 +108,7 @@ export default function AgencyProfileScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
+        <AdminStackHeader title="Profil agence" />
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} />
       </SafeAreaView>
     );
@@ -115,13 +116,10 @@ export default function AgencyProfileScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="chevron-back" size={24} color={COLORS.primary} /></TouchableOpacity>
-        <Text style={styles.topTitle}>Profil agence</Text>
-        {profile?.completion != null ? (
-          <Text style={styles.completion}>{profile.completion}%</Text>
-        ) : <View style={{ width: 40 }} />}
-      </View>
+      <AdminStackHeader
+        title="Profil agence"
+        subtitle={profile?.completion != null ? `${profile.completion}% complété` : undefined}
+      />
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
         {tabs.map((t) => (
@@ -248,10 +246,7 @@ function SaveBtn({ loading, onPress }: { loading: boolean; onPress: () => void }
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF' },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
-  completion: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   tabs: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
   tab: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB' },
   tabOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },

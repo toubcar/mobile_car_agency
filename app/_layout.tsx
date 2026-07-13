@@ -6,12 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/authStore';
 import { useEnforcePublicStartup } from '../hooks/useEnforcePublicStartup';
 import { AuthSheetProvider } from '@/contexts/AuthSheetContext';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
 
-function PushNotificationBootstrap() {
-  usePushNotifications();
-  return null;
-}
 /** Toujours repasser par le splash au cold start (évite restauration sur login admin). */
 export const unstable_settings = {
   initialRouteName: 'index',
@@ -40,7 +35,6 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthSheetProvider>
-        <PushNotificationBootstrap />
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="index" />

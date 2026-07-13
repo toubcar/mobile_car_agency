@@ -13,8 +13,7 @@ import { useAuthStore } from '@/store/authStore';
 import type { Car } from '@/types';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
-const CATEGORIES  = ['Economy', 'Sedan', 'SUV', 'Luxury', 'Hatchback', 'Convertible'];
-const FUELS       = ['Essence', 'Diesel', 'Électrique', 'Hybride'];
+const FUELS = ['Essence', 'Diesel', 'Électrique', 'Hybride'];
 
 function Field({ label, value, onChangeText, placeholder, keyboardType, sep }: {
   label: string; value?: string; onChangeText: (v: string) => void;
@@ -45,9 +44,9 @@ export default function CarFormScreen() {
 
   const [form, setForm] = useState<Partial<Car>>({
     brand: '', model: '', registration_number: '', year: new Date().getFullYear(),
-    price_per_day: 0, category: 'Sedan', seats: 5,
+    price_per_day: 0, seats: 5,
     transmission: 'manual', fuel_type: 'Essence',
-    is_available: true, description: '', location: '',
+    is_available: true, description: '',
   });
 
   const { data: car, isLoading } = useQuery({
@@ -137,18 +136,7 @@ export default function CarFormScreen() {
             <Field label="Marque"       value={form.brand}    onChangeText={(v) => set('brand', v)}    placeholder="Ex: Renault" sep />
             <Field label="Modèle"       value={form.model}    onChangeText={(v) => set('model', v)}    placeholder="Ex: Clio"    sep />
             <Field label="Immatriculation" value={form.registration_number} onChangeText={(v) => set('registration_number', v)} placeholder="Ex: 12345-A-16" sep />
-            <Field label="Année"        value={String(form.year ?? '')} onChangeText={(v) => set('year', parseInt(v) || 0)} placeholder="2023" keyboardType="numeric" sep />
-            <Field label="Localisation" value={form.location} onChangeText={(v) => set('location', v)} placeholder="Alger, Oran…" />
-          </View>
-
-          {/* Category */}
-          <Text style={styles.section}>Catégorie</Text>
-          <View style={styles.chipsWrap}>
-            {CATEGORIES.map((c) => (
-              <TouchableOpacity key={c} style={[styles.chip, form.category === c && styles.chipActive]} onPress={() => set('category', c)} activeOpacity={0.7}>
-                <Text style={[styles.chipTxt, form.category === c && styles.chipTxtActive]}>{c}</Text>
-              </TouchableOpacity>
-            ))}
+            <Field label="Année" value={String(form.year ?? '')} onChangeText={(v) => set('year', parseInt(v) || 0)} placeholder="2023" keyboardType="numeric" />
           </View>
 
           {/* Specs */}
@@ -259,7 +247,6 @@ const styles = StyleSheet.create({
   toggleTxt:  { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   toggleTxtActive: { color: '#FFF' },
 
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   chip:      { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', ...SHADOW },
   chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   chipTxt:    { fontSize: 13, fontWeight: '600', color: '#6B7280' },

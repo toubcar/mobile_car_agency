@@ -29,12 +29,26 @@ function peerColor(peer?: string | null): string {
   return COLORS.primary;
 }
 
-export default function AdminMessagesInbox() {
+export default function AdminMessagesInbox({
+  queryCacheKey = 'admin',
+  heroIcon = 'headset',
+  heroTitle = 'Support ToubCar',
+  heroSubtitle = 'Conversations admin ↔ client et admin ↔ agence',
+  showPeerFilters = true,
+  emptySubtitle = 'Les tickets support ouverts par les clients et les agences apparaîtront ici.',
+}: {
+  queryCacheKey?: string;
+  heroIcon?: React.ComponentProps<typeof Ionicons>['name'];
+  heroTitle?: string;
+  heroSubtitle?: string;
+  showPeerFilters?: boolean;
+  emptySubtitle?: string;
+} = {}) {
   const router = useRouter();
   const [filter, setFilter] = useState<FilterKey>('all');
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['message-conversations', 'admin'],
+    queryKey: ['message-conversations', queryCacheKey],
     queryFn: () => messagesService.conversations(),
     refetchInterval: 30_000,
   });
@@ -66,17 +80,18 @@ export default function AdminMessagesInbox() {
     <View style={styles.wrap}>
       <View style={styles.hero}>
         <View style={styles.heroIcon}>
-          <Ionicons name="headset" size={22} color="#FFF" />
+          <Ionicons name={heroIcon} size={22} color="#FFF" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroTitle}>Support ToubCar</Text>
+          <Text style={styles.heroTitle}>{heroTitle}</Text>
           <Text style={styles.heroSub}>
-            Conversations admin ↔ client et admin ↔ agence
+            {heroSubtitle}
             {totalUnread > 0 ? ` · ${totalUnread} non lu${totalUnread > 1 ? 's' : ''}` : ''}
           </Text>
         </View>
       </View>
 
+      {showPeerFilters ? (
       <View style={styles.filters}>
         {FILTERS.map((f) => {
           const active = filter === f.key;
@@ -96,14 +111,13 @@ export default function AdminMessagesInbox() {
           );
         })}
       </View>
+      ) : null}
 
       {conversations.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
           <Text style={styles.emptyTitle}>Aucune conversation</Text>
-          <Text style={styles.emptySub}>
-            Les tickets support ouverts par les clients et les agences apparaîtront ici.
-          </Text>
+          <Text style={styles.emptySub}>{emptySubtitle}</Text>
         </View>
       ) : (
         <FlatList

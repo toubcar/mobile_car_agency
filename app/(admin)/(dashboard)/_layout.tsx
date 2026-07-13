@@ -1,18 +1,10 @@
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { messagesService } from '@/services/messages.service';
-
-function TabIcon({ name, focused }: { name: React.ComponentProps<typeof Ionicons>['name']; focused: boolean }) {
-  return (
-    <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Ionicons name={name} size={22} color={focused ? COLORS.primary : '#9CA3AF'} />
-    </View>
-  );
-}
+import BackofficeTabIcon from '@/components/backoffice/BackofficeTabIcon';
 
 export default function AdminTabsLayout() {
   const insets = useSafeAreaInsets();
@@ -39,21 +31,21 @@ export default function AdminTabsLayout() {
         name="index"
         options={{
           title: 'Tableau de bord',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'grid' : 'grid-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'grid' : 'grid-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="cars"
         options={{
           title: 'Véhicules',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'car' : 'car-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'car' : 'car-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="bookings"
         options={{
           title: 'Réservations',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'calendar' : 'calendar-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'calendar' : 'calendar-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -62,21 +54,21 @@ export default function AdminTabsLayout() {
           title: 'Messages',
           tabBarBadge: messageBadge,
           tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="users"
         options={{
           title: 'Utilisateurs',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'people' : 'people-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'people' : 'people-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'person-circle' : 'person-circle-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'person-circle' : 'person-circle-outline'} focused={focused} />,
         }}
       />
     </Tabs>
@@ -93,7 +85,5 @@ const styles = StyleSheet.create({
       android: { elevation: 8 },
     }),
   },
-  label:          { fontSize: 10, fontWeight: '500', marginTop: -2 },
-  iconWrap:       { width: 36, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
-  iconWrapActive: { backgroundColor: '#EBF5FB' },
+  label: { fontSize: 10, fontWeight: '500', marginTop: -2 },
 });

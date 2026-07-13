@@ -8,6 +8,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { notificationsService } from '@/services/notifications.service';
 import { resolveNotificationRoute } from '@/utils/notificationNavigation';
+import AdminStackHeader from '@/components/admin/AdminStackHeader';
+import { ADMIN_BG } from '@/constants/adminTheme';
 
 export default function AdminNotificationsScreen() {
   const router = useRouter();
@@ -49,11 +51,7 @@ export default function AdminNotificationsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="chevron-back" size={24} color={COLORS.primary} /></TouchableOpacity>
-        <Text style={styles.topTitle}>Notifications</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <AdminStackHeader title="Notifications" subtitle="Alertes plateforme" />
 
       {stats ? (
         <View style={styles.statsRow}>
@@ -110,9 +108,7 @@ export default function AdminNotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF' },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   statsRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#FFF', marginBottom: 8,

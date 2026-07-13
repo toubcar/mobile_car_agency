@@ -11,6 +11,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { customersService } from '@/services/customers.service';
 import { formatMoney } from '@/utils/money';
+import AdminStackHeader from '@/components/admin/AdminStackHeader';
+import { ADMIN_BG } from '@/constants/adminTheme';
 
 export default function AdminCustomersScreen() {
   const router = useRouter();
@@ -44,11 +46,7 @@ export default function AdminCustomersScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="chevron-back" size={24} color={COLORS.primary} /></TouchableOpacity>
-        <Text style={styles.topTitle}>Clients & avis</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <AdminStackHeader title="Clients & avis" subtitle="Gestion des clients" />
 
       <View style={styles.tabs}>
         <TouchableOpacity style={[styles.tab, tab === 'clients' && styles.tabOn]} onPress={() => setTab('clients')}>
@@ -121,9 +119,7 @@ export default function AdminCustomersScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF' },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   tabs: { flexDirection: 'row', margin: 12, backgroundColor: '#E5E7EB', borderRadius: 10, padding: 4 },
   tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
   tabOn: { backgroundColor: '#FFF' },

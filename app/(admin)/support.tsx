@@ -9,6 +9,8 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { supportService, type SupportTicket } from '@/services/support.service';
+import AdminStackHeader from '@/components/admin/AdminStackHeader';
+import { ADMIN_BG } from '@/constants/adminTheme';
 
 const STATUS_FILTERS = [
   { key: '', label: 'Tous' },
@@ -55,11 +57,7 @@ export default function AdminSupportScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="chevron-back" size={24} color={COLORS.primary} /></TouchableOpacity>
-        <Text style={styles.topTitle}>Support</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <AdminStackHeader title="Support" subtitle="Tickets & assistance" />
 
       {stats ? (
         <View style={styles.statsRow}>
@@ -155,9 +153,7 @@ export default function AdminSupportScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF' },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   statsRow: { flexDirection: 'row', padding: 12, gap: 8 },
   stat: { flex: 1, backgroundColor: '#FFF', borderRadius: 12, padding: 12, alignItems: 'center' },
   statVal: { fontSize: 20, fontWeight: '800', color: COLORS.primary },

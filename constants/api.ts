@@ -43,22 +43,40 @@ function isLoopbackUrl(url: string): boolean {
   return url.includes('127.0.0.1') || url.includes('localhost');
 }
 
+function isProductionHostUrl(url: string): boolean {
+  return /toubcar\.com/i.test(url) || /^https:\/\//i.test(url);
+}
+
 function resolveBackendUrl(): string {
-  const fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
-  const port = fromEnv?.match(/:(\d+)/)?.[1] ?? '8000';
+  let fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim() || '';
+  const forceProdInDev = process.env.EXPO_PUBLIC_USE_PROD === '1';
   const lan = lanHostFromExpo();
 
-  // URL de production (Hostinger, etc.) : toujours utiliser .env, même en dev.
-  if (fromEnv && fromEnv.length > 0 && !isLoopbackUrl(fromEnv)) {
+  // En Expo Go / __DEV__, ignorer toubcar.com (routes dashboard mobile absentes → 404).
+  // Remettre EXPO_PUBLIC_USE_PROD=1 seulement pour tester volontairement la prod.
+  if (
+    typeof __DEV__ !== 'undefined' &&
+    __DEV__ &&
+    !forceProdInDev &&
+    fromEnv &&
+    isProductionHostUrl(fromEnv)
+  ) {
+    fromEnv = 'http://127.0.0.1:8000';
+  }
+
+  const port = fromEnv.match(/:(\d+)/)?.[1] ?? '8000';
+
+  // URL distante non-loopback (prod volontaire, ou staging).
+  if (fromEnv.length > 0 && !isLoopbackUrl(fromEnv)) {
     return fromEnv.replace(/\/$/, '');
   }
 
-  // Dev + Expo Go + loopback : IP LAN auto (127.0.0.1 → IP du PC).
+  // Dev + Expo Go + loopback : IP LAN auto (127.0.0.1 → IP du PC / téléphone).
   if (typeof __DEV__ !== 'undefined' && __DEV__ && lan) {
     return `http://${lan}:${port}`;
   }
 
-  if (fromEnv && fromEnv.length > 0) {
+  if (fromEnv.length > 0) {
     if (Platform.OS === 'android' && isLoopbackUrl(fromEnv)) {
       return fromEnv.replace('127.0.0.1', '10.0.2.2').replace('localhost', '10.0.2.2').replace(/\/$/, '');
     }

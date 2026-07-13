@@ -1,61 +1,90 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as SecureStore from 'expo-secure-store';
-import { BACKEND_URL } from '@/constants/api';
 import { authService } from '@/services/auth.service';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 import { useAuthStore } from '@/store/authStore';
+
+WebBrowser.maybeCompleteAuthSession();
 
 type SocialAuthOptions = {
   redirectAfterLogin?: string | null;
   onBeforeNavigate?: () => void;
 };
 
-/** Google + Apple — même logique que onboarding (Socialite + Sanctum). */
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+
+/** Google + Apple — API mobile Sanctum (pas de redirection vers le site web). */
 export function useSocialAuth(options?: SocialAuthOptions) {
   const router = useRouter();
   const { loginWithToken } = useAuthStore();
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingApple, setLoadingApple] = useState(false);
 
-  const handleGoogle = useCallback(async () => {
-    setLoadingGoogle(true);
-    try {
-      const redirectUri = Linking.createURL('auth/callback');
-      const authUrl = `${BACKEND_URL}/auth/google/redirect?redirect_uri=${encodeURIComponent(redirectUri)}`;
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
-      if (result.type !== 'success') return;
+  const [, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID ?? GOOGLE_WEB_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID ?? GOOGLE_WEB_CLIENT_ID,
+  });
 
-      const urlParams = new URLSearchParams(result.url.split('?')[1] ?? '');
-      const token = urlParams.get('token');
-      const userJson = urlParams.get('user');
-      const error = urlParams.get('error');
-
-      if (error) throw new Error(decodeURIComponent(error));
-      if (!token) throw new Error('Token introuvable.');
-
-      const user = JSON.parse(decodeURIComponent(userJson ?? '{}'));
-      await SecureStore.setItemAsync('auth_token', token);
-      await loginWithToken(token, user);
+  const finishGoogleLogin = useCallback(
+    async (accessToken: string) => {
+      const res = await authService.loginWithGoogle(accessToken);
+      await loginWithToken(res.token, res.user);
       options?.onBeforeNavigate?.();
       setTimeout(() => {
         if (options?.redirectAfterLogin) {
           router.push(options.redirectAfterLogin as never);
         } else {
-          replaceRootByRole(router, user.role);
+          replaceRootByRole(router, res.user.role);
         }
       }, 320);
+    },
+    [loginWithToken, options, router],
+  );
+
+  useEffect(() => {
+    if (googleResponse?.type !== 'success') return;
+    const accessToken = googleResponse.authentication?.accessToken;
+    if (!accessToken) return;
+
+    setLoadingGoogle(true);
+    finishGoogleLogin(accessToken)
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'Connexion impossible.';
+        Alert.alert('Erreur Google', msg);
+      })
+      .finally(() => setLoadingGoogle(false));
+  }, [googleResponse, finishGoogleLogin]);
+
+  const handleGoogle = useCallback(async () => {
+    if (!GOOGLE_WEB_CLIENT_ID) {
+      Alert.alert(
+        'Google non configuré',
+        'Ajoutez EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID dans le fichier .env mobile, puis reconstruisez l’application.',
+      );
+      return;
+    }
+
+    setLoadingGoogle(true);
+    try {
+      const result = await promptGoogleAsync({ showInRecents: true });
+      if (result.type === 'success' && result.authentication?.accessToken) {
+        await finishGoogleLogin(result.authentication.accessToken);
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Connexion impossible.';
       Alert.alert('Erreur Google', msg);
     } finally {
       setLoadingGoogle(false);
     }
-  }, [loginWithToken, options, router]);
+  }, [finishGoogleLogin, promptGoogleAsync]);
 
   const handleApple = useCallback(async () => {
     if (Platform.OS !== 'ios') {
@@ -97,5 +126,10 @@ export function useSocialAuth(options?: SocialAuthOptions) {
     }
   }, [loginWithToken, options, router]);
 
-  return { handleGoogle, handleApple, loadingGoogle, loadingApple };
+    return {
+    handleGoogle,
+    handleApple,
+    loadingGoogle,
+    loadingApple,
+  };
 }

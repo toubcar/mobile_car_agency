@@ -74,6 +74,11 @@ export default function PhoneAuthScreen() {
         const digits = String(r.dev_code).split('');
         setOtpDigits(digits);
         Alert.alert('Mode développement', `Code OTP : ${r.dev_code}`);
+      } else {
+        Alert.alert(
+          'Code envoyé',
+          'Si vous ne recevez pas le SMS sous 2 minutes, vérifiez le numéro (+212) ou réessayez.',
+        );
       }
     } catch (e: any) {
       Alert.alert('Erreur', e.response?.data?.message || 'Impossible d\'envoyer le code.');

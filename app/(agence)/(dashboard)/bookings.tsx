@@ -8,18 +8,19 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
+import { ADMIN_BG, adminShadow } from '@/constants/adminTheme';
 import { bookingsService } from '@/services/bookings.service';
 import { formatMoney } from '@/utils/money';
 import { rentalDays } from '@/utils/rental';
 import type { Booking } from '@/types';
 
-const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
+const SHADOW = adminShadow.card;
 
-const STATUS: Record<string, { label: string; bg: string; text: string }> = {
-  pending:   { label: 'En attente', bg: '#FEF3C7', text: '#92400E' },
-  confirmed: { label: 'Confirmée',  bg: '#D1FAE5', text: '#065F46' },
-  completed: { label: 'Terminée',   bg: '#DBEAFE', text: '#1E40AF' },
-  cancelled: { label: 'Annulée',    bg: '#FEE2E2', text: '#991B1B' },
+const STATUS: Record<string, { label: string; bg: string; text: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
+  pending:   { label: 'En attente',  bg: '#FEF3C7', text: '#92400E', icon: 'time-outline' },
+  confirmed: { label: 'Confirmée',   bg: '#D1FAE5', text: '#065F46', icon: 'checkmark-circle-outline' },
+  completed: { label: 'Terminée',    bg: '#DBEAFE', text: '#1E40AF', icon: 'checkmark-done-outline' },
+  cancelled: { label: 'Annulée',     bg: '#FEE2E2', text: '#991B1B', icon: 'close-circle-outline' },
 };
 
 const FILTERS = [
@@ -71,7 +72,7 @@ export default function AgenceBookingsScreen() {
           <Text style={styles.revenueValue}>{formatMoney(stats?.revenue ?? 0)}</Text>
           <Text style={styles.revenueHint}>Locations actives et terminées (toutes pages)</Text>
         </View>
-        <Ionicons name="wallet-outline" size={22} color={COLORS.primary} />
+        <Ionicons name="trending-up-outline" size={22} color={COLORS.primary} />
       </View>
 
       {/* Filter chips */}
@@ -102,32 +103,24 @@ export default function AgenceBookingsScreen() {
             const nights = rentalDays(item.start_date, item.end_date);
             return (
               <TouchableOpacity style={styles.card} onPress={() => router.push(`/booking/${item.id}` as any)} activeOpacity={0.8}>
-                {/* Car */}
-                <View style={styles.carRow}>
-                  <View style={styles.carIcon}>
-                    <Ionicons name="car-outline" size={18} color={COLORS.primary} />
+                <View style={styles.cardTop}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarTxt}>{item.user.name.charAt(0).toUpperCase()}</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.userName}>{item.user.name}</Text>
                     <Text style={styles.carName}>{item.car.brand} {item.car.model}</Text>
-                    <Text style={styles.carYear}>{item.car.year}</Text>
                   </View>
                   <View style={[styles.badge, { backgroundColor: s.bg }]}>
+                    <Ionicons name={s.icon} size={11} color={s.text} />
                     <Text style={[styles.badgeTxt, { color: s.text }]}>{s.label}</Text>
                   </View>
                 </View>
-
                 <View style={styles.divider} />
-
-                {/* Client + details */}
-                <View style={styles.bottomRow}>
-                  <View style={styles.clientWrap}>
-                    <View style={styles.clientAvatar}>
-                      <Text style={styles.clientAvatarTxt}>{item.user.name.charAt(0).toUpperCase()}</Text>
-                    </View>
-                    <View>
-                      <Text style={styles.clientName}>{item.user.name}</Text>
-                      <Text style={styles.dates}>{fmt(item.start_date)} → {fmt(item.end_date)}{nights > 0 ? ` · ${nights}j` : ''}</Text>
-                    </View>
+                <View style={styles.cardBottom}>
+                  <View style={styles.dates}>
+                    <Ionicons name="calendar-outline" size={12} color="#8E8E93" />
+                    <Text style={styles.datesText}>{fmt(item.start_date)} → {fmt(item.end_date)}{nights > 0 ? ` · ${nights}j` : ''}</Text>
                   </View>
                   <Text style={styles.price}>{formatMoney(item.total_price)}</Text>
                 </View>
@@ -148,7 +141,7 @@ export default function AgenceBookingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: '#F2F2F7' },
+  root:   { flex: 1, backgroundColor: ADMIN_BG },
   heroCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: COLORS.primary, borderRadius: 22, padding: 16, marginHorizontal: 16, marginTop: 14, marginBottom: 12, shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 8 },
   heroIcon: { width: 58, height: 58, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' },
   heroKicker: { fontSize: 11, fontWeight: '800', color: '#AED6F1', letterSpacing: 0.9, textTransform: 'uppercase' },
@@ -170,21 +163,20 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list:   { paddingHorizontal: 16, paddingBottom: 100 },
   card:   { backgroundColor: '#FFF', borderRadius: 18, marginBottom: 10, padding: 14, borderWidth: 1, borderColor: '#EEF2F7', ...SHADOW },
-  carRow:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  carIcon: { width: 38, height: 38, borderRadius: 10, backgroundColor: '#EBF5FB', alignItems: 'center', justifyContent: 'center' },
-  carName: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  carYear: { fontSize: 12, color: '#8E8E93', marginTop: 1 },
-  badge:   { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4 },
-  badgeTxt:{ fontSize: 11, fontWeight: '700' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginVertical: 10 },
-  bottomRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  clientWrap:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  clientAvatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#EBF5FB', alignItems: 'center', justifyContent: 'center' },
-  clientAvatarTxt: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
-  clientName:   { fontSize: 13, fontWeight: '600', color: '#111827' },
-  dates:        { fontSize: 11, color: '#8E8E93', marginTop: 2 },
-  price:        { fontSize: 15, fontWeight: '700', color: '#111827' },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatar:  { width: 42, height: 42, borderRadius: 21, backgroundColor: '#EBF5FB', alignItems: 'center', justifyContent: 'center' },
+  avatarTxt: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
+  cardInfo: { flex: 1 },
+  userName: { fontSize: 14, fontWeight: '700', color: '#111827' },
+  carName:  { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+  badge:    { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4 },
+  badgeTxt: { fontSize: 10, fontWeight: '700' },
+  divider:  { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginVertical: 10 },
+  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dates:    { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  datesText:{ fontSize: 12, color: '#8E8E93' },
+  price:    { fontSize: 15, fontWeight: '700', color: '#111827' },
   empty:        { alignItems: 'center', paddingTop: 80, gap: 8 },
-  emptyTitle:   { fontSize: 16, fontWeight: '600', color: '#374151' },
+  emptyTitle:   { fontSize: 15, fontWeight: '600', color: '#6B7280' },
   emptySub:     { fontSize: 13, color: '#8E8E93' },
 });

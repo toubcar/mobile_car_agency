@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import AuthBottomSheet from '@/components/AuthBottomSheet';
+import { useAuthStore } from '@/store/authStore';
 
 export type AuthSheetMode = 'signup' | 'login';
 
@@ -14,10 +15,13 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
   const [visible, setVisible] = useState(false);
   const [mode, setMode] = useState<AuthSheetMode>('signup');
   const [redirectAfterLogin, setRedirectAfterLogin] = useState<string | null>(null);
+  const [openId, setOpenId] = useState(0);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const openAuthSheet = useCallback((nextMode: AuthSheetMode = 'signup', redirect?: string) => {
     setMode(nextMode);
     setRedirectAfterLogin(redirect ?? null);
+    setOpenId((id) => id + 1);
     setVisible(true);
   }, []);
 
@@ -26,10 +30,17 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
     setRedirectAfterLogin(null);
   }, []);
 
+  // Ferme le sheet après login / logout pour éviter un état bloqué (ex. après déconnexion agence).
+  useEffect(() => {
+    setVisible(false);
+    setRedirectAfterLogin(null);
+  }, [isAuthenticated]);
+
   return (
     <AuthSheetContext.Provider value={{ openAuthSheet, closeAuthSheet }}>
       {children}
       <AuthBottomSheet
+        key={openId}
         visible={visible}
         mode={mode}
         onClose={closeAuthSheet}

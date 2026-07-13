@@ -2,11 +2,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { ADMIN_BG, adminStyles, adminShadow } from '@/constants/adminTheme';
 import { COLORS } from '@/constants/api';
 import { useAuthStore } from '@/store/authStore';
 import { useLogout } from '@/hooks/useLogout';
 
-const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
+const SHADOW = adminShadow.card;
 
 function Row({ icon, label, sub, onPress, danger }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -70,7 +71,7 @@ export default function AgenceProfileScreen() {
           </View>
         </View>
 
-        <Text style={styles.section}>MON AGENCE</Text>
+        <Text style={adminStyles.sectionLabel}>MON AGENCE</Text>
         <View style={styles.group}>
           <Row
             icon="business-outline"
@@ -101,7 +102,7 @@ export default function AgenceProfileScreen() {
           />
         </View>
 
-        <Text style={styles.section}>FINANCE</Text>
+        <Text style={adminStyles.sectionLabel}>FINANCE</Text>
         <View style={styles.group}>
           <Row
             icon="wallet-outline"
@@ -111,7 +112,7 @@ export default function AgenceProfileScreen() {
           />
         </View>
 
-        <Text style={styles.section}>SESSION</Text>
+        <Text style={adminStyles.sectionLabel}>SESSION</Text>
         <View style={styles.group}>
           <Row icon="log-out-outline" label="Se déconnecter" sub="Retour à l'accueil public" onPress={handleLogout} danger />
         </View>
@@ -123,7 +124,7 @@ export default function AgenceProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
   scroll: { paddingBottom: 48, paddingTop: 12 },
 
   heroCard: {

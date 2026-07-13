@@ -88,7 +88,7 @@ export default function CreateBookingScreen() {
   } = useQuery({
     queryKey: ['booking-quote', cid, startIso, endIso],
     queryFn: () => bookingsService.getQuote({ car_id: cid, start_date: startIso, end_date: endIso }),
-    enabled: canQuote && isAuthenticated,
+    enabled: canQuote,
     retry: false,
   });
 
@@ -130,7 +130,13 @@ export default function CreateBookingScreen() {
 
   const quoteMessage =
     quoteError && typeof quoteError === 'object' && 'response' in quoteError
-      ? (quoteError as { response?: { data?: { message?: string } } }).response?.data?.message
+      ? (() => {
+          const msg = (quoteError as { response?: { data?: { message?: string } } }).response?.data?.message;
+          if (msg?.includes('No query results for model') && msg?.includes('quote')) {
+            return 'Le serveur doit être mis à jour (route /api/bookings/quote). Contactez l’administrateur.';
+          }
+          return msg;
+        })()
       : quoteError
         ? 'Devis indisponible pour ces dates.'
         : null;
