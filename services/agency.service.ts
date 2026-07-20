@@ -8,6 +8,7 @@ export type PublicAgency = {
   phone?: string | null;
   address?: string | null;
   city?: string | null;
+  quartier?: string | null;
   postal_code?: string | null;
   country?: string | null;
   years_in_business?: number | null;

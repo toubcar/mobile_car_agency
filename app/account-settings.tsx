@@ -17,7 +17,7 @@ const SECTIONS = [
   {
     title: 'Compte',
     items: [
-      { label: 'Informations personnelles', sub: 'Nom, e-mail, téléphone', route: '/settings/personal-info' },
+      { label: 'Informations personnelles', sub: 'Nom et téléphone', route: '/settings/personal-info' },
       { label: 'Connexion et sécurité', sub: 'Mot de passe, comptes liés', route: '/settings/login-security' },
     ],
   },

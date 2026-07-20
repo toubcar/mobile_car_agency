@@ -4,13 +4,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
 import { COLORS } from '@/constants/api';
 import { agencyProfileService, type AgencyDocument, type AgencyProfile } from '@/services/agency-profile.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
+import { CITIES, getQuartersForCity } from '@/constants/locations';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -26,10 +27,18 @@ export default function AgencyProfileScreen() {
   });
 
   const [general, setGeneral] = useState({ name: '', registration_number: '', description: '', phone: '', email: '' });
-  const [location, setLocation] = useState({ address: '', city: '', postal_code: '', country: 'Maroc' });
+  const [location, setLocation] = useState({
+    address: '',
+    city: '',
+    quartier: '',
+    postal_code: '',
+    country: 'Maroc',
+  });
   const [hours, setHours] = useState<NonNullable<AgencyProfile['opening_hours']>>([]);
   const [security, setSecurity] = useState({ current_password: '', new_password: '', new_password_confirmation: '' });
   const [docType, setDocType] = useState<AgencyDocument['type']>('license');
+
+  const quarters = useMemo(() => getQuartersForCity(location.city), [location.city]);
 
   useEffect(() => {
     if (!profile) return;
@@ -43,6 +52,7 @@ export default function AgencyProfileScreen() {
     setLocation({
       address: profile.address ?? '',
       city: profile.city ?? '',
+      quartier: profile.quartier ?? '',
       postal_code: profile.postal_code ?? '',
       country: profile.country ?? 'Maroc',
     });
@@ -170,7 +180,44 @@ export default function AgencyProfileScreen() {
         {tab === 'location' ? (
           <>
             <Field label="Adresse" value={location.address} onChangeText={(v) => setLocation((l) => ({ ...l, address: v }))} />
-            <Field label="Ville" value={location.city} onChangeText={(v) => setLocation((l) => ({ ...l, city: v }))} />
+            <Text style={styles.chipLabel}>Ville</Text>
+            <View style={styles.chipGrid}>
+              {CITIES.map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  style={[styles.locChip, location.city === c && styles.locChipOn]}
+                  onPress={() =>
+                    setLocation((l) => ({
+                      ...l,
+                      city: c,
+                      quartier: l.city === c ? l.quartier : '',
+                    }))
+                  }
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.locChipTxt, location.city === c && styles.locChipTxtOn]}>{c}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.chipLabel}>Quartier</Text>
+            {!location.city ? (
+              <Text style={styles.chipHint}>Choisissez d’abord une ville.</Text>
+            ) : (
+              <View style={styles.chipGrid}>
+                {quarters.map((q) => (
+                  <TouchableOpacity
+                    key={q}
+                    style={[styles.locChip, location.quartier === q && styles.locChipOn]}
+                    onPress={() =>
+                      setLocation((l) => ({ ...l, quartier: l.quartier === q ? '' : q }))
+                    }
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[styles.locChipTxt, location.quartier === q && styles.locChipTxtOn]}>{q}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
             <Field label="Code postal" value={location.postal_code} onChangeText={(v) => setLocation((l) => ({ ...l, postal_code: v }))} />
             <Field label="Pays" value={location.country} onChangeText={(v) => setLocation((l) => ({ ...l, country: v }))} />
             <SaveBtn loading={saveLocation.isPending} onPress={() => saveLocation.mutate()} />
@@ -257,6 +304,20 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280', marginBottom: 6 },
   fieldInput: { fontSize: 15, color: '#111827', paddingVertical: 4 },
   fieldMultiline: { minHeight: 80, textAlignVertical: 'top' },
+  chipLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280', marginTop: 4 },
+  chipHint: { fontSize: 13, color: '#9CA3AF' },
+  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  locChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  locChipOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  locChipTxt: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  locChipTxtOn: { color: '#FFF' },
   saveBtn: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
   saveTxt: { color: '#FFF', fontWeight: '700', fontSize: 15 },
   hourRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFF', borderRadius: 10, padding: 10, marginBottom: 6 },

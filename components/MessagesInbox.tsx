@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { messagesService, type InboxConversation } from '@/services/messages.service';
 import { COLORS } from '@/constants/api';
+import { isRentalMessagingOpen } from '@/utils/rentalMessaging';
 
 export default function MessagesInbox() {
   const router = useRouter();
@@ -54,7 +55,12 @@ export default function MessagesInbox() {
           <View style={styles.body}>
             <View style={styles.rowTop}>
               <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-              {item.unread_count > 0 ? (
+              {item.type === 'rental' && !isRentalMessagingOpen(item.status) ? (
+                <View style={styles.archivedPill}>
+                  <Text style={styles.archivedPillTxt}>Historique</Text>
+                </View>
+              ) : null}
+              {item.unread_count > 0 && (item.messaging_open ?? isRentalMessagingOpen(item.status)) ? (
                 <View style={styles.badge}><Text style={styles.badgeTxt}>{item.unread_count}</Text></View>
               ) : null}
             </View>
@@ -85,6 +91,13 @@ const styles = StyleSheet.create({
   preview: { fontSize: 13, color: '#9CA3AF', marginTop: 4 },
   badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   badgeTxt: { color: '#FFF', fontSize: 11, fontWeight: '800' },
+  archivedPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+  },
+  archivedPillTxt: { fontSize: 10, fontWeight: '700', color: '#9CA3AF' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#6B7280' },
 });

@@ -29,9 +29,9 @@ export default function PersonalInfoScreen() {
   const { user, updateUser } = useAuthStore();
 
   const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [saving, setSaving] = useState(false);
+  const email = user?.email || '';
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -40,8 +40,8 @@ export default function PersonalInfoScreen() {
     }
     setSaving(true);
     try {
-      await apiClient.put('/profile', { name: name.trim(), email: email.trim(), phone: phone.trim() });
-      updateUser({ name: name.trim(), email: email.trim(), phone: phone.trim() });
+      await apiClient.put('/profile', { name: name.trim(), phone: phone.trim() });
+      updateUser({ name: name.trim(), phone: phone.trim() });
       Alert.alert('Enregistré', 'Votre profil a été mis à jour.', [{ text: 'OK', onPress: () => router.back() }]);
     } catch {
       Alert.alert('Erreur', 'Enregistrement impossible. Réessayez.');
@@ -84,16 +84,13 @@ export default function PersonalInfoScreen() {
             </View>
             <View style={[styles.field, styles.fieldBorder]}>
               <Text style={styles.fieldLabel}>E-mail</Text>
-              <TextInput
-                style={[styles.fieldInput, isCompact && styles.fieldInputCompact]}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="vous@exemple.com"
-                placeholderTextColor={COLORS.gray}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                returnKeyType="next"
-              />
+              <Text
+                style={[styles.fieldValueReadonly, isCompact && styles.fieldInputCompact]}
+                numberOfLines={1}
+              >
+                {email || '—'}
+              </Text>
+              <Text style={styles.fieldHint}>L’e-mail ne peut pas être modifié</Text>
             </View>
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>Téléphone</Text>
@@ -167,6 +164,8 @@ const styles = StyleSheet.create({
   },
   fieldInput: { fontSize: 16, color: COLORS.black, fontWeight: '600', paddingVertical: 0 },
   fieldInputCompact: { fontSize: 15 },
+  fieldValueReadonly: { fontSize: 16, color: '#6B7280', fontWeight: '600' },
+  fieldHint: { fontSize: 12, color: '#9CA3AF', marginTop: 6, fontWeight: '500' },
   saveBtn: {
     marginTop: 28,
     backgroundColor: COLORS.primary,

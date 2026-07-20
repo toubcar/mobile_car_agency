@@ -12,13 +12,28 @@ export const authService = {
     return response.data;
   },
 
-  async register(name: string, email: string, password: string, phone?: string): Promise<AuthResponse> {
+  async register(
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+    extras?: {
+      role?: 'agence';
+      address?: string;
+      city?: string;
+      quartier?: string;
+    },
+  ): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/register', {
       name,
       email,
       password,
       password_confirmation: password,
       phone,
+      ...(extras?.role ? { role: extras.role } : {}),
+      ...(extras?.address ? { address: extras.address } : {}),
+      ...(extras?.city ? { city: extras.city } : {}),
+      ...(extras?.quartier ? { quartier: extras.quartier } : {}),
     });
     await SecureStore.setItemAsync('auth_token', response.data.token);
     return response.data;

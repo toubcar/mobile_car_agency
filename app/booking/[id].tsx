@@ -6,12 +6,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { COLORS } from '@/constants/api';
 import { bookingsService } from '@/services/bookings.service';
 import { useAuthStore } from '@/store/authStore';
 import type { Booking } from '@/types';
 import { formatMoney } from '@/utils/money';
 import { rentalDays } from '@/utils/rental';
+import BookingCancellationFlow from '@/components/BookingCancellationFlow';
+import { canMessageBooking } from '@/utils/rentalMessaging';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
@@ -46,7 +49,7 @@ function fmtFull(d: string) {
 }
 
 export default function BookingDetailScreen() {
-  const { id }      = useLocalSearchParams<{ id: string }>();
+  const { id, openManage } = useLocalSearchParams<{ id: string; openManage?: string }>();
   const router      = useRouter();
   const queryClient = useQueryClient();
   const role              = useAuthStore((s) => s.role);
@@ -55,16 +58,22 @@ export default function BookingDetailScreen() {
 
   const canManage = role === 'admin' || role === 'agence';
   const isClient = isAuthenticated && !canManage;
+  const [cancelFlowOpen, setCancelFlowOpen] = useState(openManage === '1');
+
+  useEffect(() => {
+    if (openManage === '1') setCancelFlowOpen(true);
+  }, [openManage]);
 
   const cancelMutation = useMutation({
     mutationFn: () => bookingsService.cancelBooking(Number(id)),
     onSuccess: () => {
+      setCancelFlowOpen(false);
       queryClient.invalidateQueries({ queryKey: ['booking', id] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      Alert.alert('Annulée', 'Réservation annulée.');
+      Alert.alert('Réservation annulée', 'Votre annulation a bien été prise en compte.');
       router.back();
     },
-    onError: () => Alert.alert('Erreur', 'Impossible d’annuler.'),
+    onError: () => Alert.alert('Erreur', 'Impossible d’annuler pour le moment. Réessayez ou contactez l’agence.'),
   });
 
   const { data: booking, isLoading } = useQuery<Booking>({
@@ -177,30 +186,28 @@ export default function BookingDetailScreen() {
           </View>
         </View>
 
-        {isClient && (booking.status === 'pending' || booking.status === 'confirmed') ? (
-          <>
-            <Text style={styles.section}>Actions</Text>
-            <View style={styles.actionsWrap}>
+        {isClient && (canMessageBooking(booking) || booking.status === 'pending' || booking.status === 'confirmed') ? (
+          <View style={styles.clientActions}>
+            {canMessageBooking(booking) ? (
               <TouchableOpacity
-                style={styles.actionBtn}
+                style={styles.contactAgencyBtn}
                 onPress={() => router.push(`/messages/${booking.id}`)}
+                activeOpacity={0.88}
               >
-                <Text style={[styles.actionBtnTxt, { color: COLORS.primary }]}>Contacter l’agence</Text>
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#FFF" />
+                <Text style={styles.contactAgencyTxt}>Contacter l’agence</Text>
               </TouchableOpacity>
+            ) : null}
+            {(booking.status === 'pending' || booking.status === 'confirmed') ? (
               <TouchableOpacity
-                style={[styles.actionBtn, { borderColor: '#FF3B30' }]}
-                onPress={() =>
-                  Alert.alert('Annuler', 'Confirmer l’annulation ?', [
-                    { text: 'Non', style: 'cancel' },
-                    { text: 'Oui', style: 'destructive', onPress: () => cancelMutation.mutate() },
-                  ])
-                }
-                disabled={cancelMutation.isPending}
+                style={styles.manageLink}
+                onPress={() => setCancelFlowOpen(true)}
+                activeOpacity={0.7}
               >
-                <Text style={[styles.actionBtnTxt, { color: '#FF3B30' }]}>Annuler la réservation</Text>
+                <Text style={styles.manageLinkTxt}>Un imprévu ? Gérer cette réservation</Text>
               </TouchableOpacity>
-            </View>
-          </>
+            ) : null}
+          </View>
         ) : null}
 
         {/* Actions (admin/agence only) */}
@@ -228,6 +235,16 @@ export default function BookingDetailScreen() {
           </>
         )}
       </ScrollView>
+
+      {isClient && booking ? (
+        <BookingCancellationFlow
+          visible={cancelFlowOpen}
+          booking={booking}
+          onClose={() => setCancelFlowOpen(false)}
+          onConfirmCancel={() => cancelMutation.mutate()}
+          isCancelling={cancelMutation.isPending}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -271,4 +288,20 @@ const styles = StyleSheet.create({
   actionBtn:        { borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1.5, backgroundColor: '#FFF', ...SHADOW },
   actionBtnDisabled: { opacity: 0.5 },
   actionBtnTxt:     { fontSize: 15, fontWeight: '700' },
+
+  clientActions: { marginTop: 24, gap: 14, alignItems: 'center', paddingBottom: 8 },
+  contactAgencyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 14,
+    paddingVertical: 15,
+    ...SHADOW,
+  },
+  contactAgencyTxt: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+  manageLink: { paddingVertical: 10, paddingHorizontal: 8 },
+  manageLinkTxt: { fontSize: 13, color: '#9CA3AF', fontWeight: '600', textDecorationLine: 'underline' },
 });

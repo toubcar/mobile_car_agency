@@ -1,4 +1,6 @@
 import apiClient from './api';
+import { normalizeCarImages } from '@/utils/carImages';
+import { isRentalMessagingOpen } from '@/utils/rentalMessaging';
 
 export interface ChatMessage {
   id: number;
@@ -19,11 +21,13 @@ export type ConversationAgency = {
   name: string;
   city?: string;
   phone?: string;
+  profile_picture?: string;
 };
 
 export type ConversationCar = {
   id: number;
   name: string;
+  image?: string;
 };
 
 export interface InboxConversation {
@@ -33,6 +37,8 @@ export interface InboxConversation {
   title: string;
   subtitle: string;
   status: string;
+  /** false = historique lecture seule (réservation annulée ou terminée) */
+  messaging_open?: boolean;
   unread_count: number;
   agency?: ConversationAgency | null;
   car?: ConversationCar | null;
@@ -70,6 +76,12 @@ function normalizeAgency(raw: unknown): ConversationAgency | null {
     name: String(a.name ?? ''),
     city: a.city != null ? String(a.city) : undefined,
     phone: a.phone != null ? String(a.phone) : undefined,
+    profile_picture:
+      a.profile_picture != null
+        ? String(a.profile_picture)
+        : a.avatar != null
+          ? String(a.avatar)
+          : undefined,
   };
 }
 
@@ -78,19 +90,35 @@ function normalizeCar(raw: unknown): ConversationCar | null {
   const car = raw as Record<string, unknown>;
   const id = Number(car.id);
   if (!Number.isFinite(id)) return null;
-  return { id, name: String(car.name ?? '') };
+  const images = normalizeCarImages(car.images, car.image ?? car.pictures);
+  const image =
+    images[0] ??
+    (typeof car.image === 'string' && car.image.trim() ? String(car.image) : undefined);
+  return {
+    id,
+    name: String(car.name ?? ''),
+    ...(image ? { image } : {}),
+  };
 }
 
 function normalizeConversation(raw: unknown): InboxConversation {
   const c = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const last = c.last_message;
+  const status = String(c.status ?? '');
+  const messagingOpen =
+    c.messaging_open === false
+      ? false
+      : c.messaging_open === true
+        ? true
+        : isRentalMessagingOpen(status);
   return {
     id: Number(c.id) || 0,
     type: c.type === 'support' ? 'support' : 'rental',
     peer_type: c.peer_type === 'client' || c.peer_type === 'agency' ? c.peer_type : null,
     title: String(c.title ?? ''),
     subtitle: String(c.subtitle ?? ''),
-    status: String(c.status ?? ''),
+    status,
+    messaging_open: messagingOpen,
     unread_count: Number(c.unread_count) || 0,
     agency: normalizeAgency(c.agency),
     car: normalizeCar(c.car),

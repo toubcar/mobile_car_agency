@@ -42,26 +42,31 @@ export default function SearchScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     location?: string;
+    quartier?: string;
     category?: string;
     start_date?: string;
     end_date?: string;
   }>();
 
   const location = typeof params.location === 'string' ? params.location : undefined;
+  const quartier = typeof params.quartier === 'string' ? params.quartier : undefined;
   const category = typeof params.category === 'string' ? params.category : undefined;
   const startDate = typeof params.start_date === 'string' ? params.start_date : undefined;
   const endDate = typeof params.end_date === 'string' ? params.end_date : undefined;
 
   const [search, setSearch] = useState('');
 
-  const hasFilters = Boolean(location || category || startDate || endDate);
+  const hasFilters = Boolean(location || quartier || category || startDate || endDate);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['cars', 'search', location, category],
+    queryKey: ['cars', 'search', location, quartier, category, startDate, endDate],
     queryFn: () =>
       carsService.getCars({
         ...(location ? { location } : {}),
+        ...(quartier ? { quartier } : {}),
         ...(category ? { category } : {}),
+        ...(startDate ? { start_date: startDate } : {}),
+        ...(endDate ? { end_date: endDate } : {}),
       }),
   });
 
@@ -69,12 +74,19 @@ export default function SearchScreen() {
   const cars = all.filter((car) => {
     const name = [car.name, car.brand, car.model].filter(Boolean).join(' ').toLowerCase();
     const loc = (car.location ?? '').toLowerCase();
+    const carQuartier = (car.quartier ?? '').toLowerCase();
     const matchSearch =
       search.length === 0 ||
       name.includes(search.toLowerCase()) ||
-      loc.includes(search.toLowerCase());
+      loc.includes(search.toLowerCase()) ||
+      carQuartier.includes(search.toLowerCase());
+    const matchCity = !location || loc.includes(location.toLowerCase());
+    const matchQuartier =
+      !quartier ||
+      carQuartier.includes(quartier.toLowerCase()) ||
+      loc.includes(quartier.toLowerCase());
     const matchAvailable = startDate && endDate ? car.is_available !== false : true;
-    return matchSearch && matchAvailable;
+    return matchSearch && matchCity && matchQuartier && matchAvailable;
   });
 
   const openFilters = () => {
@@ -82,11 +94,17 @@ export default function SearchScreen() {
       pathname: '/(tabs)/search-filters',
       params: {
         ...(location ? { location } : {}),
+        ...(quartier ? { quartier } : {}),
         ...(category ? { category } : {}),
         ...(startDate ? { start_date: startDate } : {}),
         ...(endDate ? { end_date: endDate } : {}),
       },
     });
+  };
+
+  const resetFilters = () => {
+    setSearch('');
+    router.replace('/(tabs)/search');
   };
 
   const startLabel = startDate ? formatFrenchDate(parseIsoDate(startDate)!) : null;
@@ -122,12 +140,18 @@ export default function SearchScreen() {
         </View>
 
         {hasFilters && (
-          <TouchableOpacity style={styles.filtersSummary} onPress={openFilters} activeOpacity={0.85}>
-            <View style={styles.filtersSummaryBody}>
+          <View style={styles.filtersSummary}>
+            <TouchableOpacity style={styles.filtersSummaryBody} onPress={openFilters} activeOpacity={0.85}>
               {location ? (
                 <View style={styles.filterTag}>
                   <Ionicons name="location-outline" size={12} color="#1D3557" />
                   <Text style={styles.filterTagText}>{location}</Text>
+                </View>
+              ) : null}
+              {quartier ? (
+                <View style={styles.filterTag}>
+                  <Ionicons name="map-outline" size={12} color="#1D3557" />
+                  <Text style={styles.filterTagText}>{quartier}</Text>
                 </View>
               ) : null}
               {startLabel && endLabel ? (
@@ -144,9 +168,19 @@ export default function SearchScreen() {
                   <Text style={styles.filterTagText}>{CATEGORY_LABELS[category] ?? category}</Text>
                 </View>
               ) : null}
-            </View>
-            <Text style={styles.editFilters}>Modifier</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={openFilters} hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}>
+              <Text style={styles.editFilters}>Modifier</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.resetFilterBtn}
+              onPress={resetFilters}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+              accessibilityLabel="Réinitialiser les filtres"
+            >
+              <Ionicons name="close-circle" size={22} color="#1D3557" />
+            </TouchableOpacity>
+          </View>
         )}
 
         {!hasFilters && (
@@ -316,6 +350,12 @@ const styles = StyleSheet.create({
   filterTag: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterTagText: { fontSize: 12, fontWeight: '600', color: '#1D3557', flex: 1 },
   editFilters: { fontSize: 12, fontWeight: '800', color: '#1D3557' },
+  resetFilterBtn: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   addFiltersBtn: {
     flexDirection: 'row',
     alignItems: 'center',

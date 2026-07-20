@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { replaceRootByRole } from '@/utils/replaceByRole';
+import { CITIES, getQuartersForCity } from '@/constants/locations';
 
 const { width: W } = Dimensions.get('window');
 
@@ -45,6 +46,11 @@ export default function RegisterScreen() {
   const [name,  setName]  = useState('');
   const [email, setEmail] = useState(typeof emailParam === 'string' ? emailParam : '');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [quartier, setQuartier] = useState('');
+
+  const quarters = useMemo(() => getQuartersForCity(city), [city]);
 
   /* ── Step 2 fields ── */
   const [password,     setPassword]     = useState('');
@@ -64,7 +70,12 @@ export default function RegisterScreen() {
   const passwordValid = rules.every((r) => r.ok);
 
   /* ── Step 1 validation ── */
-  const step1Valid = name.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && phone.trim().length >= 8;
+  const step1BaseValid =
+    name.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && phone.trim().length >= 8;
+  const step1AgencyValid =
+    address.trim().length >= 3 && Boolean(city) && Boolean(quartier);
+  const step1Valid =
+    accountType === 'agency' ? step1BaseValid && step1AgencyValid : step1BaseValid;
 
   /* ── Navigation ── */
   const goBack = () => {
@@ -87,7 +98,20 @@ export default function RegisterScreen() {
   /* ── Final submit ── */
   const handleSubmit = async () => {
     try {
-      await register(name.trim(), email.trim(), password, phone.trim());
+      await register(
+        name.trim(),
+        email.trim(),
+        password,
+        phone.trim(),
+        accountType === 'agency'
+          ? {
+              role: 'agence',
+              address: address.trim(),
+              city,
+              quartier,
+            }
+          : undefined,
+      );
       replaceRootByRole(router, useAuthStore.getState().role);
     } catch (error: any) {
       Alert.alert('Inscription échouée', error?.response?.data?.message ?? 'Une erreur est survenue.');
@@ -185,6 +209,56 @@ export default function RegisterScreen() {
                     keyboardType="phone-pad"
                   />
                 </View>
+
+                {accountType === 'agency' ? (
+                  <>
+                    <View style={styles.inputWrap}>
+                      <Ionicons name="home-outline" size={17} color="#6B7280" style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Adresse de l’agence"
+                        placeholderTextColor="#9CA3AF"
+                        value={address}
+                        onChangeText={setAddress}
+                      />
+                    </View>
+
+                    <Text style={styles.chipSectionLabel}>Ville</Text>
+                    <View style={styles.chipGrid}>
+                      {CITIES.map((c) => (
+                        <TouchableOpacity
+                          key={c}
+                          style={[styles.chip, city === c && styles.chipActive]}
+                          onPress={() => {
+                            setCity(c);
+                            setQuartier('');
+                          }}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={[styles.chipText, city === c && styles.chipTextActive]}>{c}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <Text style={styles.chipSectionLabel}>Quartier</Text>
+                    {!city ? (
+                      <Text style={styles.chipHint}>Choisissez d’abord une ville.</Text>
+                    ) : (
+                      <View style={styles.chipGrid}>
+                        {quarters.map((q) => (
+                          <TouchableOpacity
+                            key={q}
+                            style={[styles.chip, quartier === q && styles.chipActive]}
+                            onPress={() => setQuartier(quartier === q ? '' : q)}
+                            activeOpacity={0.75}
+                          >
+                            <Text style={[styles.chipText, quartier === q && styles.chipTextActive]}>{q}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ) : null}
               </View>
             )}
 
@@ -377,6 +451,26 @@ const styles = StyleSheet.create({
     color: '#1A1A2E',
   },
   eyeBtn: { paddingLeft: 8 },
+  chipSectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1A1A2E',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  chipHint: { fontSize: 13, color: '#6B7280', marginBottom: 10 },
+  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+  },
+  chipActive: { backgroundColor: '#1D3557', borderColor: '#1D3557' },
+  chipText: { fontSize: 13, fontWeight: '600', color: '#4B5563' },
+  chipTextActive: { color: '#FFFFFF' },
 
   /* Password rules */
   rules: { gap: 10, marginTop: 4 },

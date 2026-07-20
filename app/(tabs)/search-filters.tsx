@@ -4,7 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
+  Alert,
 } from 'react-native';
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -13,17 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PageHeader from '@/components/PageHeader';
 import BookingDateRangePicker, { toIsoDate } from '@/components/BookingDateRangePicker';
 import { rentalDays } from '@/utils/rental';
-
-const CITIES = [
-  'Casablanca',
-  'Rabat',
-  'Marrakech',
-  'Fès',
-  'Tanger',
-  'Agadir',
-  'Meknès',
-  'Oujda',
-];
+import { CITIES, getQuartersForCity } from '@/constants/locations';
 
 const CATEGORIES: { key: string; label: string }[] = [
   { key: 'all', label: 'Tous' },
@@ -58,6 +48,7 @@ export default function SearchFiltersScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     location?: string;
+    quartier?: string;
     category?: string;
     start_date?: string;
     end_date?: string;
@@ -65,11 +56,14 @@ export default function SearchFiltersScreen() {
 
   const initialStart = parseIsoDate(params.start_date) ?? defaultStartDate();
   const [city, setCity] = useState(params.location ?? '');
+  const [quartier, setQuartier] = useState(params.quartier ?? '');
   const [category, setCategory] = useState(params.category ?? 'all');
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(
     () => parseIsoDate(params.end_date) ?? defaultEndDate(initialStart),
   );
+
+  const quarters = useMemo(() => getQuartersForCity(city), [city]);
 
   const minStart = useMemo(() => {
     const d = new Date();
@@ -79,24 +73,31 @@ export default function SearchFiltersScreen() {
 
   const days = rentalDays(toIsoDate(startDate), toIsoDate(endDate));
 
-  const handleSearch = () => {
+  const selectCity = (c: string) => {
+    if (city === c) {
+      setCity('');
+      setQuartier('');
+      return;
+    }
+    setCity(c);
+    setQuartier('');
+  };
+
+  const handleValidate = () => {
+    if (!city) {
+      Alert.alert('Ville requise', 'Veuillez sélectionner une ville dans la liste.');
+      return;
+    }
     router.push({
       pathname: '/(tabs)/search',
       params: {
-        ...(city.trim() ? { location: city.trim() } : {}),
+        location: city,
+        ...(quartier ? { quartier } : {}),
         ...(category !== 'all' ? { category } : {}),
         start_date: toIsoDate(startDate),
         end_date: toIsoDate(endDate),
       },
     });
-  };
-
-  const handleReset = () => {
-    const start = defaultStartDate();
-    setCity('');
-    setCategory('all');
-    setStartDate(start);
-    setEndDate(defaultEndDate(start));
   };
 
   return (
@@ -109,7 +110,7 @@ export default function SearchFiltersScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.lead}>
-          Choisissez une ville, vos dates et le type de véhicule pour afficher les résultats.
+          Choisissez une ville, un quartier, vos dates et le type de véhicule.
         </Text>
 
         {/* Ville */}
@@ -118,34 +119,47 @@ export default function SearchFiltersScreen() {
             <Ionicons name="location-outline" size={18} color="#1D3557" />
             <Text style={styles.sectionTitle}>Ville</Text>
           </View>
-          <View style={styles.cityInputBox}>
-            <Ionicons name="search-outline" size={16} color="#9CA3AF" />
-            <TextInput
-              style={styles.cityInput}
-              placeholder="Ex. Casablanca, Rabat..."
-              placeholderTextColor="#9CA3AF"
-              value={city}
-              onChangeText={setCity}
-              autoCorrect={false}
-            />
-            {city.length > 0 && (
-              <TouchableOpacity onPress={() => setCity('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-              </TouchableOpacity>
-            )}
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityChips}>
+          <View style={styles.cityGrid}>
             {CITIES.map((c) => (
               <TouchableOpacity
                 key={c}
                 style={[styles.cityChip, city === c && styles.cityChipActive]}
-                onPress={() => setCity(city === c ? '' : c)}
+                onPress={() => selectCity(c)}
                 activeOpacity={0.75}
               >
+                <Ionicons
+                  name={city === c ? 'location' : 'location-outline'}
+                  size={14}
+                  color={city === c ? '#FFFFFF' : '#6B7280'}
+                />
                 <Text style={[styles.cityChipText, city === c && styles.cityChipTextActive]}>{c}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
+        </View>
+
+        {/* Quartier */}
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Ionicons name="map-outline" size={18} color="#1D3557" />
+            <Text style={styles.sectionTitle}>Quartier</Text>
+          </View>
+          {!city ? (
+            <Text style={styles.hint}>Sélectionnez d’abord une ville pour voir les quartiers.</Text>
+          ) : (
+            <View style={styles.cityGrid}>
+              {quarters.map((q) => (
+                <TouchableOpacity
+                  key={q}
+                  style={[styles.cityChip, quartier === q && styles.cityChipActive]}
+                  onPress={() => setQuartier(quartier === q ? '' : q)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.cityChipText, quartier === q && styles.cityChipTextActive]}>{q}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Dates */}
@@ -188,12 +202,9 @@ export default function SearchFiltersScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.resetBtn} onPress={handleReset} activeOpacity={0.8}>
-          <Text style={styles.resetBtnText}>Réinitialiser</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.searchBtn} onPress={handleSearch} activeOpacity={0.85}>
-          <Ionicons name="search" size={18} color="#FFFFFF" />
-          <Text style={styles.searchBtnText}>Voir les résultats</Text>
+        <TouchableOpacity style={styles.validateBtn} onPress={handleValidate} activeOpacity={0.85}>
+          <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+          <Text style={styles.validateBtnText}>Valider</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -209,33 +220,25 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
   },
+  hint: { fontSize: 13, color: '#9CA3AF', lineHeight: 18 },
   section: { gap: 12 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
-  cityInputBox: {
+  cityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  cityChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    gap: 6,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  cityInput: { flex: 1, fontSize: 15, color: '#111827', fontWeight: '500' },
-  cityChips: { gap: 8, paddingVertical: 2 },
-  cityChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  cityChipActive: { backgroundColor: '#EBF5FB', borderColor: '#1D3557' },
+  cityChipActive: { backgroundColor: '#1D3557', borderColor: '#1D3557' },
   cityChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
-  cityChipTextActive: { color: '#1D3557' },
+  cityChipTextActive: { color: '#FFFFFF' },
   categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   categoryChip: {
     paddingHorizontal: 14,
@@ -249,8 +252,6 @@ const styles = StyleSheet.create({
   categoryChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   categoryChipTextActive: { color: '#FFFFFF' },
   footer: {
-    flexDirection: 'row',
-    gap: 10,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 20,
@@ -258,25 +259,14 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
   },
-  resetBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resetBtnText: { fontSize: 15, fontWeight: '700', color: '#6B7280' },
-  searchBtn: {
-    flex: 2,
+  validateBtn: {
     flexDirection: 'row',
     gap: 8,
-    paddingVertical: 14,
+    paddingVertical: 15,
     borderRadius: 14,
     backgroundColor: '#1D3557',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchBtnText: { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
+  validateBtnText: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
 });
