@@ -19,7 +19,7 @@ import { formatMoney } from '@/utils/money';
 import PageHeader from '@/components/PageHeader';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
-import { t, jsLocale } from '@/i18n';
+import { t, jsLocale, chevronChar } from '@/i18n';
 
 const PAY_STATUS: Record<string, { label: string; color: string; bg: string }> = {
   paid: { get label() { return t('Payé'); }, color: COLORS.success, bg: COLORS.success + '18' },
@@ -123,7 +123,7 @@ export default function PaymentsScreen() {
             <Text style={styles.linkTitle}>{t('Demandes de paiement')}</Text>
             <Text style={styles.linkSub}>{t('Approuver ou rejeter les virements agences')}</Text>
           </View>
-          <Text style={styles.chevron}>›</Text>
+          <Text style={styles.chevron}>{chevronChar()}</Text>
         </TouchableOpacity>
       </ScrollView>,
     );

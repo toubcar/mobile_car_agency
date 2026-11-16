@@ -8,29 +8,31 @@ import {
   ActivityIndicator,
   Image,
   Dimensions,
-  ScrollView,
+  Modal,
+  Pressable,
 } from 'react-native';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { carsService } from '../../services/cars.service';
-import { Car } from '../../types';
+import { Car, CatalogueSort } from '../../types';
 import { formatMoneyPerDay } from '@/utils/money';
 import { formatFrenchDate } from '@/components/BookingDateRangePicker';
+import { activeFilterCount, apiParamsFromQuery, queryFromRoute, routeFromQuery } from '@/utils/catalogueParams';
+import { t, tl, dirIcon } from '@/i18n';
 
 const { width: W } = Dimensions.get('window');
 const CARD_W = (W - 48) / 2;
 
-const CATEGORY_LABELS: Record<string, string> = {
-  SUV: 'SUV',
-  Sedan: 'Berline',
-  Economy: 'Économique',
-  Luxury: 'Luxe',
-  Hatchback: 'Citadine',
-  Convertible: 'Cabriolet',
-};
+const SORT_OPTIONS: { key: CatalogueSort; label: () => string }[] = [
+  { key: 'default', label: () => t('Pertinence') },
+  { key: 'newest', label: () => t('Plus récentes') },
+  { key: 'price_asc', label: () => t('Prix croissant') },
+  { key: 'price_desc', label: () => t('Prix décroissant') },
+  { key: 'rating_desc', label: () => t('Mieux notées') },
+];
 
 function parseIsoDate(value?: string): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -40,57 +42,48 @@ function parseIsoDate(value?: string): Date | null {
 
 export default function SearchScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{
-    location?: string;
-    category?: string;
-    start_date?: string;
-    end_date?: string;
-  }>();
+  const params = useLocalSearchParams();
+  const query = useMemo(() => queryFromRoute(params), [params]);
 
-  const location = typeof params.location === 'string' ? params.location : undefined;
-  const category = typeof params.category === 'string' ? params.category : undefined;
-  const startDate = typeof params.start_date === 'string' ? params.start_date : undefined;
-  const endDate = typeof params.end_date === 'string' ? params.end_date : undefined;
+  // The search box asks the server (brand, model, city), a short moment after the last key
+  const [text, setText] = useState(query.q ?? '');
+  const [typed, setTyped] = useState(query.q ?? '');
+  const [sortOpen, setSortOpen] = useState(false);
 
-  const [search, setSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setTyped(text.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [text]);
 
-  const hasFilters = Boolean(location || category || startDate || endDate);
+  const filters = useMemo(() => ({ ...query, q: typed || undefined }), [query, typed]);
+  const filterCount = activeFilterCount(filters);
+  const sort = filters.sort ?? 'default';
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['cars', 'search', location, category],
-    queryFn: () =>
-      carsService.getCars({
-        ...(location ? { location } : {}),
-        ...(category ? { category } : {}),
-      }),
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching, isError } = useInfiniteQuery({
+    queryKey: ['cars', 'search', filters],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => carsService.getCars({ ...apiParamsFromQuery(filters), page: pageParam }),
+    getNextPageParam: (last) => (last.current_page < last.last_page ? last.current_page + 1 : undefined),
   });
 
-  const all = data?.data ?? [];
-  const cars = all.filter((car) => {
-    const name = [car.name, car.brand, car.model].filter(Boolean).join(' ').toLowerCase();
-    const loc = (car.location ?? '').toLowerCase();
-    const matchSearch =
-      search.length === 0 ||
-      name.includes(search.toLowerCase()) ||
-      loc.includes(search.toLowerCase());
-    const matchAvailable = startDate && endDate ? car.is_available !== false : true;
-    return matchSearch && matchAvailable;
-  });
+  const cars = useMemo(() => {
+    const seen = new Set<number>();
+    return (data?.pages ?? []).flatMap((page) => page.data).filter((car) => (seen.has(car.id) ? false : (seen.add(car.id), true)));
+  }, [data]);
+  const total = data?.pages[0]?.total ?? 0;
 
   const openFilters = () => {
-    router.push({
-      pathname: '/(tabs)/search-filters',
-      params: {
-        ...(location ? { location } : {}),
-        ...(category ? { category } : {}),
-        ...(startDate ? { start_date: startDate } : {}),
-        ...(endDate ? { end_date: endDate } : {}),
-      },
-    });
+    router.push({ pathname: '/(tabs)/search-filters', params: routeFromQuery({ ...query, q: typed || undefined }) });
   };
 
-  const startLabel = startDate ? formatFrenchDate(parseIsoDate(startDate)!) : null;
-  const endLabel = endDate ? formatFrenchDate(parseIsoDate(endDate)!) : null;
+  const changeSort = (next: CatalogueSort) => {
+    setSortOpen(false);
+    router.setParams(routeFromQuery({ ...query, q: typed || undefined, sort: next }) as Record<string, string>);
+  };
+
+  const startLabel = filters.start_date ? formatFrenchDate(parseIsoDate(filters.start_date)!) : null;
+  const endLabel = filters.end_date ? formatFrenchDate(parseIsoDate(filters.end_date)!) : null;
+  const sortLabel = SORT_OPTIONS.find((option) => option.key === sort)?.label() ?? t('Pertinence');
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -99,21 +92,21 @@ export default function SearchScreen() {
       <View style={styles.header}>
         <View style={styles.topRow}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.75}>
-            <Ionicons name="arrow-back" size={18} color="#111827" />
+            <Ionicons name={dirIcon('arrow-back')} size={18} color="#111827" />
           </TouchableOpacity>
           <View style={styles.searchRow}>
             <View style={styles.searchBox}>
               <Ionicons name="search-outline" size={17} color="#9CA3AF" style={{ marginRight: 8 }} />
               <TextInput
                 style={styles.input}
-                placeholder="Voiture, ville, marque..."
+                placeholder={t('Voiture, ville, marque...')}
                 placeholderTextColor="#9CA3AF"
-                value={search}
-                onChangeText={setSearch}
+                value={text}
+                onChangeText={setText}
                 autoCorrect={false}
               />
-              {search.length > 0 && (
-                <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              {text.length > 0 && (
+                <TouchableOpacity onPress={() => setText('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Ionicons name="close-circle" size={18} color="#9CA3AF" />
                 </TouchableOpacity>
               )}
@@ -121,13 +114,13 @@ export default function SearchScreen() {
           </View>
         </View>
 
-        {hasFilters && (
+        {filterCount > 0 ? (
           <TouchableOpacity style={styles.filtersSummary} onPress={openFilters} activeOpacity={0.85}>
             <View style={styles.filtersSummaryBody}>
-              {location ? (
+              {filters.location ? (
                 <View style={styles.filterTag}>
                   <Ionicons name="location-outline" size={12} color="#1D3557" />
-                  <Text style={styles.filterTagText}>{location}</Text>
+                  <Text style={styles.filterTagText}>{filters.location}</Text>
                 </View>
               ) : null}
               {startLabel && endLabel ? (
@@ -138,30 +131,47 @@ export default function SearchScreen() {
                   </Text>
                 </View>
               ) : null}
-              {category ? (
+              {filters.category || filters.brand || filters.seats || filters.transmission?.length || filters.fuel_type?.length ? (
                 <View style={styles.filterTag}>
                   <Ionicons name="car-outline" size={12} color="#1D3557" />
-                  <Text style={styles.filterTagText}>{CATEGORY_LABELS[category] ?? category}</Text>
+                  <Text style={styles.filterTagText} numberOfLines={2}>
+                    {[
+                      filters.category ? tl(filters.category) : null,
+                      filters.brand,
+                      filters.seats ? t(':count places et plus', { count: filters.seats }) : null,
+                      ...(filters.transmission ?? []).map((v) => tl(v)),
+                      ...(filters.fuel_type ?? []).map((v) => tl(v)),
+                    ].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+              ) : null}
+              {filters.min_price || filters.max_price ? (
+                <View style={styles.filterTag}>
+                  <Ionicons name="cash-outline" size={12} color="#1D3557" />
+                  <Text style={styles.filterTagText}>
+                    {`${filters.min_price ?? 0} – ${filters.max_price ?? '∞'} ${t('DH/jour')}`}
+                  </Text>
                 </View>
               ) : null}
             </View>
-            <Text style={styles.editFilters}>Modifier</Text>
+            <Text style={styles.editFilters}>{t('Modifier')}</Text>
           </TouchableOpacity>
-        )}
-
-        {!hasFilters && (
+        ) : (
           <TouchableOpacity style={styles.addFiltersBtn} onPress={openFilters} activeOpacity={0.85}>
             <Ionicons name="options-outline" size={16} color="#1D3557" />
-            <Text style={styles.addFiltersText}>Ajouter des filtres</Text>
+            <Text style={styles.addFiltersText}>{t('Ajouter des filtres')}</Text>
           </TouchableOpacity>
         )}
 
-        {/* Results count */}
+        {/* Results count and sort */}
         <View style={styles.resultsRow}>
           <Text style={styles.resultsCount}>
-            {isLoading ? '—' : cars.length} {cars.length === 1 ? 'résultat' : 'résultats'}
+            {isLoading ? '—' : total} {total === 1 ? t('résultat') : t('résultats')}
           </Text>
-          <Text style={styles.sortLabel}>Pertinence</Text>
+          <TouchableOpacity style={styles.sortBtn} onPress={() => setSortOpen(true)} activeOpacity={0.8}>
+            <Ionicons name="swap-vertical" size={14} color="#1D3557" />
+            <Text style={styles.sortLabel}>{sortLabel}</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -176,21 +186,42 @@ export default function SearchScreen() {
           contentContainerStyle={styles.grid}
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+          }}
+          onEndReachedThreshold={0.6}
+          refreshing={isRefetching && !isFetchingNextPage}
+          onRefresh={() => void refetch()}
           renderItem={({ item }) => (
             <CarGridCard car={item} onPress={() => router.push(`/car/${item.id}`)} />
           )}
+          ListFooterComponent={isFetchingNextPage ? <ActivityIndicator color="#1D3557" style={{ marginVertical: 16 }} /> : null}
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <Ionicons name="car-outline" size={56} color="#D1D5DB" />
-              <Text style={styles.emptyTitle}>Aucun véhicule trouvé</Text>
-              <Text style={styles.emptyText}>Modifiez vos filtres ou votre recherche.</Text>
-              <TouchableOpacity style={styles.emptyBtn} onPress={openFilters} activeOpacity={0.85}>
-                <Text style={styles.emptyBtnText}>Modifier les filtres</Text>
+              <Text style={styles.emptyTitle}>{isError ? t('Chargement impossible') : t('Aucun véhicule trouvé')}</Text>
+              <Text style={styles.emptyText}>{isError ? t('Appuyez pour réessayer') : t('Modifiez vos filtres ou votre recherche.')}</Text>
+              <TouchableOpacity style={styles.emptyBtn} onPress={isError ? () => void refetch() : openFilters} activeOpacity={0.85}>
+                <Text style={styles.emptyBtnText}>{isError ? t('Réessayer') : t('Modifier les filtres')}</Text>
               </TouchableOpacity>
             </View>
           }
         />
       )}
+
+      <Modal visible={sortOpen} transparent animationType="fade" onRequestClose={() => setSortOpen(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setSortOpen(false)}>
+          <View style={styles.sheet}>
+            <Text style={styles.sheetTitle}>{t('Trier par')}</Text>
+            {SORT_OPTIONS.map((option) => (
+              <TouchableOpacity key={option.key} style={styles.sheetRow} onPress={() => changeSort(option.key)} activeOpacity={0.75}>
+                <Text style={[styles.sheetRowText, option.key === sort && styles.sheetRowTextActive]}>{option.label()}</Text>
+                {option.key === sort ? <Ionicons name="checkmark" size={18} color="#1D3557" /> : null}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -234,7 +265,7 @@ function CarGridCard({ car, onPress }: { car: Car; onPress: () => void }) {
         )}
 
         <Text style={styles.cardName} numberOfLines={1}>
-          {car.name?.trim() || [car.brand, car.model].filter(Boolean).join(' ') || 'Vehicle'}
+          {car.name?.trim() || [car.brand, car.model].filter(Boolean).join(' ') || t('Véhicule')}
         </Text>
 
         <View style={styles.locationRow}>
@@ -248,7 +279,7 @@ function CarGridCard({ car, onPress }: { car: Car; onPress: () => void }) {
 
         {car.category ? (
           <View style={styles.categoryPill}>
-            <Text style={styles.categoryText}>{car.category}</Text>
+            <Text style={styles.categoryText}>{tl(car.category)}</Text>
           </View>
         ) : null}
       </View>
@@ -340,6 +371,13 @@ const styles = StyleSheet.create({
   },
   resultsCount: { fontSize: 12, color: '#9CA3AF', fontWeight: '600' },
   sortLabel:    { fontSize: 12, color: '#1D3557', fontWeight: '700' },
+  sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4 },
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 },
+  sheetTitle: { fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 8 },
+  sheetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
+  sheetRowText: { fontSize: 15, color: '#374151', fontWeight: '600' },
+  sheetRowTextActive: { color: '#1D3557', fontWeight: '800' },
 
   /* Grid */
   grid: { padding: 16, paddingBottom: 100 },

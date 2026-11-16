@@ -1,4 +1,7 @@
+import type { ComponentProps } from 'react';
+import type { Ionicons } from '@expo/vector-icons';
 import { create } from 'zustand';
+import fr from './fr.json';
 import en from './en.json';
 import ar from './ar.json';
 
@@ -25,7 +28,8 @@ export const LOCALES: { code: Locale; name: string; short: string; rtl: boolean;
 ];
 
 const STORAGE_KEY = 'app_locale';
-const dictionaries: Record<Locale, Record<string, string>> = { fr: {}, en, ar };
+// fr.json ne contient que les valeurs de l'API écrites en anglais (catégories, carburants…) : les textes de l'app sont déjà en français
+const dictionaries: Record<Locale, Record<string, string>> = { fr, en, ar };
 
 let current: Locale = 'fr';
 
@@ -69,7 +73,12 @@ export function t(key: string, params?: Record<string, string | number | null | 
 
 /** Une valeur venue de l'API (catégorie, carburant, ville…) : traduite si on la connaît, sinon telle quelle. */
 export function tl<T>(value: T): T | string {
-  return typeof value === 'string' && value !== '' ? dictionaries[current][value] ?? value : value;
+  if (typeof value !== 'string' || value === '') return value;
+
+  const dictionary = dictionaries[current];
+
+  // 'automatic', 'Automatic' and 'AUTOMATIC' are the same value for the API's users
+  return dictionary[value] ?? dictionary[value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()] ?? value;
 }
 
 /** Hook : la langue courante (l'écran se redessine quand elle change). */
@@ -133,4 +142,29 @@ export async function setLocale(locale: Locale): Promise<void> {
       Alert.alert(t('Langue modifiée'), t('Fermez puis rouvrez l\'application pour appliquer le sens de lecture.'));
     }
   }
+}
+
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
+const MIRRORED: Partial<Record<string, string>> = {
+  'chevron-forward': 'chevron-back',
+  'chevron-back': 'chevron-forward',
+  'arrow-forward': 'arrow-back',
+  'arrow-back': 'arrow-forward',
+  'arrow-forward-circle': 'arrow-back-circle',
+  'arrow-back-circle': 'arrow-forward-circle',
+  'caret-forward': 'caret-back',
+  'caret-back': 'caret-forward',
+};
+
+/** Une icône qui indique un sens (suite, retour) : inversée en arabe, où l'on lit de droite à gauche. */
+export function dirIcon(name: IconName): IconName {
+  const rtl = (require('react-native') as typeof import('react-native')).I18nManager.isRTL;
+
+  return rtl ? ((MIRRORED[name] ?? name) as IconName) : name;
+}
+
+/** Le chevron › des listes, dans le sens de lecture. */
+export function chevronChar(): string {
+  return (require('react-native') as typeof import('react-native')).I18nManager.isRTL ? '‹' : '›';
 }

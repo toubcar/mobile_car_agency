@@ -1,5 +1,5 @@
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Modal, KeyboardAvoidingView, Platform,
+  View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Modal, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ import { agenciesService } from '@/services/agencies.service';
 import { marketingService } from '@/services/marketing.service';
 import type { PartnerAgency } from '@/types';
 
+import { describeApiError } from '@/utils/apiError';
 import { t } from '@/i18n';
 
 const FILTERS = [
@@ -57,21 +58,36 @@ export default function AdminAgenciesScreen() {
     queryClient.invalidateQueries({ queryKey: ['admin-backoffice-overview'] });
   };
 
+  // The server answers in the app's language and says why when it refuses (already decided by another admin...)
+  const showError = (err: unknown) => {
+    invalidate();
+    Alert.alert(t('Erreur'), describeApiError(err));
+  };
+
   const approveMutation = useMutation({
     mutationFn: (agency: PartnerAgency) => agenciesService.approve(agency.id, agency.commission_rate ?? 10),
     onSuccess: invalidate,
+    onError: showError,
   });
   const unsuspendMutation = useMutation({
     mutationFn: (agency: PartnerAgency) => agenciesService.unsuspend(agency.id),
     onSuccess: invalidate,
+    onError: showError,
   });
   const rejectMutation = useMutation({
     mutationFn: ({ agency, text }: { agency: PartnerAgency; text: string }) => agenciesService.reject(agency.id, text),
-    onSuccess: () => { invalidate(); closeReasonModal(); },
+    onSuccess: (result) => {
+      invalidate();
+      closeReasonModal();
+      // the last allowed attempt removes the agency: tell the admin, as the website does
+      if (result.removed) Alert.alert(t('Agence supprimée'), result.message);
+    },
+    onError: (err) => { closeReasonModal(); showError(err); },
   });
   const suspendMutation = useMutation({
     mutationFn: ({ agency, text }: { agency: PartnerAgency; text: string }) => agenciesService.suspend(agency.id, text),
     onSuccess: () => { invalidate(); closeReasonModal(); },
+    onError: showError,
   });
   const commissionMutation = useMutation({
     mutationFn: ({ agency, rate }: { agency: PartnerAgency; rate: number }) => agenciesService.updateCommission(agency.id, rate),

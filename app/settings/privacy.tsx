@@ -7,7 +7,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { profileService } from '@/services/profile.service';
 import { useAuthStore } from '@/store/authStore';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 const ITEMS = [
   { key: 'publicProfile', get label() { return t('Profil public'); }, get sub() { return t('Tout le monde peut voir votre page profil'); } },
@@ -61,7 +61,7 @@ export default function PrivacyScreen() {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.6}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name={dirIcon('chevron-back')} size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('Confidentialité')}</Text>
         <View style={{ width: 24 }} />

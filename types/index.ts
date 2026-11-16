@@ -7,8 +7,23 @@ export interface User {
   role: 'client' | 'agence' | 'admin';
   /** Email vérifié (Laravel) */
   is_verified?: boolean;
+  /** L'adresse e-mail est confirmée (les comptes Google, Apple et téléphone le sont d'office). */
+  email_verified?: boolean;
+  /** Langue du compte (celle des e-mails, SMS et notifications). */
+  locale?: 'fr' | 'en' | 'ar';
+  /** Agence : sa situation, pour afficher « en attente », « rejetée » ou « suspendue » à la place de l'espace pro. */
+  agency?: UserAgencyStatus | null;
   /** Présent sur le profil API ; parfois absent juste après login. */
   created_at?: string;
+}
+
+export interface UserAgencyStatus {
+  id: number;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  rejection_reason?: string | null;
+  suspension_reason?: string | null;
+  tries_count?: number;
+  max_tries?: number;
 }
 
 export interface Car {
@@ -123,11 +138,55 @@ export interface AdminUserStatistics {
   unverified: number;
 }
 
+export type CatalogueSort = 'default' | 'newest' | 'price_asc' | 'price_desc' | 'rating_desc';
+
+/** Paramètres de `GET /cars` — les mêmes filtres que le catalogue du site. */
 export interface SearchParams {
+  /** Texte libre : marque, modèle, ville ou quartier. */
+  q?: string;
+  /** Ville ou adresse (le « où » du site). */
   location?: string;
   start_date?: string;
   end_date?: string;
   category?: string;
+  brand?: string;
+  transmission?: string[];
+  fuel_type?: string[];
+  /** Nombre de places minimum. */
+  seats?: number;
+  /** Prix client par jour. */
   min_price?: number;
   max_price?: number;
+  sort?: CatalogueSort;
+  per_page?: number;
+}
+
+/** `GET /cars/filters` — ce qui existe dans le catalogue en ce moment. */
+export interface CatalogueFilters {
+  brands: string[];
+  categories: { id: number; name: string }[];
+  transmissions: string[];
+  fuel_types: string[];
+  cities: string[];
+  max_seats: number;
+  min_price: number;
+  max_price: number;
+  sorts: CatalogueSort[];
+}
+
+export interface CarReview {
+  id: number;
+  author: string;
+  rating: number;
+  comment?: string | null;
+  status?: string;
+  created_at?: string;
+}
+
+export interface CarReviewsResult {
+  data: CarReview[];
+  summary: { average: number; count: number; distribution: Record<string, number> };
+  current_page: number;
+  last_page: number;
+  total: number;
 }

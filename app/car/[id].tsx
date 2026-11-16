@@ -28,25 +28,19 @@ import { useAuthStore } from '../../store/authStore';
 import { formatMoneyPerDay } from '@/utils/money';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { patchCarsFavorite, patchFavoritesList } from '@/utils/favoritesCache';
+import CarReviews from '@/components/CarReviews';
 
-import { t } from '@/i18n';
+import { t, tl, dirIcon } from '@/i18n';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('screen');
 const DISMISS_THRESHOLD = 120;
 
 function fuelLabel(fuel?: string | null): string {
-  const map: Record<string, string> = {
-    petrol: 'Essence',
-    diesel: 'Diesel',
-    electric: 'Électrique',
-    hybrid: 'Hybride',
-  };
-  return fuel ? (map[fuel.toLowerCase()] ?? fuel) : 'Essence';
+  return fuel ? String(tl(fuel)) : '—';
 }
 
-function transmissionLabel(t?: string | null): string {
-  if (!t) return '—';
-  return t === 'automatic' ? 'Automatique' : 'Manuelle';
+function transmissionLabel(value?: string | null): string {
+  return value ? String(tl(value)) : '—';
 }
 
 export default function CarDetailScreen() {
@@ -407,7 +401,7 @@ export default function CarDetailScreen() {
                   <Ionicons name="location-outline" size={14} color="#9CA3AF" />
                   <Text style={styles.carLocation}>{car.location}</Text>
                   <View style={styles.categoryPill}>
-                    <Text style={styles.categoryText}>{car.category}</Text>
+                    <Text style={styles.categoryText}>{tl(car.category)}</Text>
                   </View>
                 </View>
 
@@ -439,6 +433,8 @@ export default function CarDetailScreen() {
                   </View>
                 </View>
 
+                <CarReviews carId={car.id} />
+
                 <View style={{ height: 16 }} />
               </View>
             </ScrollView>
@@ -458,7 +454,7 @@ export default function CarDetailScreen() {
                   {car.is_available ? t('Réserver') : t('Indisponible')}
                 </Text>
                 {car.is_available ? (
-                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 6 }} />
+                  <Ionicons name={dirIcon('arrow-forward')} size={16} color="#FFF" style={{ marginLeft: 6 }} />
                 ) : null}
               </TouchableOpacity>
             </View>

@@ -11,7 +11,7 @@ import { messagesService, type ChatMessage } from '@/services/messages.service';
 import { COLORS } from '@/constants/api';
 import { useAuthStore } from '@/store/authStore';
 
-import { t, jsLocale } from '@/i18n';
+import { t, jsLocale, dirIcon } from '@/i18n';
 
 function isMine(item: ChatMessage, userId?: number): boolean {
   if (item.sender_type === 'admin') return true;
@@ -75,7 +75,7 @@ export default function SupportMessageThreadScreen() {
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
+          <Ionicons name={dirIcon('chevron-back')} size={24} color={COLORS.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>

@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSocialAuth } from '@/hooks/useSocialAuth';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 const { width } = Dimensions.get('window');
 
@@ -54,7 +54,7 @@ export default function OnboardingScreen() {
       <SafeAreaView style={styles.safeArea}>
         {router.canGoBack() && (
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.75}>
-            <Ionicons name="arrow-back" size={18} color="#1A1A2E" />
+            <Ionicons name={dirIcon('arrow-back')} size={18} color="#1A1A2E" />
           </TouchableOpacity>
         )}
 
@@ -162,7 +162,7 @@ export default function OnboardingScreen() {
             >
               <Ionicons name="briefcase-outline" size={14} color="#6B7280" />
               <Text style={styles.proLoginText}>{t('Espace agence ou administrateur')}</Text>
-              <Ionicons name="chevron-forward" size={14} color="#6B7280" />
+              <Ionicons name={dirIcon('chevron-forward')} size={14} color="#6B7280" />
             </TouchableOpacity>
 
           </Animated.View>

@@ -13,7 +13,7 @@ import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
-import { LOCALES, getLocale, t } from '@/i18n';
+import { LOCALES, getLocale, t, chevronChar } from '@/i18n';
 
 const SECTIONS = [
   {
@@ -77,7 +77,7 @@ export default function AccountSettingsScreen() {
                       </Text>
                     ) : null}
                   </View>
-                  <Text style={styles.chevron}>›</Text>
+                  <Text style={styles.chevron}>{chevronChar()}</Text>
                 </TouchableOpacity>
               ))}
             </View>

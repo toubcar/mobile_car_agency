@@ -12,7 +12,7 @@ import { carsService } from '@/services/cars.service';
 import { useAuthStore } from '@/store/authStore';
 import type { Car } from '@/types';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 const FUELS = ['Essence', 'Diesel', 'Électrique', 'Hybride'];
@@ -104,7 +104,7 @@ export default function CarFormScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={22} color="#111827" />
+          <Ionicons name={dirIcon('chevron-back')} size={22} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{isNew ? t('Nouveau véhicule') : t('Modifier le véhicule')}</Text>
         <View style={{ width: 40 }} />

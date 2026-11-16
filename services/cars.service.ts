@@ -1,5 +1,5 @@
 import apiClient from './api';
-import { Car, PaginatedResponse, SearchParams } from '../types';
+import { Car, CarReviewsResult, CatalogueFilters, PaginatedResponse, SearchParams } from '../types';
 import { normalizeCarImages } from '@/utils/carImages';
 
 type BackofficeScope = 'admin' | 'agence';
@@ -76,6 +76,24 @@ export const carsService = {
   async getCars(params?: SearchParams & { page?: number }): Promise<PaginatedResponse<Car>> {
     const response = await apiClient.get('/cars', { params });
     return normalizePaginatedCars(response.data);
+  },
+
+  /** Les options de l'écran de filtres : marques, catégories, villes, fourchette de prix… */
+  async getFilters(): Promise<CatalogueFilters> {
+    const { data } = await apiClient.get<{ data: CatalogueFilters }>('/cars/filters');
+    return data.data;
+  },
+
+  /** Avis publiés d'un véhicule. */
+  async getReviews(carId: number, page = 1): Promise<CarReviewsResult> {
+    const { data } = await apiClient.get<CarReviewsResult>(`/cars/${carId}/reviews`, { params: { page } });
+    return data;
+  },
+
+  /** Laisse un avis (le client a loué le véhicule) : il est publié après modération. */
+  async postReview(carId: number, rating: number, comment?: string): Promise<{ message: string }> {
+    const { data } = await apiClient.post<{ message: string }>(`/cars/${carId}/reviews`, { rating, comment: comment || undefined });
+    return data;
   },
 
   async getCar(id: number): Promise<Car> {

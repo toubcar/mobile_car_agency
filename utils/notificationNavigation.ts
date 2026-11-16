@@ -74,7 +74,24 @@ export function resolveNotificationRoute(
     }
   }
 
+  // A customer's notifications: the booking, the conversation or the support ticket they are about
+  if (role === 'client') {
+    if (url.includes('message') || type.includes('message')) {
+      if (id) return `/messages/${id}`;
+      return '/(tabs)/messages';
+    }
+    if (category === 'support' || type.includes('support') || url.includes('support')) {
+      return id ? `/support/${id}` : '/support';
+    }
+    if (category === 'booking' || type.includes('booking') || type.includes('reservation') || type.includes('rental') || url.includes('rental') || url.includes('booking')) {
+      return id ? `/booking/${id}` : '/(tabs)/bookings';
+    }
+  }
+
   if (role === 'agence') {
+    if (category === 'support' || type.includes('support') || url.includes('support') || url.includes('ticket')) {
+      return id ? `/support/${id}` : '/support';
+    }
     if (category === 'reservation' || url.includes('booking') || url.includes('rental')) {
       if (id) return `/booking/${id}`;
       return '/(agence)/bookings';

@@ -12,7 +12,7 @@ import { COLORS, APP_NAME } from '@/constants/api';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 import { goToHome } from '@/utils/authNavigation';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -68,7 +68,7 @@ export default function LoginScreen() {
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.7}>
-              <Ionicons name="chevron-back" size={22} color="#111827" />
+              <Ionicons name={dirIcon('chevron-back')} size={22} color="#111827" />
             </TouchableOpacity>
 
             <View style={styles.header}>
@@ -133,6 +133,10 @@ export default function LoginScreen() {
                 </View>
               </View>
 
+              <TouchableOpacity style={styles.forgot} onPress={() => router.push('/(auth)/forgot-password')} activeOpacity={0.7}>
+                <Text style={styles.forgotText}>{t('Mot de passe oublié ?')}</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity style={[styles.btn, isLoading && styles.btnDisabled]} onPress={handleLogin} activeOpacity={0.85} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>{t('Se connecter')}</Text>}
               </TouchableOpacity>
@@ -191,6 +195,8 @@ const styles = StyleSheet.create({
     marginTop: 8, backgroundColor: COLORS.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center',
     shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 6,
   },
+  forgot: { alignSelf: 'flex-end', paddingVertical: 2 },
+  forgotText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   footerLink: { marginTop: 28, alignItems: 'center' },

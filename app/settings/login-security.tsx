@@ -15,7 +15,8 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import apiClient from '@/services/api';
+import axios from 'axios';
+import { profileService } from '@/services/profile.service';
 import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
@@ -95,14 +96,12 @@ export default function LoginSecurityScreen() {
     }
     setSaving(true);
     try {
-      await apiClient.put('/profile', {
-        current_password: current,
-        password: newPass,
-        password_confirmation: confirm,
-      });
+      await profileService.changePassword(current, newPass, confirm);
       Alert.alert(t('Mis à jour'), t('Votre mot de passe a été modifié.'), [{ text: 'OK', onPress: () => router.back() }]);
-    } catch {
-      Alert.alert(t('Erreur'), t('Modification impossible. Vérifiez le mot de passe actuel.'));
+    } catch (err) {
+      // the server says what is wrong (current password, rules) in the app's language
+      const errors = axios.isAxiosError(err) ? (err.response?.data as { errors?: Record<string, string[]> } | undefined)?.errors : undefined;
+      Alert.alert(t('Erreur'), (errors ? Object.values(errors)[0]?.[0] : undefined) ?? t('Modification impossible. Vérifiez le mot de passe actuel.'));
     } finally {
       setSaving(false);
     }

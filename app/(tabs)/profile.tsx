@@ -18,10 +18,12 @@ import { useLogout } from '@/hooks/useLogout';
 import { bookingsService } from '../../services/bookings.service';
 import { carsService } from '../../services/cars.service';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
+import { authService } from '@/services/auth.service';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { COLORS } from '@/constants/api';
 import { PROFILE_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsiveLayout';
 
-import { t } from '@/i18n';
+import { t, chevronChar } from '@/i18n';
 
 const MENU: {
   label: string;
@@ -32,6 +34,8 @@ const MENU: {
   { get label() { return t('Mes réservations'); }, get sub() { return t('À venir et passées'); }, route: '/(tabs)/bookings', icon: 'calendar-outline' },
   { get label() { return t('Favoris'); }, get sub() { return t('Vos véhicules enregistrés'); }, route: '/(tabs)/wishlists', icon: 'heart-outline' },
   { get label() { return t('Messages'); }, get sub() { return t('Échanges avec les agences'); }, route: '/(tabs)/messages', icon: 'chatbubbles-outline' },
+  { get label() { return t('Notifications'); }, get sub() { return t('Réservations, paiements, messages'); }, route: '/notifications', icon: 'notifications-outline' },
+  { get label() { return t('Assistance'); }, get sub() { return t('Vos tickets et notre équipe'); }, route: '/support', icon: 'help-buoy-outline' },
   { get label() { return t('Voir mon profil'); }, get sub() { return t('Nom, photo et infos publiques'); }, route: '/view-profile', icon: 'person-outline' },
   { get label() { return t('Paramètres du compte'); }, get sub() { return t('Sécurité, notifications, paiements'); }, route: '/account-settings', icon: 'settings-outline' },
 ];
@@ -80,7 +84,7 @@ function MenuRow({
         <Text style={[styles.menuLabel, isCompact && styles.menuLabelCompact]} numberOfLines={2}>{label}</Text>
         <Text style={styles.menuSub} numberOfLines={2}>{sub}</Text>
       </View>
-      <Text style={styles.chevron}>›</Text>
+      <Text style={styles.chevron}>{chevronChar()}</Text>
     </TouchableOpacity>
   );
 }
@@ -106,6 +110,16 @@ export default function ProfileScreen() {
     queryFn: () => carsService.getFavorites(),
     enabled: isAuthenticated && role === 'client',
   });
+
+  const resendVerification = async () => {
+    try {
+      const result = await authService.resendVerification();
+      useAuthStore.getState().updateUser({ email_verified: result.data.email_verified });
+      Alert.alert(t('E-mail envoyé'), result.message);
+    } catch {
+      Alert.alert(t('Erreur'), t('Envoi impossible.'));
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(t('Déconnexion'), t('Voulez-vous vraiment vous déconnecter ?'), [
@@ -143,6 +157,9 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.secondaryBtn} onPress={() => openAuthSheet('signup')} activeOpacity={0.85}>
               <Text style={styles.secondaryBtnText}>{t('Créer un compte')}</Text>
             </TouchableOpacity>
+            <View style={{ marginTop: 18, alignSelf: 'stretch' }}>
+              <LanguageSwitcher />
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -179,6 +196,19 @@ export default function ProfileScreen() {
         contentContainerStyle={[styles.scrollContent, scrollContentStyle, { maxWidth: contentWidth }]}
       >
         <Text style={[styles.pageTitle, isCompact && styles.pageTitleCompact]}>{t('Profil')}</Text>
+
+        {user && user.email_verified === false ? (
+          <View style={styles.verifyBanner}>
+            <Ionicons name="mail-unread-outline" size={22} color="#92400E" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.verifyTitle}>{t('Confirmez votre adresse e-mail')}</Text>
+              <Text style={styles.verifySub}>{t('Un lien de confirmation vous a été envoyé à :email.', { email: user.email })}</Text>
+            </View>
+            <TouchableOpacity onPress={resendVerification} activeOpacity={0.8}>
+              <Text style={styles.verifyAction}>{t('Renvoyer')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
 
         <View style={[styles.heroCard, isCompact && styles.heroCardCompact]}>
           <LinearGradient
@@ -282,6 +312,10 @@ const styles = StyleSheet.create({
     height: 200,
   },
   scrollContent: { flexGrow: 1 },
+  verifyBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFFBEB', borderRadius: 16, borderWidth: 1, borderColor: '#FDE68A', padding: 14, marginBottom: 14 },
+  verifyTitle: { fontSize: 14, fontWeight: '800', color: '#92400E' },
+  verifySub: { fontSize: 12, color: '#B45309', marginTop: 2, lineHeight: 17 },
+  verifyAction: { fontSize: 13, fontWeight: '800', color: COLORS.primary },
   pageTitle: {
     fontSize: 26,
     fontWeight: '800',

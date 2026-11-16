@@ -26,7 +26,7 @@ import {
   resolveNotificationRoute,
 } from '@/utils/notificationNavigation';
 
-import { t } from '@/i18n';
+import { t, chevronChar } from '@/i18n';
 
 const SCREEN_H = Dimensions.get('window').height;
 const PANEL_WIDTH = Math.min(360, Dimensions.get('window').width - 32);
@@ -108,7 +108,7 @@ function NotificationRow({
           <Text style={styles.itemTime}>{item.time_ago}</Text>
         ) : null}
       </View>
-      <Text style={styles.itemArrow}>›</Text>
+      <Text style={styles.itemArrow}>{chevronChar()}</Text>
     </TouchableOpacity>
   );
 }

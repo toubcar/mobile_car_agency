@@ -9,7 +9,7 @@ import { messagesService, type InboxConversation } from '@/services/messages.ser
 import { COLORS } from '@/constants/api';
 import { adminShadow } from '@/constants/adminTheme';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 type FilterKey = 'all' | 'client' | 'agency';
 
@@ -154,7 +154,7 @@ export default function AdminMessagesInbox({
                   ) : null}
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
+              <Ionicons name={dirIcon('chevron-forward')} size={16} color="#C7C7CC" />
             </TouchableOpacity>
           )}
         />

@@ -13,7 +13,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { t } from '@/i18n';
+import { t, chevronChar } from '@/i18n';
 
 const DRAWER_W = Math.min(300, Dimensions.get('window').width * 0.82);
 
@@ -35,6 +35,14 @@ export const AGENCE_MENU_GROUPS: { title: string; items: AgenceMenuItem[] }[] = 
   {
     get title() { return t('Finance'); },
     items: [{ get title() { return t('Demande de paiement'); }, route: '/(agence)/finance' }],
+  },
+  {
+    get title() { return t('Aide et réglages'); },
+    items: [
+      { get title() { return t('Notifications'); }, route: '/notifications' },
+      { get title() { return t('Assistance'); }, route: '/support' },
+      { get title() { return t('Langue'); }, route: '/settings/language' },
+    ],
   },
 ];
 
@@ -105,7 +113,7 @@ export default function AgenceMenuDrawer({ visible, onClose }: Props) {
                     activeOpacity={0.6}
                   >
                     <Text style={styles.rowTitle}>{item.title}</Text>
-                    <Text style={styles.rowArrow}>›</Text>
+                    <Text style={styles.rowArrow}>{chevronChar()}</Text>
                   </TouchableOpacity>
                 ))}
               </View>

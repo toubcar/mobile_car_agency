@@ -13,7 +13,7 @@ import type { Booking } from '@/types';
 import { formatMoney } from '@/utils/money';
 import { rentalDays } from '@/utils/rental';
 
-import { t, jsLocale } from '@/i18n';
+import { t, jsLocale, dirIcon } from '@/i18n';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
@@ -106,7 +106,7 @@ export default function BookingDetailScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={22} color="#111827" />
+          <Ionicons name={dirIcon('chevron-back')} size={22} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('Réservation #')}{booking.id}</Text>
         <View style={[styles.statusBadge, { backgroundColor: sc.bg }]}>

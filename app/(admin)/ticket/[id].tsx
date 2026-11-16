@@ -12,6 +12,7 @@ import { supportService } from '@/services/support.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { ticketStatusLabel } from '@/utils/supportLabels';
 import { t, jsLocale } from '@/i18n';
 
 export default function AdminTicketDetailScreen() {
@@ -56,12 +57,12 @@ export default function AdminTicketDetailScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title={`Ticket #${ticket.ticket_number ?? ticket.id}`} subtitle={ticket.subject} />
+      <AdminStackHeader title={t('Ticket #:number', { number: ticket.ticket_number ?? ticket.id })} subtitle={ticket.subject} />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.subject}>{ticket.subject}</Text>
-          <Text style={styles.meta}>{ticket.status} · {ticket.priority} · {ticket.category ?? '—'}</Text>
+          <Text style={styles.meta}>{ticketStatusLabel(ticket.status)} · {ticket.priority} · {ticket.category ?? '—'}</Text>
           {(ticket.message ?? ticket.description) ? (
             <View style={styles.block}>
               <Text style={styles.blockTitle}>{t('Description')}</Text>
@@ -70,12 +71,15 @@ export default function AdminTicketDetailScreen() {
           ) : null}
 
           <Text style={styles.blockTitle}>{t('Fil de réponses')}</Text>
-          {(ticket.replies ?? []).length === 0 ? (
+          {(ticket.conversation ?? []).length === 0 ? (
             <Text style={styles.emptyReply}>{t('Aucune réponse pour l’instant.')}</Text>
           ) : (
-            (ticket.replies ?? []).map((r, i) => (
+            (ticket.conversation ?? []).map((r, i) => (
               <View key={i} style={styles.reply}>
-                <Text style={styles.replyMeta}>{r.user_type} · {new Date(r.created_at).toLocaleString(jsLocale())}</Text>
+                <Text style={styles.replyMeta}>
+                  {r.from === 'admin' ? t('Administration') : r.from === 'agency' ? t('Agence') : r.from === 'client' ? t('Client') : t('Système')}
+                  {r.created_at ? ` · ${new Date(r.created_at).toLocaleString(jsLocale())}` : ''}
+                </Text>
                 <Text style={styles.replyText}>{r.message}</Text>
               </View>
             ))
@@ -84,7 +88,7 @@ export default function AdminTicketDetailScreen() {
           <View style={styles.statusRow}>
             {(['in_progress', 'resolved', 'open'] as const).map((s) => (
               <TouchableOpacity key={s} style={styles.statusBtn} onPress={() => statusMutation.mutate(s)}>
-                <Text style={styles.statusBtnTxt}>{s}</Text>
+                <Text style={styles.statusBtnTxt}>{ticketStatusLabel(s)}</Text>
               </TouchableOpacity>
             ))}
           </View>

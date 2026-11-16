@@ -17,7 +17,7 @@ import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { agencyService } from '@/services/agency.service';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 function InfoRow({
   icon,
@@ -40,7 +40,7 @@ function InfoRow({
         <Text style={styles.infoLabel}>{label}</Text>
         <Text style={[styles.infoValue, onPress && styles.infoValueLink]}>{value}</Text>
       </View>
-      {onPress ? <Ionicons name="chevron-forward" size={16} color={COLORS.gray} /> : null}
+      {onPress ? <Ionicons name={dirIcon('chevron-forward')} size={16} color={COLORS.gray} /> : null}
     </View>
   );
 

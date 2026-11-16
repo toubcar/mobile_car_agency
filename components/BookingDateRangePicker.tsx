@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { COLORS } from '@/constants/api';
 
-import { t, jsLocale } from '@/i18n';
+import { t, jsLocale, dirIcon } from '@/i18n';
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -194,7 +194,7 @@ export default function BookingDateRangePicker({
           <View style={styles.durationBadge}>
             <Text style={styles.durationTxt}>{days > 0 ? `${days}j` : '—'}</Text>
           </View>
-          <Ionicons name="arrow-forward-circle" size={isCompact ? 20 : 22} color={COLORS.secondary} />
+          <Ionicons name={dirIcon('arrow-forward-circle')} size={isCompact ? 20 : 22} color={COLORS.secondary} />
         </View>
 
         <TouchableOpacity
@@ -235,7 +235,7 @@ export default function BookingDateRangePicker({
               activeOpacity={0.75}
             >
               <Ionicons
-                name="chevron-back"
+                name={dirIcon('chevron-back')}
                 size={rs.iconMd}
                 color={canGoPrev ? COLORS.primary : COLORS.border}
               />
@@ -248,7 +248,7 @@ export default function BookingDateRangePicker({
               onPress={() => shiftMonth(1)}
               activeOpacity={0.75}
             >
-              <Ionicons name="chevron-forward" size={rs.iconMd} color={COLORS.primary} />
+              <Ionicons name={dirIcon('chevron-forward')} size={rs.iconMd} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
         </View>

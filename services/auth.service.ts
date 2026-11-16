@@ -49,6 +49,18 @@ export const authService = {
     return response.data.data;
   },
 
+  /** `POST /auth/forgot-password` — le lien de réinitialisation arrive par e-mail et s'ouvre sur le site. */
+  async forgotPassword(email: string): Promise<string> {
+    const { data } = await apiClient.post<{ message: string }>('/auth/forgot-password', { email });
+    return data.message;
+  },
+
+  /** `POST /auth/email/resend` — renvoie l'e-mail de vérification. */
+  async resendVerification(): Promise<{ message: string; data: User }> {
+    const { data } = await apiClient.post<{ message: string; data: User }>('/auth/email/resend');
+    return data;
+  },
+
   /** `POST /auth/phone/send` */
   async sendPhoneOtp(phone: string): Promise<{ message: string; dev_code?: string }> {
     const { data } = await apiClient.post<{ message: string; dev_code?: string }>('/auth/phone/send', { phone });

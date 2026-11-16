@@ -20,7 +20,7 @@ import { Image } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 const { width: W } = Dimensions.get('window');
 
@@ -112,7 +112,7 @@ export default function RegisterScreen() {
           {/* ── Top nav ── */}
           <View style={styles.topNav}>
             <TouchableOpacity style={styles.backBtn} onPress={goBack} activeOpacity={0.75}>
-              <Ionicons name="arrow-back" size={18} color="#1A1A2E" />
+              <Ionicons name={dirIcon('arrow-back')} size={18} color="#1A1A2E" />
             </TouchableOpacity>
 
             {/* Step dots */}

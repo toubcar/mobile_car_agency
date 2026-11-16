@@ -12,6 +12,18 @@ export function patchCarsFavorite(queryClient: QueryClient, carId: number, isFav
       );
     }
 
+    // lists that load page after page (the catalogue search)
+    if (typeof old === 'object' && 'pages' in old && Array.isArray((old as { pages: unknown }).pages)) {
+      const infinite = old as { pages: PaginatedResponse<Car>[] };
+      return {
+        ...infinite,
+        pages: infinite.pages.map((page) => ({
+          ...page,
+          data: page.data.map((c) => (c.id === carId ? { ...c, is_favorite: isFavorite } : c)),
+        })),
+      };
+    }
+
     if (typeof old === 'object' && 'data' in old && Array.isArray((old as PaginatedResponse<Car>).data)) {
       const page = old as PaginatedResponse<Car>;
       return {

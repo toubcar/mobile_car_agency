@@ -21,7 +21,7 @@ import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 const { width } = Dimensions.get('window');
 const CODE_LENGTH = 6;
@@ -148,7 +148,7 @@ export default function PhoneAuthScreen() {
         >
           {/* Back button — always visible above scroll */}
           <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.75}>
-            <Ionicons name="arrow-back" size={18} color="#1A1A2E" />
+            <Ionicons name={dirIcon('arrow-back')} size={18} color="#1A1A2E" />
           </TouchableOpacity>
 
           <ScrollView

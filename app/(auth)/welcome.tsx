@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -52,7 +52,7 @@ export default function WelcomeScreen() {
             onPress={() => router.replace('/(tabs)')}
           >
             <Text style={styles.primaryBtnText}>{t('Explorer sans compte')}</Text>
-            <Ionicons name="arrow-forward" size={18} color="#FFF" />
+            <Ionicons name={dirIcon('arrow-forward')} size={18} color="#FFF" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -80,7 +80,7 @@ export default function WelcomeScreen() {
           >
             <Ionicons name="briefcase-outline" size={18} color="#4B5563" />
             <Text style={styles.proBtnText}>{t('Espace agence ou administrateur')}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+            <Ionicons name={dirIcon('chevron-forward')} size={16} color="#9CA3AF" />
           </TouchableOpacity>
         </Animated.View>
       </SafeAreaView>

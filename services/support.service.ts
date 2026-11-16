@@ -14,8 +14,27 @@ export interface SupportTicket {
   client_id?: number | null;
   rental_id?: number | null;
   replies?: Array<{ user_id: number; user_type: string; message: string; created_at: string }>;
+  /** Toute la conversation, la plus ancienne d'abord : réponses, messages et notes automatiques (changements de statut). */
+  conversation?: SupportConversationEntry[];
   created_at?: string;
   updated_at?: string;
+}
+
+export interface SupportConversationEntry {
+  from: 'admin' | 'agency' | 'client' | 'system';
+  message: string;
+  created_at?: string | null;
+  attachments?: unknown[] | null;
+}
+
+export type TicketCategory = 'technical' | 'billing' | 'booking' | 'general' | 'complaint' | 'account';
+
+export interface NewTicket {
+  category: TicketCategory;
+  priority: SupportTicket['priority'];
+  subject: string;
+  message: string;
+  rental_id?: number;
 }
 
 export interface SupportStatistics {
@@ -42,6 +61,12 @@ export const supportService = {
       total: data.total ?? data.data?.length ?? 0,
       statistics: data.statistics,
     };
+  },
+
+  /** Ouvre un ticket (client ou agence) — les mêmes champs que sur le site. */
+  async create(ticket: NewTicket): Promise<SupportTicket> {
+    const { data } = await apiClient.post<{ data: SupportTicket }>('/support/tickets', ticket);
+    return data.data;
   },
 
   async get(id: number): Promise<SupportTicket> {

@@ -5,35 +5,23 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Switch,
 } from 'react-native';
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import PageHeader from '@/components/PageHeader';
 import BookingDateRangePicker, { toIsoDate } from '@/components/BookingDateRangePicker';
 import { rentalDays } from '@/utils/rental';
+import { carsService } from '@/services/cars.service';
+import { CatalogueQuery, queryFromRoute, routeFromQuery } from '@/utils/catalogueParams';
+import { t, tl } from '@/i18n';
 
-const CITIES = [
-  'Casablanca',
-  'Rabat',
-  'Marrakech',
-  'Fès',
-  'Tanger',
-  'Agadir',
-  'Meknès',
-  'Oujda',
-];
-
-const CATEGORIES: { key: string; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: 'SUV', label: 'SUV' },
-  { key: 'Sedan', label: 'Berline' },
-  { key: 'Economy', label: 'Économique' },
-  { key: 'Luxury', label: 'Luxe' },
-  { key: 'Hatchback', label: 'Citadine' },
-  { key: 'Convertible', label: 'Cabriolet' },
-];
+// Shown until the catalogue answers (or if it cannot): the cities the website lists first
+const FALLBACK_CITIES = ['Casablanca', 'Rabat', 'Marrakech', 'Fès', 'Tanger', 'Agadir', 'Meknès', 'Oujda'];
+const SEAT_CHOICES = [2, 4, 5, 7];
 
 function defaultStartDate(): Date {
   const d = new Date();
@@ -54,22 +42,43 @@ function parseIsoDate(value?: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+function toggle(list: string[], value: string): string[] {
+  return list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
+}
+
+function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={[styles.categoryChip, active && styles.categoryChipActive]} onPress={onPress} activeOpacity={0.75}>
+      <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function SearchFiltersScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{
-    location?: string;
-    category?: string;
-    start_date?: string;
-    end_date?: string;
-  }>();
+  const params = useLocalSearchParams();
+  const initial = useMemo(() => queryFromRoute(params), [params]);
 
-  const initialStart = parseIsoDate(params.start_date) ?? defaultStartDate();
-  const [city, setCity] = useState(params.location ?? '');
-  const [category, setCategory] = useState(params.category ?? 'all');
-  const [startDate, setStartDate] = useState(initialStart);
-  const [endDate, setEndDate] = useState(
-    () => parseIsoDate(params.end_date) ?? defaultEndDate(initialStart),
-  );
+  const { data: options } = useQuery({
+    queryKey: ['cars', 'filters'],
+    queryFn: carsService.getFilters,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const initialStart = parseIsoDate(initial.start_date);
+  const [useDates, setUseDates] = useState(Boolean(initialStart) || !Object.keys(params).length);
+  const [city, setCity] = useState(initial.location ?? '');
+  const [category, setCategory] = useState(initial.category ?? '');
+  const [brand, setBrand] = useState(initial.brand ?? '');
+  const [transmission, setTransmission] = useState<string[]>(initial.transmission ?? []);
+  const [fuel, setFuel] = useState<string[]>(initial.fuel_type ?? []);
+  const [seats, setSeats] = useState<number | undefined>(initial.seats);
+  const [minPrice, setMinPrice] = useState(initial.min_price ? String(initial.min_price) : '');
+  const [maxPrice, setMaxPrice] = useState(initial.max_price ? String(initial.max_price) : '');
+  const [startDate, setStartDate] = useState(initialStart ?? defaultStartDate());
+  const [endDate, setEndDate] = useState(() => parseIsoDate(initial.end_date) ?? defaultEndDate(initialStart ?? defaultStartDate()));
+
+  const cities = options?.cities?.length ? options.cities : FALLBACK_CITIES;
 
   const minStart = useMemo(() => {
     const d = new Date();
@@ -80,28 +89,44 @@ export default function SearchFiltersScreen() {
   const days = rentalDays(toIsoDate(startDate), toIsoDate(endDate));
 
   const handleSearch = () => {
-    router.push({
-      pathname: '/(tabs)/search',
-      params: {
-        ...(city.trim() ? { location: city.trim() } : {}),
-        ...(category !== 'all' ? { category } : {}),
-        start_date: toIsoDate(startDate),
-        end_date: toIsoDate(endDate),
-      },
-    });
+    const min = Number(minPrice);
+    const max = Number(maxPrice);
+
+    const next: CatalogueQuery = {
+      q: initial.q,
+      sort: initial.sort,
+      location: city.trim() || undefined,
+      category: category || undefined,
+      brand: brand || undefined,
+      transmission,
+      fuel_type: fuel,
+      seats,
+      min_price: Number.isFinite(min) && min > 0 ? min : undefined,
+      max_price: Number.isFinite(max) && max > 0 ? max : undefined,
+      ...(useDates ? { start_date: toIsoDate(startDate), end_date: toIsoDate(endDate) } : {}),
+    };
+
+    router.push({ pathname: '/(tabs)/search', params: routeFromQuery(next) });
   };
 
   const handleReset = () => {
     const start = defaultStartDate();
     setCity('');
-    setCategory('all');
+    setCategory('');
+    setBrand('');
+    setTransmission([]);
+    setFuel([]);
+    setSeats(undefined);
+    setMinPrice('');
+    setMaxPrice('');
+    setUseDates(true);
     setStartDate(start);
     setEndDate(defaultEndDate(start));
   };
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <PageHeader title="Rechercher" />
+      <PageHeader title={t('Rechercher')} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -109,20 +134,20 @@ export default function SearchFiltersScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.lead}>
-          Choisissez une ville, vos dates et le type de véhicule pour afficher les résultats.
+          {t('Choisissez une ville, vos dates et le type de véhicule pour afficher les résultats.')}
         </Text>
 
         {/* Ville */}
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <Ionicons name="location-outline" size={18} color="#1D3557" />
-            <Text style={styles.sectionTitle}>Ville</Text>
+            <Text style={styles.sectionTitle}>{t('Ville')}</Text>
           </View>
           <View style={styles.cityInputBox}>
             <Ionicons name="search-outline" size={16} color="#9CA3AF" />
             <TextInput
               style={styles.cityInput}
-              placeholder="Ex. Casablanca, Rabat..."
+              placeholder={t('Ex. Casablanca, Rabat...')}
               placeholderTextColor="#9CA3AF"
               value={city}
               onChangeText={setCity}
@@ -135,7 +160,7 @@ export default function SearchFiltersScreen() {
             )}
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityChips}>
-            {CITIES.map((c) => (
+            {cities.map((c) => (
               <TouchableOpacity
                 key={c}
                 style={[styles.cityChip, city === c && styles.cityChipActive]}
@@ -152,48 +177,139 @@ export default function SearchFiltersScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <Ionicons name="calendar-outline" size={18} color="#1D3557" />
-            <Text style={styles.sectionTitle}>Dates de location</Text>
+            <Text style={styles.sectionTitle}>{t('Dates de location')}</Text>
           </View>
-          <BookingDateRangePicker
-            startDate={startDate}
-            endDate={endDate}
-            onStartChange={setStartDate}
-            onEndChange={setEndDate}
-            minStart={minStart}
-            days={days}
-          />
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>{t('Ne montrer que les véhicules libres à ces dates')}</Text>
+            <Switch value={useDates} onValueChange={setUseDates} trackColor={{ true: '#1D3557' }} />
+          </View>
+          {useDates ? (
+            <BookingDateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              onStartChange={setStartDate}
+              onEndChange={setEndDate}
+              minStart={minStart}
+              days={days}
+            />
+          ) : null}
         </View>
 
         {/* Type */}
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <Ionicons name="car-outline" size={18} color="#1D3557" />
-            <Text style={styles.sectionTitle}>Type de véhicule</Text>
+            <Text style={styles.sectionTitle}>{t('Type de véhicule')}</Text>
           </View>
           <View style={styles.categoryGrid}>
-            {CATEGORIES.map((c) => (
-              <TouchableOpacity
-                key={c.key}
-                style={[styles.categoryChip, category === c.key && styles.categoryChipActive]}
-                onPress={() => setCategory(c.key)}
-                activeOpacity={0.75}
-              >
-                <Text style={[styles.categoryChipText, category === c.key && styles.categoryChipTextActive]}>
-                  {c.label}
-                </Text>
-              </TouchableOpacity>
+            <Chip label={t('Tous')} active={category === ''} onPress={() => setCategory('')} />
+            {(options?.categories ?? []).map((c) => (
+              <Chip key={c.id} label={String(tl(c.name))} active={category === c.name} onPress={() => setCategory(category === c.name ? '' : c.name)} />
             ))}
           </View>
+        </View>
+
+        {/* Marque */}
+        {options?.brands?.length ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <Ionicons name="pricetag-outline" size={18} color="#1D3557" />
+              <Text style={styles.sectionTitle}>{t('Marque')}</Text>
+            </View>
+            <View style={styles.categoryGrid}>
+              <Chip label={t('Toutes')} active={brand === ''} onPress={() => setBrand('')} />
+              {options.brands.map((b) => (
+                <Chip key={b} label={b} active={brand === b} onPress={() => setBrand(brand === b ? '' : b)} />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {/* Boîte */}
+        {options?.transmissions?.length ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <Ionicons name="settings-outline" size={18} color="#1D3557" />
+              <Text style={styles.sectionTitle}>{t('Boîte')}</Text>
+            </View>
+            <View style={styles.categoryGrid}>
+              {options.transmissions.map((value) => (
+                <Chip key={value} label={String(tl(value))} active={transmission.includes(value)} onPress={() => setTransmission(toggle(transmission, value))} />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {/* Carburant */}
+        {options?.fuel_types?.length ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <Ionicons name="flash-outline" size={18} color="#1D3557" />
+              <Text style={styles.sectionTitle}>{t('Carburant')}</Text>
+            </View>
+            <View style={styles.categoryGrid}>
+              {options.fuel_types.map((value) => (
+                <Chip key={value} label={String(tl(value))} active={fuel.includes(value)} onPress={() => setFuel(toggle(fuel, value))} />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {/* Places */}
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Ionicons name="people-outline" size={18} color="#1D3557" />
+            <Text style={styles.sectionTitle}>{t('Places')}</Text>
+          </View>
+          <View style={styles.categoryGrid}>
+            <Chip label={t('Toutes')} active={seats === undefined} onPress={() => setSeats(undefined)} />
+            {SEAT_CHOICES.filter((n) => !options?.max_seats || n <= options.max_seats).map((n) => (
+              <Chip key={n} label={`${n}+`} active={seats === n} onPress={() => setSeats(seats === n ? undefined : n)} />
+            ))}
+          </View>
+        </View>
+
+        {/* Prix */}
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Ionicons name="cash-outline" size={18} color="#1D3557" />
+            <Text style={styles.sectionTitle}>{t('Prix par jour')}</Text>
+          </View>
+          <View style={styles.priceRow}>
+            <View style={styles.priceBox}>
+              <TextInput
+                style={styles.priceInput}
+                keyboardType="numeric"
+                placeholder={options ? String(options.min_price) : t('Min')}
+                placeholderTextColor="#9CA3AF"
+                value={minPrice}
+                onChangeText={(v) => setMinPrice(v.replace(/[^0-9]/g, ''))}
+              />
+              <Text style={styles.priceUnit}>DH</Text>
+            </View>
+            <View style={styles.priceBox}>
+              <TextInput
+                style={styles.priceInput}
+                keyboardType="numeric"
+                placeholder={options ? String(options.max_price) : t('Max')}
+                placeholderTextColor="#9CA3AF"
+                value={maxPrice}
+                onChangeText={(v) => setMaxPrice(v.replace(/[^0-9]/g, ''))}
+              />
+              <Text style={styles.priceUnit}>DH</Text>
+            </View>
+          </View>
+          <Text style={styles.hint}>{t('Prix affichés : ceux que vous payez, commission de la plateforme comprise.')}</Text>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.resetBtn} onPress={handleReset} activeOpacity={0.8}>
-          <Text style={styles.resetBtnText}>Réinitialiser</Text>
+          <Text style={styles.resetBtnText}>{t('Réinitialiser')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.searchBtn} onPress={handleSearch} activeOpacity={0.85}>
           <Ionicons name="search" size={18} color="#FFFFFF" />
-          <Text style={styles.searchBtnText}>Voir les résultats</Text>
+          <Text style={styles.searchBtnText}>{t('Voir les résultats')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -248,6 +364,24 @@ const styles = StyleSheet.create({
   categoryChipActive: { backgroundColor: '#1D3557', borderColor: '#1D3557' },
   categoryChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
   categoryChipTextActive: { color: '#FFFFFF' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  switchLabel: { flex: 1, fontSize: 13, color: '#6B7280', fontWeight: '600' },
+  priceRow: { flexDirection: 'row', gap: 10 },
+  priceBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  priceInput: { flex: 1, fontSize: 15, color: '#111827', fontWeight: '600', padding: 0 },
+  priceUnit: { fontSize: 12, color: '#9CA3AF', fontWeight: '600' },
+  hint: { fontSize: 12, color: '#9CA3AF' },
   footer: {
     flexDirection: 'row',
     gap: 10,

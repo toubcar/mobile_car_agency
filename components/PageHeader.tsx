@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+import { dirIcon } from '@/i18n';
 interface PageHeaderProps {
   title?: string;
   onBack?: () => void;
@@ -24,7 +25,7 @@ export default function PageHeader({ title, onBack, showBack = true, right }: Pa
     <View style={styles.container}>
       {showBack ? (
         <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.75}>
-          <Ionicons name="arrow-back" size={18} color="#111827" />
+          <Ionicons name={dirIcon('arrow-back')} size={18} color="#111827" />
         </TouchableOpacity>
       ) : (
         <View style={styles.placeholder} />

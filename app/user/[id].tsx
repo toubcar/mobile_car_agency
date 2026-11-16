@@ -10,7 +10,7 @@ import { COLORS } from '@/constants/api';
 import { usersService } from '@/services/users.service';
 import type { User } from '@/types';
 
-import { t, jsLocale } from '@/i18n';
+import { t, jsLocale, dirIcon } from '@/i18n';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
@@ -50,7 +50,7 @@ export default function UserDetailScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={22} color="#111827" />
+          <Ionicons name={dirIcon('chevron-back')} size={22} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('Profil utilisateur')}</Text>
         <TouchableOpacity
@@ -118,7 +118,7 @@ export default function UserDetailScreen() {
             </Text>
             {toggleMutation.isPending
               ? <ActivityIndicator size="small" color="#8E8E93" />
-              : <Ionicons name="chevron-forward" size={15} color="#C7C7CC" />
+              : <Ionicons name={dirIcon('chevron-forward')} size={15} color="#C7C7CC" />
             }
           </TouchableOpacity>
         </View>

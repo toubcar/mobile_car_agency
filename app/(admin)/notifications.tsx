@@ -11,7 +11,7 @@ import { resolveNotificationRoute } from '@/utils/notificationNavigation';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
-import { t } from '@/i18n';
+import { t, chevronChar } from '@/i18n';
 
 export default function AdminNotificationsScreen() {
   const router = useRouter();
@@ -91,7 +91,7 @@ export default function AdminNotificationsScreen() {
                 <Text style={styles.cardTime}>{item.time_ago ?? item.created_at ?? ''}</Text>
               </View>
               <View style={styles.cardActions}>
-                <Text style={styles.cardArrow}>›</Text>
+                <Text style={styles.cardArrow}>{chevronChar()}</Text>
                 <TouchableOpacity
                   onPress={() => remove.mutate(item.id)}
                   hitSlop={8}

@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { messagesService, type InboxConversation } from '@/services/messages.service';
 import { COLORS } from '@/constants/api';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 export default function MessagesInbox() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export default function MessagesInbox() {
               <Text style={styles.preview} numberOfLines={1}>{item.last_message.message}</Text>
             ) : null}
           </View>
-          <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
+          <Ionicons name={dirIcon('chevron-forward')} size={16} color="#C7C7CC" />
         </TouchableOpacity>
       )}
     />

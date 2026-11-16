@@ -39,6 +39,21 @@ export default function AdminSystemScreen() {
   const health = healthQuery.data;
   const users = usersQuery.data;
 
+  const confirmMaintenance = () => {
+    const enabled = Boolean(health?.maintenance?.is_enabled);
+
+    Alert.alert(
+      enabled ? t('Rouvrir le site ?') : t('Fermer le site ?'),
+      enabled
+        ? t('Le site et l\'application redeviendront accessibles à tous.')
+        : t('Le site et l\'application seront inaccessibles aux visiteurs. Vous pourrez les rouvrir depuis cet écran.'),
+      [
+        { text: t('Annuler'), style: 'cancel' },
+        { text: enabled ? t('Rouvrir') : t('Fermer le site'), style: enabled ? 'default' : 'destructive', onPress: () => actionMutation.mutate('maintenance') },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <AdminStackHeader title={t('Système')} subtitle={t('Santé API, cache, maintenance')} />
@@ -77,7 +92,7 @@ export default function AdminSystemScreen() {
         <View style={styles.actions}>
           <ActionBtn label={t('Vider le cache')} onPress={() => actionMutation.mutate('clear_cache')} />
           <ActionBtn label={t('Optimiser')} onPress={() => actionMutation.mutate('optimize')} />
-          <ActionBtn label={t('Maintenance')} onPress={() => actionMutation.mutate('maintenance')} danger />
+          <ActionBtn label={t('Maintenance')} onPress={confirmMaintenance} danger />
         </View>
 
         {users ? (

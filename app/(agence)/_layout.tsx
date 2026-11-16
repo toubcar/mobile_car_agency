@@ -6,19 +6,29 @@ import { COLORS } from '@/constants/api';
 import { useRequireRole } from '@/hooks/useRequireRole';
 import { messagesService } from '@/services/messages.service';
 import BackofficeTabIcon from '@/components/backoffice/BackofficeTabIcon';
+import AgencyStatusScreen from '@/components/agence/AgencyStatusScreen';
+import { useAuthStore } from '@/store/authStore';
 
 import { t } from '@/i18n';
 
 export default function AgenceLayout() {
   useRequireRole('agence');
   const insets = useSafeAreaInsets();
+  const agencyApproved = useAuthStore((state) => !state.user?.agency || state.user.agency.status === 'approved');
   const { data: conversations } = useQuery({
     queryKey: ['message-conversations', 'agence'],
     queryFn: () => messagesService.conversations(),
     refetchInterval: 30_000,
+    enabled: agencyApproved,
   });
   const unreadMessages = (conversations ?? []).reduce((sum, c) => sum + (c.unread_count ?? 0), 0);
   const messageBadge = unreadMessages > 0 ? (unreadMessages > 99 ? '99+' : String(unreadMessages)) : undefined;
+
+  // Not approved yet, rejected or suspended: the website sends such an agency to its own page, not to the back-office
+  const agency = useAuthStore((state) => state.user?.agency);
+  if (agency && agency.status !== 'approved') {
+    return <AgencyStatusScreen agency={agency} />;
+  }
 
   return (
     <Tabs

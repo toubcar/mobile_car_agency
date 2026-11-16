@@ -6,7 +6,7 @@ import { ADMIN_BG, adminStyles, adminShadow } from '@/constants/adminTheme';
 import { useAuthStore } from '@/store/authStore';
 import { useLogout } from '@/hooks/useLogout';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 const SHADOW = adminShadow.card;
 
@@ -26,7 +26,7 @@ function Row({ icon, label, sub, onPress, danger }: {
         <Text style={[styles.rowLabel, danger && { color: '#FF3B30' }]}>{label}</Text>
         {sub ? <Text style={styles.rowSub}>{sub}</Text> : null}
       </View>
-      {!danger ? <Ionicons name="chevron-forward" size={15} color="#C7C7CC" /> : null}
+      {!danger ? <Ionicons name={dirIcon('chevron-forward')} size={15} color="#C7C7CC" /> : null}
     </TouchableOpacity>
   );
 }

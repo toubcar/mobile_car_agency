@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { adminShadow, ADMIN_BG } from '@/constants/adminTheme';
 
+import { dirIcon } from '@/i18n';
 type Props = {
   title: string;
   subtitle?: string;
@@ -13,7 +14,7 @@ export default function AdminStackHeader({ title, subtitle }: Props) {
   return (
     <View style={styles.wrap}>
       <TouchableOpacity style={styles.back} onPress={() => router.back()} activeOpacity={0.75} hitSlop={12}>
-        <Ionicons name="chevron-back" size={22} color="#111827" />
+        <Ionicons name={dirIcon('chevron-back')} size={22} color="#111827" />
       </TouchableOpacity>
       <View style={styles.titles}>
         <Text style={styles.title} numberOfLines={1}>{title}</Text>

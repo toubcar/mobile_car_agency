@@ -5,13 +5,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { usersService } from '@/services/users.service';
 import type { User } from '@/types';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
@@ -28,7 +29,7 @@ export default function AdminUsersScreen() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => usersService.delete(id),
     onSuccess:  () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
-    onError:    () => Alert.alert(t('Erreur'), t('Impossible de supprimer cet utilisateur.')),
+    onError:    (err) => Alert.alert(t('Erreur'), axios.isAxiosError(err) && err.response?.data?.message ? String(err.response.data.message) : t('Impossible de supprimer cet utilisateur.')),
   });
 
   const verifyMutation = useMutation({
@@ -125,7 +126,7 @@ export default function AdminUsersScreen() {
                 >
                   <Ionicons name="trash-outline" size={17} color="#FF3B30" />
                 </TouchableOpacity>
-                <Ionicons name="chevron-forward" size={15} color="#C7C7CC" />
+                <Ionicons name={dirIcon('chevron-forward')} size={15} color="#C7C7CC" />
               </TouchableOpacity>
             );
           }}

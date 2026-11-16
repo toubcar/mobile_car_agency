@@ -79,11 +79,12 @@ export const agenciesService = {
     return data.data;
   },
 
-  async reject(id: number, reason: string): Promise<PartnerAgency> {
-    const { data } = await apiClient.patch<{ data: PartnerAgency }>(`/admin/agencies/${id}/reject`, {
+  /** Rejette une demande d'agence. À la dernière tentative autorisée, l'agence et son compte sont supprimés (`removed`). */
+  async reject(id: number, reason: string): Promise<{ message: string; removed: boolean; agency: PartnerAgency | null }> {
+    const { data } = await apiClient.patch<{ message: string; removed?: boolean; data: PartnerAgency | null }>(`/admin/agencies/${id}/reject`, {
       rejection_reason: reason,
     });
-    return data.data;
+    return { message: data.message, removed: Boolean(data.removed), agency: data.data };
   },
 
   async suspend(id: number, reason: string): Promise<PartnerAgency> {
