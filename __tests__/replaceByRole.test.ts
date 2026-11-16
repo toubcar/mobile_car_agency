@@ -1,3 +1,7 @@
+// expo-router ships JSX that jest does not transform. Only its global router is used (to go home): this stand-in records the calls
+const mockHomeCalls: string[] = [];
+jest.mock('expo-router', () => ({ router: { replace: (href: string) => mockHomeCalls.push(href) } }));
+
 import { replaceRootByRole } from '@/utils/replaceByRole';
 
 function mockRouter() {
@@ -28,11 +32,12 @@ describe('replaceRootByRole', () => {
   });
 
   it('redirige client ou rôle inconnu vers /(tabs)', () => {
-    const { router, calls } = mockRouter();
+    const { router } = mockRouter();
+    mockHomeCalls.length = 0;
     replaceRootByRole(router, 'client');
-    expect(calls).toEqual(['/(tabs)']);
-    calls.length = 0;
+    expect(mockHomeCalls).toEqual(['/(tabs)']);
+    mockHomeCalls.length = 0;
     replaceRootByRole(router, null);
-    expect(calls).toEqual(['/(tabs)']);
+    expect(mockHomeCalls).toEqual(['/(tabs)']);
   });
 });

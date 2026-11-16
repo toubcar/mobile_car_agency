@@ -3,6 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { COLORS } from '@/constants/api';
 
+import { t, jsLocale } from '@/i18n';
+
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 export function toIsoDate(d: Date): string {
@@ -13,7 +15,7 @@ export function toIsoDate(d: Date): string {
 }
 
 export function formatFrenchDate(d: Date): string {
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString(jsLocale(), {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -24,8 +26,8 @@ export function formatFrenchDate(d: Date): string {
 function formatChip(d: Date) {
   return {
     day: String(d.getDate()),
-    month: d.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', ''),
-    weekday: d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', ''),
+    month: d.toLocaleDateString(jsLocale(), { month: 'short' }).replace('.', ''),
+    weekday: d.toLocaleDateString(jsLocale(), { weekday: 'short' }).replace('.', ''),
   };
 }
 
@@ -115,7 +117,7 @@ export default function BookingDateRangePicker({
           return normalize(d);
         })();
 
-  const monthLabel = new Date(viewMonth.year, viewMonth.month, 1).toLocaleDateString('fr-FR', {
+  const monthLabel = new Date(viewMonth.year, viewMonth.month, 1).toLocaleDateString(jsLocale(), {
     month: 'long',
     year: 'numeric',
   });
@@ -157,8 +159,8 @@ export default function BookingDateRangePicker({
   };
 
   const isInRange = (day: Date) => {
-    const t = dayStart(day);
-    return t > dayStart(startDate) && t < dayStart(endDate);
+    const time = dayStart(day);
+    return time > dayStart(startDate) && time < dayStart(endDate);
   };
 
   return (
@@ -178,7 +180,7 @@ export default function BookingDateRangePicker({
               size={rs.iconSm}
               color={active === 'start' ? 'rgba(255,255,255,0.85)' : COLORS.secondary}
             />
-            <Text style={[styles.chipLabel, active === 'start' && styles.chipLabelActive]}>Départ</Text>
+            <Text style={[styles.chipLabel, active === 'start' && styles.chipLabelActive]}>{t('Départ')}</Text>
           </View>
           <Text style={[styles.chipDay, { fontSize: rs.chipDay }, active === 'start' && styles.chipDayActive]}>
             {startChip.day}
@@ -209,7 +211,7 @@ export default function BookingDateRangePicker({
               size={rs.iconSm}
               color={active === 'end' ? 'rgba(255,255,255,0.85)' : COLORS.secondary}
             />
-            <Text style={[styles.chipLabel, active === 'end' && styles.chipLabelActive]}>Retour</Text>
+            <Text style={[styles.chipLabel, active === 'end' && styles.chipLabelActive]}>{t('Retour')}</Text>
           </View>
           <Text style={[styles.chipDay, { fontSize: rs.chipDay }, active === 'end' && styles.chipDayActive]}>
             {endChip.day}
@@ -223,7 +225,7 @@ export default function BookingDateRangePicker({
       <View style={styles.calendarCard}>
         <View style={styles.calendarHeader}>
           <Text style={styles.calendarHeaderTxt} numberOfLines={1}>
-            {active === 'start' ? 'Date de départ' : 'Date de retour'}
+            {active === 'start' ? t('Date de départ') : t('Date de retour')}
           </Text>
           <View style={styles.monthNav}>
             <TouchableOpacity

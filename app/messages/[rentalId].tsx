@@ -11,6 +11,8 @@ import { messagesService, type RentalMessage } from '@/services/messages.service
 import { COLORS } from '@/constants/api';
 import { useAuthStore } from '@/store/authStore';
 
+import { t, jsLocale } from '@/i18n';
+
 export default function MessageThreadScreen() {
   const { rentalId } = useLocalSearchParams<{ rentalId: string }>();
   const router = useRouter();
@@ -35,7 +37,7 @@ export default function MessageThreadScreen() {
       queryClient.invalidateQueries({ queryKey: ['message-conversations'] });
     },
     onError: (err: { response?: { data?: { message?: string } } }) => {
-      setSendError(err?.response?.data?.message ?? 'Impossible d\'envoyer le message.');
+      setSendError(err?.response?.data?.message ?? t("Impossible d'envoyer le message."));
     },
   });
 
@@ -53,7 +55,7 @@ export default function MessageThreadScreen() {
           <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{item.message}</Text>
           {item.created_at ? (
             <Text style={[styles.bubbleTime, mine && styles.bubbleTimeMine]}>
-              {new Date(item.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(item.created_at).toLocaleTimeString(jsLocale(), { hour: '2-digit', minute: '2-digit' })}
             </Text>
           ) : null}
         </View>
@@ -113,7 +115,7 @@ export default function MessageThreadScreen() {
               style={styles.input}
               value={text}
               onChangeText={setText}
-              placeholder="Votre message…"
+              placeholder={t('Votre message…')}
               placeholderTextColor="#9CA3AF"
               multiline
             />

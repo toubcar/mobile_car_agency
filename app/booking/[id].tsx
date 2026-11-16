@@ -13,18 +13,20 @@ import type { Booking } from '@/types';
 import { formatMoney } from '@/utils/money';
 import { rentalDays } from '@/utils/rental';
 
+import { t, jsLocale } from '@/i18n';
+
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
 const STATUS_MAP: Record<Booking['status'], { label: string; bg: string; text: string }> = {
-  pending:   { label: 'En attente',  bg: '#FEF3C7', text: '#92400E' },
-  confirmed: { label: 'Confirmée',   bg: '#D1FAE5', text: '#065F46' },
-  completed: { label: 'Terminée',    bg: '#DBEAFE', text: '#1E40AF' },
-  cancelled: { label: 'Annulée',     bg: '#FEE2E2', text: '#991B1B' },
+  pending:   { get label() { return t('En attente'); },  bg: '#FEF3C7', text: '#92400E' },
+  confirmed: { get label() { return t('Confirmée'); },   bg: '#D1FAE5', text: '#065F46' },
+  completed: { get label() { return t('Terminée'); },    bg: '#DBEAFE', text: '#1E40AF' },
+  cancelled: { get label() { return t('Annulée'); },     bg: '#FEE2E2', text: '#991B1B' },
 };
 
 const TRANSITIONS: Record<Booking['status'], { next: Booking['status']; label: string; color: string }[]> = {
-  pending:   [{ next: 'confirmed', label: 'Confirmer', color: '#10B981' }, { next: 'cancelled', label: 'Annuler', color: '#FF3B30' }],
-  confirmed: [{ next: 'completed', label: 'Marquer terminée', color: COLORS.primary }, { next: 'cancelled', label: 'Annuler', color: '#FF3B30' }],
+  pending:   [{ next: 'confirmed', get label() { return t('Confirmer'); }, color: '#10B981' }, { next: 'cancelled', get label() { return t('Annuler'); }, color: '#FF3B30' }],
+  confirmed: [{ next: 'completed', get label() { return t('Marquer terminée'); }, color: COLORS.primary }, { next: 'cancelled', get label() { return t('Annuler'); }, color: '#FF3B30' }],
   completed: [],
   cancelled: [],
 };
@@ -42,7 +44,7 @@ function InfoRow({ icon, label, value }: { icon: React.ComponentProps<typeof Ion
 }
 
 function fmtFull(d: string) {
-  return new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  return new Date(d).toLocaleDateString(jsLocale(), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 export default function BookingDetailScreen() {
@@ -61,10 +63,10 @@ export default function BookingDetailScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booking', id] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      Alert.alert('Annulée', 'Réservation annulée.');
+      Alert.alert(t('Annulée'), t('Réservation annulée.'));
       router.back();
     },
-    onError: () => Alert.alert('Erreur', 'Impossible d’annuler.'),
+    onError: () => Alert.alert(t('Erreur'), t('Impossible d’annuler.')),
   });
 
   const { data: booking, isLoading } = useQuery<Booking>({
@@ -85,7 +87,7 @@ export default function BookingDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['admin-recent'] });
       queryClient.invalidateQueries({ queryKey: ['agence-recent'] });
     },
-    onError: () => Alert.alert('Erreur', 'Impossible de mettre à jour le statut.'),
+    onError: () => Alert.alert(t('Erreur'), t('Impossible de mettre à jour le statut.')),
   });
 
   if (isLoading || !booking) {
@@ -106,7 +108,7 @@ export default function BookingDetailScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={22} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Réservation #{booking.id}</Text>
+        <Text style={styles.headerTitle}>{t('Réservation #')}{booking.id}</Text>
         <View style={[styles.statusBadge, { backgroundColor: sc.bg }]}>
           <Text style={[styles.statusTxt, { color: sc.text }]}>{sc.label}</Text>
         </View>
@@ -115,7 +117,7 @@ export default function BookingDetailScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {canManage ? (
           <>
-            <Text style={styles.section}>Client</Text>
+            <Text style={styles.section}>{t('Client')}</Text>
             <View style={styles.card}>
               <View style={styles.clientRow}>
                 <View style={styles.avatar}>
@@ -137,41 +139,41 @@ export default function BookingDetailScreen() {
         ) : null}
 
         {/* Vehicle */}
-        <Text style={styles.section}>Véhicule</Text>
+        <Text style={styles.section}>{t('Véhicule')}</Text>
         <View style={styles.card}>
-          <InfoRow icon="car-outline"      label="Modèle"       value={`${booking.car.brand} ${booking.car.model} (${booking.car.year})`} />
+          <InfoRow icon="car-outline"      label={t('Modèle')}       value={`${booking.car.brand} ${booking.car.model} (${booking.car.year})`} />
           <View style={styles.divider} />
-          <InfoRow icon="pricetag-outline" label="Catégorie"    value={booking.car.category} />
+          <InfoRow icon="pricetag-outline" label={t('Catégorie')}    value={booking.car.category} />
           {booking.car.location && (
             <>
               <View style={styles.divider} />
-              <InfoRow icon="location-outline" label="Localisation" value={booking.car.location} />
+              <InfoRow icon="location-outline" label={t('Localisation')} value={booking.car.location} />
             </>
           )}
         </View>
 
         {/* Dates */}
-        <Text style={styles.section}>Période</Text>
+        <Text style={styles.section}>{t('Période')}</Text>
         <View style={styles.card}>
-          <InfoRow icon="log-in-outline"  label="Début" value={fmtFull(booking.start_date)} />
+          <InfoRow icon="log-in-outline"  label={t('Début')} value={fmtFull(booking.start_date)} />
           <View style={styles.divider} />
-          <InfoRow icon="log-out-outline" label="Fin"   value={fmtFull(booking.end_date)} />
+          <InfoRow icon="log-out-outline" label={t('Fin')}   value={fmtFull(booking.end_date)} />
           <View style={styles.divider} />
-          <InfoRow icon="moon-outline"    label="Durée" value={nights > 0 ? `${nights} jour${nights > 1 ? 's' : ''}` : '—'} />
+          <InfoRow icon="moon-outline"    label={t('Durée')} value={nights > 0 ? `${nights} jour${nights > 1 ? 's' : ''}` : '—'} />
         </View>
 
         {/* Payment */}
-        <Text style={styles.section}>Paiement</Text>
+        <Text style={styles.section}>{t('Paiement')}</Text>
         <View style={styles.card}>
           <View style={styles.priceRow}>
             <View>
-              <Text style={styles.priceLabel}>Montant total</Text>
+              <Text style={styles.priceLabel}>{t('Montant total')}</Text>
               <Text style={styles.priceValue}>{formatMoney(booking.total_price)}</Text>
             </View>
             <View style={[styles.payBadge, { backgroundColor: booking.payment_status === 'paid' ? '#D1FAE5' : '#FEF3C7' }]}>
               <Ionicons name={booking.payment_status === 'paid' ? 'checkmark-circle' : 'time'} size={13} color={booking.payment_status === 'paid' ? '#065F46' : '#92400E'} />
               <Text style={[styles.payBadgeTxt, { color: booking.payment_status === 'paid' ? '#065F46' : '#92400E' }]}>
-                {booking.payment_status === 'paid' ? 'Payé' : booking.payment_status === 'refunded' ? 'Remboursé' : 'Non payé'}
+                {booking.payment_status === 'paid' ? t('Payé') : booking.payment_status === 'refunded' ? t('Remboursé') : t('Non payé')}
               </Text>
             </View>
           </View>
@@ -179,25 +181,25 @@ export default function BookingDetailScreen() {
 
         {isClient && (booking.status === 'pending' || booking.status === 'confirmed') ? (
           <>
-            <Text style={styles.section}>Actions</Text>
+            <Text style={styles.section}>{t('Actions')}</Text>
             <View style={styles.actionsWrap}>
               <TouchableOpacity
                 style={styles.actionBtn}
                 onPress={() => router.push(`/messages/${booking.id}`)}
               >
-                <Text style={[styles.actionBtnTxt, { color: COLORS.primary }]}>Contacter l’agence</Text>
+                <Text style={[styles.actionBtnTxt, { color: COLORS.primary }]}>{t('Contacter l’agence')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionBtn, { borderColor: '#FF3B30' }]}
                 onPress={() =>
-                  Alert.alert('Annuler', 'Confirmer l’annulation ?', [
-                    { text: 'Non', style: 'cancel' },
-                    { text: 'Oui', style: 'destructive', onPress: () => cancelMutation.mutate() },
+                  Alert.alert(t('Annuler'), t('Confirmer l’annulation ?'), [
+                    { text: t('Non'), style: 'cancel' },
+                    { text: t('Oui'), style: 'destructive', onPress: () => cancelMutation.mutate() },
                   ])
                 }
                 disabled={cancelMutation.isPending}
               >
-                <Text style={[styles.actionBtnTxt, { color: '#FF3B30' }]}>Annuler la réservation</Text>
+                <Text style={[styles.actionBtnTxt, { color: '#FF3B30' }]}>{t('Annuler la réservation')}</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -206,22 +208,22 @@ export default function BookingDetailScreen() {
         {/* Actions (admin/agence only) */}
         {transitions.length > 0 && (
           <>
-            <Text style={styles.section}>Actions</Text>
+            <Text style={styles.section}>{t('Actions')}</Text>
             <View style={styles.actionsWrap}>
-              {transitions.map((t) => (
+              {transitions.map((step) => (
                 <TouchableOpacity
-                  key={t.next}
-                  style={[styles.actionBtn, { borderColor: t.color }, statusMutation.isPending && styles.actionBtnDisabled]}
+                  key={step.next}
+                  style={[styles.actionBtn, { borderColor: step.color }, statusMutation.isPending && styles.actionBtnDisabled]}
                   onPress={() =>
-                    Alert.alert('Confirmer', `Changer en "${t.label}" ?`, [
-                      { text: 'Annuler', style: 'cancel' },
-                      { text: t.label, onPress: () => statusMutation.mutate(t.next) },
+                    Alert.alert(t('Confirmer'), t("Changer en \":label\" ?", { label: step.label }), [
+                      { text: t('Annuler'), style: 'cancel' },
+                      { text: step.label, onPress: () => statusMutation.mutate(step.next) },
                     ])
                   }
                   activeOpacity={0.8}
                   disabled={statusMutation.isPending}
                 >
-                  <Text style={[styles.actionBtnTxt, { color: t.color }]}>{t.label}</Text>
+                  <Text style={[styles.actionBtnTxt, { color: step.color }]}>{step.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>

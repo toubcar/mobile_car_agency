@@ -13,6 +13,8 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t } from '@/i18n';
+
 const DRAWER_W = Math.min(300, Dimensions.get('window').width * 0.82);
 
 export type AdminMenuItem = {
@@ -23,20 +25,20 @@ export type AdminMenuItem = {
 /** Modules stack hors onglets — uniquement écrans connectés au backend. */
 export const ADMIN_MENU_GROUPS: { title: string; items: AdminMenuItem[] }[] = [
   {
-    title: 'Relations',
+    get title() { return t('Relations'); },
     items: [
-      { title: 'Agences partenaires', route: '/(admin)/agencies' },
-      { title: 'Clients & avis', route: '/(admin)/customers' },
-      { title: 'Support', route: '/(admin)/support' },
+      { get title() { return t('Agences partenaires'); }, route: '/(admin)/agencies' },
+      { get title() { return t('Clients & avis'); }, route: '/(admin)/customers' },
+      { get title() { return t('Support'); }, route: '/(admin)/support' },
     ],
   },
   {
-    title: 'Plateforme',
+    get title() { return t('Plateforme'); },
     items: [
-      { title: 'Finance', route: '/(admin)/finance' },
-      { title: 'Notifications', route: '/(admin)/notifications' },
-      { title: 'Contenu', route: '/(admin)/content' },
-      { title: 'Système', route: '/(admin)/system' },
+      { get title() { return t('Finance'); }, route: '/(admin)/finance' },
+      { get title() { return t('Notifications'); }, route: '/(admin)/notifications' },
+      { get title() { return t('Contenu'); }, route: '/(admin)/content' },
+      { get title() { return t('Système'); }, route: '/(admin)/system' },
     ],
   },
 ];
@@ -91,8 +93,8 @@ export default function AdminMenuDrawer({ visible, onClose }: Props) {
         ]}
       >
         <View style={styles.drawerHeader}>
-          <Text style={styles.drawerTitle}>Menu</Text>
-          <Text style={styles.drawerSub}>Modules opérationnels</Text>
+          <Text style={styles.drawerTitle}>{t('Menu')}</Text>
+          <Text style={styles.drawerSub}>{t('Modules opérationnels')}</Text>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>

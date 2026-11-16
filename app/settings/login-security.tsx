@@ -20,10 +20,12 @@ import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
+import { t } from '@/i18n';
+
 const RULES = [
-  { key: 'length', label: 'Au moins 8 caractères', test: (p: string) => p.length >= 8 },
-  { key: 'upper', label: 'Une majuscule', test: (p: string) => /[A-Z]/.test(p) },
-  { key: 'number', label: 'Un chiffre', test: (p: string) => /[0-9]/.test(p) },
+  { key: 'length', get label() { return t('Au moins 8 caractères'); }, test: (p: string) => p.length >= 8 },
+  { key: 'upper', get label() { return t('Une majuscule'); }, test: (p: string) => /[A-Z]/.test(p) },
+  { key: 'number', get label() { return t('Un chiffre'); }, test: (p: string) => /[0-9]/.test(p) },
 ];
 
 function PasswordField({
@@ -58,7 +60,7 @@ function PasswordField({
         />
         <TouchableOpacity onPress={onToggleVisible} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.toggleText, isCompact && styles.toggleTextCompact]}>
-            {visible ? 'Masquer' : 'Afficher'}
+            {visible ? t('Masquer') : t('Afficher')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -80,15 +82,15 @@ export default function LoginSecurityScreen() {
 
   const handleSave = async () => {
     if (!current) {
-      Alert.alert('Champ requis', 'Saisissez votre mot de passe actuel.');
+      Alert.alert(t('Champ requis'), t('Saisissez votre mot de passe actuel.'));
       return;
     }
     if (!RULES.every((r) => r.test(newPass))) {
-      Alert.alert('Mot de passe faible', 'Le nouveau mot de passe ne respecte pas toutes les règles.');
+      Alert.alert(t('Mot de passe faible'), t('Le nouveau mot de passe ne respecte pas toutes les règles.'));
       return;
     }
     if (newPass !== confirm) {
-      Alert.alert('Non concordant', 'Les mots de passe ne correspondent pas.');
+      Alert.alert(t('Non concordant'), t('Les mots de passe ne correspondent pas.'));
       return;
     }
     setSaving(true);
@@ -98,9 +100,9 @@ export default function LoginSecurityScreen() {
         password: newPass,
         password_confirmation: confirm,
       });
-      Alert.alert('Mis à jour', 'Votre mot de passe a été modifié.', [{ text: 'OK', onPress: () => router.back() }]);
+      Alert.alert(t('Mis à jour'), t('Votre mot de passe a été modifié.'), [{ text: 'OK', onPress: () => router.back() }]);
     } catch {
-      Alert.alert('Erreur', 'Modification impossible. Vérifiez le mot de passe actuel.');
+      Alert.alert(t('Erreur'), t('Modification impossible. Vérifiez le mot de passe actuel.'));
     } finally {
       setSaving(false);
     }
@@ -113,7 +115,7 @@ export default function LoginSecurityScreen() {
         colors={['#C8E6F5', COLORS.background]}
         style={[styles.headerGradient, { height: headerGradientHeight }]}
       />
-      <PageHeader title="Connexion et sécurité" />
+      <PageHeader title={t('Connexion et sécurité')} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -125,10 +127,10 @@ export default function LoginSecurityScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.sectionTitle}>Changer le mot de passe</Text>
+          <Text style={styles.sectionTitle}>{t('Changer le mot de passe')}</Text>
           <View style={styles.card}>
             <PasswordField
-              label="Mot de passe actuel"
+              label={t('Mot de passe actuel')}
               value={current}
               onChangeText={setCurrent}
               visible={show.current}
@@ -136,7 +138,7 @@ export default function LoginSecurityScreen() {
               isCompact={isCompact}
             />
             <PasswordField
-              label="Nouveau mot de passe"
+              label={t('Nouveau mot de passe')}
               value={newPass}
               onChangeText={setNewPass}
               visible={show.newPass}
@@ -144,7 +146,7 @@ export default function LoginSecurityScreen() {
               isCompact={isCompact}
             />
             <PasswordField
-              label="Confirmer le mot de passe"
+              label={t('Confirmer le mot de passe')}
               value={confirm}
               onChangeText={setConfirm}
               visible={show.confirm}
@@ -177,7 +179,7 @@ export default function LoginSecurityScreen() {
             {saving ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.saveBtnText}>Mettre à jour</Text>
+              <Text style={styles.saveBtnText}>{t('Mettre à jour')}</Text>
             )}
           </TouchableOpacity>
         </ScrollView>

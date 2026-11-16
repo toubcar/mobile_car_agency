@@ -27,6 +27,8 @@ import RecentActivitySection from '@/components/admin/RecentActivitySection';
 import { formatMoney, formatMoneyCompact, percentOf } from '@/utils/money';
 import type { Booking } from '@/types';
 
+import { t, jsLocale } from '@/i18n';
+
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 10;
 const GRID_PAD = 16;
@@ -36,7 +38,7 @@ const SHADOW = adminShadow.card;
 const FIXED_HEADER_H = 48;
 
 function formatDateFr(): string {
-  return new Date().toLocaleDateString('fr-FR', {
+  return new Date().toLocaleDateString(jsLocale(), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -206,7 +208,7 @@ export default function AdminDashboard() {
             activeOpacity={0.8}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
-            accessibilityLabel="Ouvrir le menu"
+            accessibilityLabel={t('Ouvrir le menu')}
           >
             <Ionicons name="menu" size={22} color="#FFF" />
           </TouchableOpacity>
@@ -221,7 +223,7 @@ export default function AdminDashboard() {
               activeOpacity={0.8}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
-              accessibilityLabel="Ouvrir les notifications"
+              accessibilityLabel={t('Ouvrir les notifications')}
             >
               <Ionicons name="notifications-outline" size={20} color="#FFF" />
               {unreadCount > 0 && (
@@ -262,7 +264,7 @@ export default function AdminDashboard() {
           <View style={[styles.heroContent, { paddingTop: fixedHeaderOffset }]}>
             <View style={styles.heroBadge}>
               <Ionicons name="shield-checkmark" size={13} color="#AED6F1" />
-              <Text style={styles.heroBadgeText}>Administrateur</Text>
+              <Text style={styles.heroBadgeText}>{t('Administrateur')}</Text>
             </View>
 
             {statsLoading && !stats ? (
@@ -271,19 +273,19 @@ export default function AdminDashboard() {
               <View style={styles.heroMetrics}>
                 <HeroMetric
                   icon="wallet-outline"
-                  label="Ce mois"
+                  label={t('Ce mois')}
                   value={`${formatMoneyCompact(stats?.revenue_this_month ?? 0)} DH`}
                 />
                 <View style={styles.heroDivider} />
                 <HeroMetric
                   icon="calendar-outline"
-                  label="Actives"
+                  label={t('Actives')}
                   value={String(stats?.active_bookings ?? 0)}
                 />
                 <View style={styles.heroDivider} />
                 <HeroMetric
                   icon="people-outline"
-                  label="Utilisateurs"
+                  label={t('Utilisateurs')}
                   value={String(stats?.total_users ?? 0)}
                 />
               </View>
@@ -298,7 +300,7 @@ export default function AdminDashboard() {
             style={styles.floatingRevInner}
           >
             <View style={styles.revLeft}>
-              <Text style={styles.revEyebrow}>Revenu total plateforme</Text>
+              <Text style={styles.revEyebrow}>{t('Revenu total plateforme')}</Text>
               {statsLoading && !stats ? (
                 <ActivityIndicator color={COLORS.primary} style={{ alignSelf: 'flex-start', marginTop: 8 }} />
               ) : (
@@ -307,7 +309,7 @@ export default function AdminDashboard() {
               <View style={styles.revChip}>
                 <Ionicons name="trending-up" size={12} color="#059669" />
                 <Text style={styles.revChipText}>
-                  +{stats?.new_users_this_month ?? 0} nouveaux ce mois
+                  +{stats?.new_users_this_month ?? 0} {t('nouveaux ce mois')}
                 </Text>
               </View>
             </View>
@@ -315,7 +317,7 @@ export default function AdminDashboard() {
               <Text style={styles.revRingPct}>
                 {percentOf(stats?.available_cars ?? 0, stats?.total_cars ?? 0)}%
               </Text>
-              <Text style={styles.revRingLabel}>Dispo.</Text>
+              <Text style={styles.revRingLabel}>{t('Dispo.')}</Text>
             </View>
           </LinearGradient>
         </View>
@@ -329,7 +331,7 @@ export default function AdminDashboard() {
             >
               <Ionicons name="cloud-offline-outline" size={22} color="#B45309" />
               <View style={{ flex: 1 }}>
-                <Text style={styles.errorTitle}>Connexion API interrompue</Text>
+                <Text style={styles.errorTitle}>{t('Connexion API interrompue')}</Text>
                 <Text style={styles.errorSub}>
                   {loadErrorHint}
                   {'\n'}
@@ -352,46 +354,46 @@ export default function AdminDashboard() {
           ) : null}
 
           {/* KPI grille */}
-          <Text style={styles.sectionTitle}>Vue d'ensemble</Text>
+          <Text style={styles.sectionTitle}>{t("Vue d'ensemble")}</Text>
           {statsLoading && !stats ? (
             <View style={styles.loadingBox}><ActivityIndicator color={COLORS.primary} /></View>
           ) : (
             <>
               <View style={styles.kpiGrid}>
                 <KpiTile
-                  label="Véhicules"
+                  label={t('Véhicules')}
                   value={stats?.total_cars ?? 0}
                   sub={`${stats?.available_cars ?? 0} disponibles`}
                   accent="#1D3557"
                   onPress={() => router.push('/(admin)/(dashboard)/cars')}
                 />
                 <KpiTile
-                  label="Réservations"
+                  label={t('Réservations')}
                   value={stats?.total_bookings ?? 0}
                   sub={`${stats?.active_bookings ?? 0} en cours`}
                   accent="#D97706"
                   onPress={() => router.push('/(admin)/(dashboard)/bookings')}
                 />
                 <KpiTile
-                  label="Utilisateurs"
+                  label={t('Utilisateurs')}
                   value={stats?.total_users ?? 0}
                   sub={`+${stats?.new_users_this_month ?? 0} ce mois`}
                   accent="#059669"
                   onPress={() => router.push('/(admin)/(dashboard)/users')}
                 />
                 <KpiTile
-                  label="Mois en cours"
+                  label={t('Mois en cours')}
                   value={formatMoneyCompact(stats?.revenue_this_month ?? 0)}
-                  sub="DH (mois en cours)"
+                  sub={t('DH (mois en cours)')}
                   accent="#4F46E5"
                   onPress={() => router.push('/(admin)/finance')}
                 />
               </View>
 
               <View style={styles.utilCard}>
-                <Text style={styles.utilCardTitle}>Taux d'utilisation</Text>
-                <UtilizationBar label="Parc disponible" current={stats?.available_cars ?? 0} total={stats?.total_cars ?? 0} color="#1D3557" />
-                <UtilizationBar label="Réservations actives" current={stats?.active_bookings ?? 0} total={stats?.total_bookings ?? 0} color="#D97706" />
+                <Text style={styles.utilCardTitle}>{t("Taux d'utilisation")}</Text>
+                <UtilizationBar label={t('Parc disponible')} current={stats?.available_cars ?? 0} total={stats?.total_cars ?? 0} color="#1D3557" />
+                <UtilizationBar label={t('Réservations actives')} current={stats?.active_bookings ?? 0} total={stats?.total_bookings ?? 0} color="#D97706" />
               </View>
             </>
           )}

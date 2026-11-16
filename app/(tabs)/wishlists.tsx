@@ -25,6 +25,8 @@ import PageHeader from '../../components/PageHeader';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { patchCarsFavorite, patchFavoritesList } from '@/utils/favoritesCache';
 
+import { t } from '@/i18n';
+
 const { width } = Dimensions.get('window');
 
 export default function WishlistsScreen() {
@@ -84,17 +86,17 @@ export default function WishlistsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.blurBg}>
-        <PageHeader title="Favoris" showBack={false} />
+        <PageHeader title={t('Favoris')} showBack={false} />
         <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>Connectez-vous pour voir vos favoris</Text>
+          <Text style={styles.emptyTitle}>{t('Connectez-vous pour voir vos favoris')}</Text>
           <Text style={styles.emptyText}>
-            Vous pourrez créer, consulter ou modifier des listes de favoris après connexion.
+            {t('Vous pourrez créer, consulter ou modifier des listes de favoris après connexion.')}
           </Text>
           <TouchableOpacity
             style={styles.connectBtn}
             onPress={() => openAuthSheet('login')}
           >
-            <Text style={styles.connectBtnText}>Se connecter</Text>
+            <Text style={styles.connectBtnText}>{t('Se connecter')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -119,15 +121,15 @@ export default function WishlistsScreen() {
 
             {/* Texte */}
             <Text style={styles.tipTitle}>
-              Enregistrez tous vos favoris au même endroit
+              {t('Enregistrez tous vos favoris au même endroit')}
             </Text>
             <Text style={styles.tipText}>
-              Touchez l'icône cœur pour garder vos voitures préférées et les retrouver plus rapidement.
+              {t("Touchez l'icône cœur pour garder vos voitures préférées et les retrouver plus rapidement.")}
             </Text>
 
             {/* Bouton J'ai compris */}
             <TouchableOpacity style={styles.gotItBtn} onPress={handleGotIt}>
-              <Text style={styles.gotItBtnText}>J'ai compris</Text>
+              <Text style={styles.gotItBtnText}>{t("J'ai compris")}</Text>
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
@@ -138,7 +140,7 @@ export default function WishlistsScreen() {
 
 function carLabel(car: Car): string {
   if (car.name?.trim()) return car.name.trim();
-  return [car.brand, car.model].filter(Boolean).join(' ') || 'Véhicule';
+  return [car.brand, car.model].filter(Boolean).join(' ') || t('Véhicule');
 }
 
 /* ─── Page favoris quand connecté ─── */
@@ -166,18 +168,18 @@ function WishlistsConnected() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <PageHeader title="Favoris" showBack={false} />
+      <PageHeader title={t('Favoris')} showBack={false} />
       {isLoading ? (
         <ActivityIndicator color="#1D3557" style={{ marginTop: 40 }} />
       ) : favorites.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={{ fontSize: 48, marginBottom: 16 }}>🤍</Text>
-          <Text style={styles.emptyTitle}>Aucun favori pour l'instant</Text>
+          <Text style={styles.emptyTitle}>{t("Aucun favori pour l'instant")}</Text>
           <Text style={styles.emptyText}>
-            Appuyez sur le cœur sur une voiture pour l'ajouter à vos favoris.
+            {t("Appuyez sur le cœur sur une voiture pour l'ajouter à vos favoris.")}
           </Text>
           <TouchableOpacity style={styles.connectBtn} onPress={() => router.push('/(tabs)')}>
-            <Text style={styles.connectBtnText}>Explorer les voitures</Text>
+            <Text style={styles.connectBtnText}>{t('Explorer les voitures')}</Text>
           </TouchableOpacity>
         </View>
       ) : (

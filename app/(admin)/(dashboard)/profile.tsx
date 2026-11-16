@@ -6,6 +6,8 @@ import { ADMIN_BG, adminStyles, adminShadow } from '@/constants/adminTheme';
 import { useAuthStore } from '@/store/authStore';
 import { useLogout } from '@/hooks/useLogout';
 
+import { t } from '@/i18n';
+
 const SHADOW = adminShadow.card;
 
 function Row({ icon, label, sub, onPress, danger }: {
@@ -40,10 +42,10 @@ export default function AdminProfileScreen() {
     .join('');
 
   const handleLogout = () =>
-    Alert.alert('Se déconnecter', 'Quitter la session admin ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('Se déconnecter'), t('Quitter la session admin ?'), [
+      { text: t('Annuler'), style: 'cancel' },
       {
-        text: 'Se déconnecter',
+        text: t('Se déconnecter'),
         style: 'destructive',
         onPress: () => {
           void logoutAndGoHome();
@@ -59,22 +61,22 @@ export default function AdminProfileScreen() {
             <Text style={styles.avatarTxt}>{initials}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.heroKicker}>Administrateur</Text>
+            <Text style={styles.heroKicker}>{t('Administrateur')}</Text>
             <Text style={styles.name}>{user?.name ?? '—'}</Text>
             <Text style={styles.email}>{user?.email ?? '—'}</Text>
           </View>
           <View style={styles.badge}>
             <Ionicons name="shield-checkmark" size={13} color="#D6EAF8" />
-            <Text style={styles.badgeTxt}>Admin</Text>
+            <Text style={styles.badgeTxt}>{t('Admin')}</Text>
           </View>
         </View>
 
         <Text style={adminStyles.sectionLabel}>SESSION</Text>
         <View style={styles.group}>
-          <Row icon="log-out-outline" label="Se déconnecter" sub="Retour à l'accueil public" onPress={handleLogout} danger />
+          <Row icon="log-out-outline" label={t('Se déconnecter')} sub={t("Retour à l'accueil public")} onPress={handleLogout} danger />
         </View>
 
-        <Text style={styles.footer}>ToubCar · Administration</Text>
+        <Text style={styles.footer}>{t('ToubCar · Administration')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

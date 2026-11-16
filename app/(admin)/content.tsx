@@ -11,6 +11,8 @@ import { agenciesService } from '@/services/agencies.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import type { Car, PartnerAgency } from '@/types';
 
+import { t } from '@/i18n';
+
 export default function AdminContentScreen() {
   const queryClient = useQueryClient();
   const [selectedCarId, setSelectedCarId] = useState<number | null>(null);
@@ -38,7 +40,7 @@ export default function AdminContentScreen() {
 
   const requireCar = () => {
     if (!selectedCarId) {
-      Alert.alert('Sélection', 'Choisissez un véhicule dans la liste.');
+      Alert.alert(t('Sélection'), t('Choisissez un véhicule dans la liste.'));
       return false;
     }
     return true;
@@ -46,7 +48,7 @@ export default function AdminContentScreen() {
 
   const requireAgency = () => {
     if (!selectedAgencyId) {
-      Alert.alert('Sélection', 'Choisissez une agence dans la liste.');
+      Alert.alert(t('Sélection'), t('Choisissez une agence dans la liste.'));
       return false;
     }
     return true;
@@ -54,49 +56,49 @@ export default function AdminContentScreen() {
 
   const carFeatured = useMutation({
     mutationFn: () => adminContentService.toggleCarFeatured(selectedCarId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', 'Mise en avant véhicule basculée.'); },
+    onSuccess: () => { invalidate(); Alert.alert('OK', t('Mise en avant véhicule basculée.')); },
   });
   const carHomepage = useMutation({
     mutationFn: () => adminContentService.toggleCarHomepage(selectedCarId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', 'Affichage page d’accueil basculé.'); },
+    onSuccess: () => { invalidate(); Alert.alert('OK', t('Affichage page d’accueil basculé.')); },
   });
   const carPriority = useMutation({
     mutationFn: () => adminContentService.updateCarPriority(selectedCarId!, Number(priority)),
-    onSuccess: () => { invalidate(); Alert.alert('OK', 'Priorité mise à jour.'); },
+    onSuccess: () => { invalidate(); Alert.alert('OK', t('Priorité mise à jour.')); },
   });
   const agencyFeatured = useMutation({
     mutationFn: () => adminContentService.toggleAgencyFeatured(selectedAgencyId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', 'Mise en avant agence basculée.'); },
+    onSuccess: () => { invalidate(); Alert.alert('OK', t('Mise en avant agence basculée.')); },
   });
   const agencyHomepage = useMutation({
     mutationFn: () => adminContentService.toggleAgencyHomepage(selectedAgencyId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', 'Affichage page d’accueil basculé.'); },
+    onSuccess: () => { invalidate(); Alert.alert('OK', t('Affichage page d’accueil basculé.')); },
   });
 
   const loading = isLoading || carsLoading || agenciesLoading;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Contenu" subtitle="À la une, accueil, priorités" />
+      <AdminStackHeader title={t('Contenu')} subtitle={t('À la une, accueil, priorités')} />
 
       {loading ? (
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Vue d’ensemble</Text>
-            <Text style={styles.cardSub}>Bannières : {data?.banners?.length ?? 0}</Text>
-            <Text style={styles.cardSub}>FAQ : {data?.faqs?.length ?? 0}</Text>
+            <Text style={styles.cardTitle}>{t('Vue d’ensemble')}</Text>
+            <Text style={styles.cardSub}>{t('Bannières :')} {data?.banners?.length ?? 0}</Text>
+            <Text style={styles.cardSub}>{t('FAQ :')} {data?.faqs?.length ?? 0}</Text>
             <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 8 }}>
-              <Text style={styles.link}>Synchroniser</Text>
+              <Text style={styles.link}>{t('Synchroniser')}</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.section}>Véhicule</Text>
-          <Text style={styles.hint}>Sélectionnez un véhicule du parc (plus besoin de saisir l’ID).</Text>
+          <Text style={styles.section}>{t('Véhicule')}</Text>
+          <Text style={styles.hint}>{t('Sélectionnez un véhicule du parc (plus besoin de saisir l’ID).')}</Text>
           <View style={styles.picker}>
             {cars.length === 0 ? (
-              <Text style={styles.empty}>Aucun véhicule.</Text>
+              <Text style={styles.empty}>{t('Aucun véhicule.')}</Text>
             ) : (
               cars.slice(0, 30).map((car: Car) => (
                 <PickerRow
@@ -112,25 +114,25 @@ export default function AdminContentScreen() {
             style={styles.input}
             value={priority}
             onChangeText={setPriority}
-            placeholder="Priorité homepage (ex. 10)"
+            placeholder={t('Priorité homepage (ex. 10)')}
             keyboardType="numeric"
           />
           <View style={styles.row}>
-            <Btn label="À la une" onPress={() => requireCar() && carFeatured.mutate()} />
-            <Btn label="Accueil" onPress={() => requireCar() && carHomepage.mutate()} />
-            <Btn label="Priorité" onPress={() => requireCar() && carPriority.mutate()} />
+            <Btn label={t('À la une')} onPress={() => requireCar() && carFeatured.mutate()} />
+            <Btn label={t('Accueil')} onPress={() => requireCar() && carHomepage.mutate()} />
+            <Btn label={t('Priorité')} onPress={() => requireCar() && carPriority.mutate()} />
           </View>
 
-          <Text style={styles.section}>Agence</Text>
-          <Text style={styles.hint}>Sélectionnez une agence partenaire.</Text>
+          <Text style={styles.section}>{t('Agence')}</Text>
+          <Text style={styles.hint}>{t('Sélectionnez une agence partenaire.')}</Text>
           <View style={styles.picker}>
             {agencies.length === 0 ? (
-              <Text style={styles.empty}>Aucune agence.</Text>
+              <Text style={styles.empty}>{t('Aucune agence.')}</Text>
             ) : (
               agencies.slice(0, 30).map((agency: PartnerAgency) => (
                 <PickerRow
                   key={agency.id}
-                  label={agency.name ?? `Agence #${agency.id}`}
+                  label={agency.name ?? t('Agence #:id', { id: agency.id })}
                   selected={selectedAgencyId === agency.id}
                   onPress={() => setSelectedAgencyId(agency.id)}
                 />
@@ -138,8 +140,8 @@ export default function AdminContentScreen() {
             )}
           </View>
           <View style={styles.row}>
-            <Btn label="À la une" onPress={() => requireAgency() && agencyFeatured.mutate()} />
-            <Btn label="Accueil" onPress={() => requireAgency() && agencyHomepage.mutate()} />
+            <Btn label={t('À la une')} onPress={() => requireAgency() && agencyFeatured.mutate()} />
+            <Btn label={t('Accueil')} onPress={() => requireAgency() && agencyHomepage.mutate()} />
           </View>
         </ScrollView>
       )}
@@ -149,7 +151,7 @@ export default function AdminContentScreen() {
 
 function carLabel(car: Car): string {
   const name = car.name ?? `${car.brand ?? ''} ${car.model ?? ''}`.trim();
-  return name ? `${name} (#${car.id})` : `Véhicule #${car.id}`;
+  return name ? `${name} (#${car.id})` : t('Véhicule #:id', { id: car.id });
 }
 
 function PickerRow({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {

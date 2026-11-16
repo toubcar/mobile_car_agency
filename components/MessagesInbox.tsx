@@ -7,6 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import { messagesService, type InboxConversation } from '@/services/messages.service';
 import { COLORS } from '@/constants/api';
 
+import { t } from '@/i18n';
+
 export default function MessagesInbox() {
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
@@ -24,7 +26,7 @@ export default function MessagesInbox() {
     return (
       <View style={styles.empty}>
         <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
-        <Text style={styles.emptyTitle}>Aucune conversation</Text>
+        <Text style={styles.emptyTitle}>{t('Aucune conversation')}</Text>
       </View>
     );
   }

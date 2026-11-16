@@ -12,6 +12,8 @@ import { supportService } from '@/services/support.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t, jsLocale } from '@/i18n';
+
 export default function AdminTicketDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -32,7 +34,7 @@ export default function AdminTicketDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['support-ticket', ticketId] });
       queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
     },
-    onError: () => Alert.alert('Erreur', 'Envoi impossible.'),
+    onError: () => Alert.alert(t('Erreur'), t('Envoi impossible.')),
   });
 
   const statusMutation = useMutation({
@@ -62,18 +64,18 @@ export default function AdminTicketDetailScreen() {
           <Text style={styles.meta}>{ticket.status} · {ticket.priority} · {ticket.category ?? '—'}</Text>
           {(ticket.message ?? ticket.description) ? (
             <View style={styles.block}>
-              <Text style={styles.blockTitle}>Description</Text>
+              <Text style={styles.blockTitle}>{t('Description')}</Text>
               <Text style={styles.blockText}>{ticket.message ?? ticket.description}</Text>
             </View>
           ) : null}
 
-          <Text style={styles.blockTitle}>Fil de réponses</Text>
+          <Text style={styles.blockTitle}>{t('Fil de réponses')}</Text>
           {(ticket.replies ?? []).length === 0 ? (
-            <Text style={styles.emptyReply}>Aucune réponse pour l’instant.</Text>
+            <Text style={styles.emptyReply}>{t('Aucune réponse pour l’instant.')}</Text>
           ) : (
             (ticket.replies ?? []).map((r, i) => (
               <View key={i} style={styles.reply}>
-                <Text style={styles.replyMeta}>{r.user_type} · {new Date(r.created_at).toLocaleString('fr-FR')}</Text>
+                <Text style={styles.replyMeta}>{r.user_type} · {new Date(r.created_at).toLocaleString(jsLocale())}</Text>
                 <Text style={styles.replyText}>{r.message}</Text>
               </View>
             ))
@@ -93,7 +95,7 @@ export default function AdminTicketDetailScreen() {
             style={styles.input}
             value={reply}
             onChangeText={setReply}
-            placeholder="Répondre au ticket…"
+            placeholder={t('Répondre au ticket…')}
             multiline
             placeholderTextColor="#9CA3AF"
           />

@@ -17,6 +17,8 @@ import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { agencyService } from '@/services/agency.service';
 
+import { t } from '@/i18n';
+
 function InfoRow({
   icon,
   label,
@@ -65,14 +67,14 @@ export default function AgencyProfileScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <LinearGradient colors={['#C8E6F5', COLORS.background]} style={styles.headerGradient} />
-      <PageHeader title="Agence" />
+      <PageHeader title={t('Agence')} />
 
       {isLoading ? (
         <ActivityIndicator color={COLORS.primary} style={styles.loader} />
       ) : isError || !agency ? (
         <View style={styles.center}>
           <Ionicons name="business-outline" size={48} color={COLORS.gray} />
-          <Text style={styles.errorTitle}>Agence introuvable</Text>
+          <Text style={styles.errorTitle}>{t('Agence introuvable')}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -94,7 +96,7 @@ export default function AgencyProfileScreen() {
             {agency.available_cars_count != null ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeTxt}>
-                  {agency.available_cars_count} véhicule{agency.available_cars_count > 1 ? 's' : ''} disponible
+                  {agency.available_cars_count} {t('véhicule')}{agency.available_cars_count > 1 ? 's' : ''} disponible
                   {agency.available_cars_count > 1 ? 's' : ''}
                 </Text>
               </View>
@@ -103,37 +105,37 @@ export default function AgencyProfileScreen() {
 
           {agency.description ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>À propos</Text>
+              <Text style={styles.sectionTitle}>{t('À propos')}</Text>
               <Text style={styles.description}>{agency.description}</Text>
             </View>
           ) : null}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Contact</Text>
+            <Text style={styles.sectionTitle}>{t('Contact')}</Text>
             <InfoRow
               icon="call-outline"
-              label="Téléphone"
+              label={t('Téléphone')}
               value={agency.phone}
               onPress={agency.phone ? () => Linking.openURL(`tel:${agency.phone}`) : undefined}
             />
             <InfoRow
               icon="mail-outline"
-              label="E-mail"
+              label={t('E-mail')}
               value={agency.email}
               onPress={agency.email ? () => Linking.openURL(`mailto:${agency.email}`) : undefined}
             />
             <InfoRow
               icon="location-outline"
-              label="Adresse"
+              label={t('Adresse')}
               value={[agency.address, agency.city, agency.postal_code].filter(Boolean).join(', ') || null}
             />
             {agency.responsable_name ? (
-              <InfoRow icon="person-outline" label="Responsable" value={agency.responsable_name} />
+              <InfoRow icon="person-outline" label={t('Responsable')} value={agency.responsable_name} />
             ) : null}
             {agency.years_in_business ? (
               <InfoRow
                 icon="time-outline"
-                label="Expérience"
+                label={t('Expérience')}
                 value={`${agency.years_in_business} an${agency.years_in_business > 1 ? 's' : ''} d'activité`}
               />
             ) : null}

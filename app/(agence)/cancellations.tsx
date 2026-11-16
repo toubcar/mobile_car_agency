@@ -8,6 +8,8 @@ import { marketingService } from '@/services/marketing.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG, adminShadow } from '@/constants/adminTheme';
 
+import { t, jsLocale } from '@/i18n';
+
 export default function AgenceCancellationsScreen() {
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useQuery({
@@ -17,7 +19,7 @@ export default function AgenceCancellationsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Annulations" subtitle="Quota & statut du compte" />
+      <AdminStackHeader title={t('Annulations')} subtitle={t('Quota & statut du compte')} />
 
       {isLoading ? (
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
@@ -29,7 +31,7 @@ export default function AgenceCancellationsScreen() {
           {data?.is_suspended ? (
             <View style={styles.warn}>
               <Ionicons name="warning-outline" size={22} color="#991B1B" />
-              <Text style={styles.warnTxt}>Compte suspendu pour excès d’annulations.</Text>
+              <Text style={styles.warnTxt}>{t('Compte suspendu pour excès d’annulations.')}</Text>
             </View>
           ) : null}
 
@@ -40,17 +42,17 @@ export default function AgenceCancellationsScreen() {
           ) : null}
 
           <View style={styles.grid}>
-            <Card label="Annulations" value={String(data?.cancellation_count ?? 0)} />
-            <Card label="Maximum" value={String(data?.max_cancellations ?? 0)} />
-            <Card label="Restantes" value={String(data?.remaining_cancellations ?? 0)} highlight />
+            <Card label={t('Annulations')} value={String(data?.cancellation_count ?? 0)} />
+            <Card label={t('Maximum')} value={String(data?.max_cancellations ?? 0)} />
+            <Card label={t('Restantes')} value={String(data?.remaining_cancellations ?? 0)} highlight />
           </View>
 
           {data?.last_cancellation ? (
-            <Text style={styles.last}>Dernière annulation : {new Date(data.last_cancellation).toLocaleString('fr-FR')}</Text>
+            <Text style={styles.last}>{t('Dernière annulation :')} {new Date(data.last_cancellation).toLocaleString(jsLocale())}</Text>
           ) : null}
 
           <TouchableOpacity style={styles.btn} onPress={() => router.push('/(agence)/bookings')}>
-            <Text style={styles.btnTxt}>Voir les réservations</Text>
+            <Text style={styles.btnTxt}>{t('Voir les réservations')}</Text>
           </TouchableOpacity>
         </ScrollView>
       )}

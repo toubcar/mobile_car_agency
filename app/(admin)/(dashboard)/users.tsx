@@ -11,6 +11,8 @@ import { COLORS } from '@/constants/api';
 import { usersService } from '@/services/users.service';
 import type { User } from '@/types';
 
+import { t } from '@/i18n';
+
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
 export default function AdminUsersScreen() {
@@ -26,7 +28,7 @@ export default function AdminUsersScreen() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => usersService.delete(id),
     onSuccess:  () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
-    onError:    () => Alert.alert('Erreur', 'Impossible de supprimer cet utilisateur.'),
+    onError:    () => Alert.alert(t('Erreur'), t('Impossible de supprimer cet utilisateur.')),
   });
 
   const verifyMutation = useMutation({
@@ -35,9 +37,9 @@ export default function AdminUsersScreen() {
   });
 
   const confirmDelete = (user: User) =>
-    Alert.alert('Supprimer', `Supprimer "${user.name}" ?`, [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => deleteMutation.mutate(user.id) },
+    Alert.alert(t('Supprimer'), t("Supprimer \":name\" ?", { name: user.name }), [
+      { text: t('Annuler'), style: 'cancel' },
+      { text: t('Supprimer'), style: 'destructive', onPress: () => deleteMutation.mutate(user.id) },
     ]);
 
   const users = data?.data ?? [];
@@ -50,9 +52,9 @@ export default function AdminUsersScreen() {
           <Ionicons name="people-outline" size={28} color="#FFF" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroKicker}>Sécurité admin</Text>
-          <Text style={styles.heroTitle}>Utilisateurs</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} compte{(data?.total ?? 0) !== 1 ? 's' : ''} synchronisé{(data?.total ?? 0) !== 1 ? 's' : ''} avec Laravel</Text>
+          <Text style={styles.heroKicker}>{t('Sécurité admin')}</Text>
+          <Text style={styles.heroTitle}>{t('Utilisateurs')}</Text>
+          <Text style={styles.heroSub}>{data?.total ?? 0} compte{(data?.total ?? 0) !== 1 ? 's' : ''} {t('synchronisé')}{(data?.total ?? 0) !== 1 ? 's' : ''} {t('avec Laravel')}</Text>
         </View>
       </View>
 
@@ -62,7 +64,7 @@ export default function AdminUsersScreen() {
           <Ionicons name="search-outline" size={17} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Nom ou email…"
+            placeholder={t('Nom ou email…')}
             placeholderTextColor="#C7C7CC"
             value={search}
             onChangeText={setSearch}
@@ -74,9 +76,9 @@ export default function AdminUsersScreen() {
       </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}><Text style={styles.statVal}>{userStats?.admins ?? 0}</Text><Text style={styles.statLabel}>Admins</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{userStats?.verified ?? 0}</Text><Text style={styles.statLabel}>Vérifiés</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#92400E' }]}>{userStats?.unverified ?? 0}</Text><Text style={styles.statLabel}>À vérifier</Text></View>
+        <View style={styles.statCard}><Text style={styles.statVal}>{userStats?.admins ?? 0}</Text><Text style={styles.statLabel}>{t('Admins')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{userStats?.verified ?? 0}</Text><Text style={styles.statLabel}>{t('Vérifiés')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#92400E' }]}>{userStats?.unverified ?? 0}</Text><Text style={styles.statLabel}>{t('À vérifier')}</Text></View>
       </View>
 
       {isLoading ? (
@@ -130,7 +132,7 @@ export default function AdminUsersScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="people-outline" size={44} color="#D1D5DB" />
-              <Text style={styles.emptyTitle}>Aucun utilisateur</Text>
+              <Text style={styles.emptyTitle}>{t('Aucun utilisateur')}</Text>
             </View>
           }
         />

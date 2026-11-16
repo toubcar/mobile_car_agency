@@ -9,6 +9,8 @@ import { formatMoney } from '@/utils/money';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 export default function AdminCustomerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -32,7 +34,7 @@ export default function AdminCustomerDetailScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Client" subtitle={data.name} />
+      <AdminStackHeader title={t('Client')} subtitle={data.name} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.hero}>
@@ -42,15 +44,15 @@ export default function AdminCustomerDetailScreen() {
         </View>
 
         <View style={styles.grid}>
-          <Metric label="Locations" value={String(data.total_rentals)} />
-          <Metric label="Dépenses" value={formatMoney(data.total_spent)} />
-          <Metric label="Fidélité" value={data.loyalty_status} />
-          <Metric label="Ville" value={data.city ?? '—'} />
+          <Metric label={t('Locations')} value={String(data.total_rentals)} />
+          <Metric label={t('Dépenses')} value={formatMoney(data.total_spent)} />
+          <Metric label={t('Fidélité')} value={data.loyalty_status} />
+          <Metric label={t('Ville')} value={data.city ?? '—'} />
         </View>
 
-        <Text style={styles.section}>Historique locations</Text>
+        <Text style={styles.section}>{t('Historique locations')}</Text>
         {rentals.length === 0 ? (
-          <Text style={styles.empty}>Aucune location enregistrée.</Text>
+          <Text style={styles.empty}>{t('Aucune location enregistrée.')}</Text>
         ) : (
           rentals.map((r, i) => (
             <View key={i} style={styles.rental}>

@@ -28,6 +28,8 @@ import { replaceRootByRole } from '@/utils/replaceByRole';
 import type { AuthSheetMode } from '@/contexts/AuthSheetContext';
 import type { User } from '@/types';
 
+import { t } from '@/i18n';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.88;
 const DISMISS_THRESHOLD = 120;
@@ -135,7 +137,7 @@ export default function AuthBottomSheet({
 
   const handleEmailLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
+      Alert.alert(t('Champs requis'), t('Veuillez remplir tous les champs.'));
       return;
     }
     try {
@@ -146,7 +148,7 @@ export default function AuthBottomSheet({
         err && typeof err === 'object' && 'response' in err
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
-      Alert.alert('Connexion impossible', msg ?? 'Vérifiez votre e-mail et votre mot de passe.');
+      Alert.alert(t('Connexion impossible'), msg ?? t('Vérifiez votre e-mail et votre mot de passe.'));
     }
   };
 
@@ -221,16 +223,16 @@ export default function AuthBottomSheet({
 
               {view === 'login' ? (
                 <>
-                  <Text style={styles.title}>Bon retour</Text>
+                  <Text style={styles.title}>{t('Bon retour')}</Text>
                   <Text style={styles.loginSub}>
-                    Connectez-vous pour réserver et suivre vos locations.
+                    {t('Connectez-vous pour réserver et suivre vos locations.')}
                   </Text>
 
                   <View style={styles.loginField}>
                     <Ionicons name="mail-outline" size={18} color="#4B5563" />
                     <TextInput
                       style={styles.loginInput}
-                      placeholder="E-mail"
+                      placeholder={t('E-mail')}
                       placeholderTextColor="#6B7280"
                       keyboardType="email-address"
                       autoCapitalize="none"
@@ -243,7 +245,7 @@ export default function AuthBottomSheet({
                     <Ionicons name="lock-closed-outline" size={18} color="#4B5563" />
                     <TextInput
                       style={styles.loginInput}
-                      placeholder="Mot de passe"
+                      placeholder={t('Mot de passe')}
                       placeholderTextColor="#6B7280"
                       secureTextEntry={!showPass}
                       value={password}
@@ -268,20 +270,20 @@ export default function AuthBottomSheet({
                     {loginLoading ? (
                       <ActivityIndicator color="#FFF" />
                     ) : (
-                      <Text style={styles.signUpBtnText}>SE CONNECTER</Text>
+                      <Text style={styles.signUpBtnText}>{t('SE CONNECTER')}</Text>
                     )}
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={() => setView('signup')} style={styles.loginLink}>
                     <Text style={styles.loginLinkText}>
-                      Pas encore de compte ?{' '}
-                      <Text style={styles.loginLinkHighlight}>S’inscrire</Text>
+                      {t('Pas encore de compte ?')}{' '}
+                      <Text style={styles.loginLinkHighlight}>{t('S’inscrire')}</Text>
                     </Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 <>
-                  <Text style={styles.title}>C’est parti</Text>
+                  <Text style={styles.title}>{t('C’est parti')}</Text>
 
                   <TouchableOpacity
                     style={styles.socialBtn}
@@ -292,7 +294,7 @@ export default function AuthBottomSheet({
                     {loadingGoogle ? (
                       <ActivityIndicator color="#1A1A2E" style={{ flex: 1 }} />
                     ) : (
-                      <Text style={styles.socialBtnText}>CONTINUER AVEC GOOGLE</Text>
+                      <Text style={styles.socialBtnText}>{t('CONTINUER AVEC GOOGLE')}</Text>
                     )}
                     <Image source={require('../assets/google-logo.png')} style={styles.socialIcon} resizeMode="contain" />
                   </TouchableOpacity>
@@ -306,7 +308,7 @@ export default function AuthBottomSheet({
                     {loadingApple ? (
                       <ActivityIndicator color="#1A1A2E" style={{ flex: 1 }} />
                     ) : (
-                      <Text style={styles.socialBtnText}>CONTINUER AVEC APPLE ID</Text>
+                      <Text style={styles.socialBtnText}>{t('CONTINUER AVEC APPLE ID')}</Text>
                     )}
                     <Image source={require('../assets/apple-logo.png')} style={styles.appleIcon} resizeMode="contain" />
                   </TouchableOpacity>
@@ -316,20 +318,20 @@ export default function AuthBottomSheet({
                     activeOpacity={0.75}
                     onPress={() => navigateAfterClose('/(auth)/phone')}
                   >
-                    <Text style={styles.socialBtnText}>CONTINUER AVEC UN NUMÉRO</Text>
+                    <Text style={styles.socialBtnText}>{t('CONTINUER AVEC UN NUMÉRO')}</Text>
                     <Image source={require('../assets/phone-logo.png')} style={styles.socialIcon} resizeMode="contain" />
                   </TouchableOpacity>
 
                   <View style={styles.divider}>
                     <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>OU INSCRIPTION PAR E-MAIL</Text>
+                    <Text style={styles.dividerText}>{t('OU INSCRIPTION PAR E-MAIL')}</Text>
                     <View style={styles.dividerLine} />
                   </View>
 
                   <View style={styles.inputContainer}>
                     <TextInput
                       style={styles.input}
-                      placeholder="E-mail"
+                      placeholder={t('E-mail')}
                       placeholderTextColor="#6B7280"
                       keyboardType="email-address"
                       autoCapitalize="none"
@@ -349,13 +351,13 @@ export default function AuthBottomSheet({
                       )
                     }
                   >
-                    <Text style={styles.signUpBtnText}>S’INSCRIRE</Text>
+                    <Text style={styles.signUpBtnText}>{t('S’INSCRIRE')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={() => setView('login')} style={styles.loginLink}>
                     <Text style={styles.loginLinkText}>
-                      Déjà un compte ?{' '}
-                      <Text style={styles.loginLinkHighlight}>Se connecter</Text>
+                      {t('Déjà un compte ?')}{' '}
+                      <Text style={styles.loginLinkHighlight}>{t('Se connecter')}</Text>
                     </Text>
                   </TouchableOpacity>
                 </>

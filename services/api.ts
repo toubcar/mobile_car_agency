@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL } from '../constants/api';
+import { getLocale } from '@/i18n';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -18,6 +19,8 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Le serveur répond (messages, erreurs, notifications) dans la langue choisie dans l'app
+    config.headers['Accept-Language'] = getLocale();
     // FormData : laisser axios définir le boundary (sinon application/json casse l’upload Laravel)
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
       delete config.headers['Content-Type'];

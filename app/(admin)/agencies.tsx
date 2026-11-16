@@ -12,19 +12,21 @@ import { agenciesService } from '@/services/agencies.service';
 import { marketingService } from '@/services/marketing.service';
 import type { PartnerAgency } from '@/types';
 
+import { t } from '@/i18n';
+
 const FILTERS = [
-  { key: '', label: 'Toutes' },
-  { key: 'pending', label: 'En attente' },
-  { key: 'approved', label: 'Approuvées' },
-  { key: 'rejected', label: 'Rejetées' },
-  { key: 'suspended', label: 'Suspendues' },
+  { key: '', get label() { return t('Toutes'); } },
+  { key: 'pending', get label() { return t('En attente'); } },
+  { key: 'approved', get label() { return t('Approuvées'); } },
+  { key: 'rejected', get label() { return t('Rejetées'); } },
+  { key: 'suspended', get label() { return t('Suspendues'); } },
 ];
 
 const STATUS_STYLES: Record<string, { label: string; bg: string; text: string }> = {
-  pending: { label: 'En attente', bg: '#FEF3C7', text: '#92400E' },
-  approved: { label: 'Approuvée', bg: '#D1FAE5', text: '#065F46' },
-  rejected: { label: 'Rejetée', bg: '#FEE2E2', text: '#991B1B' },
-  suspended: { label: 'Suspendue', bg: '#E5E7EB', text: '#374151' },
+  pending: { get label() { return t('En attente'); }, bg: '#FEF3C7', text: '#92400E' },
+  approved: { get label() { return t('Approuvée'); }, bg: '#D1FAE5', text: '#065F46' },
+  rejected: { get label() { return t('Rejetée'); }, bg: '#FEE2E2', text: '#991B1B' },
+  suspended: { get label() { return t('Suspendue'); }, bg: '#E5E7EB', text: '#374151' },
 };
 
 export default function AdminAgenciesScreen() {
@@ -148,17 +150,17 @@ export default function AdminAgenciesScreen() {
       </View>
 
       <View style={styles.kpiRow}>
-        <View style={styles.kpi}><Text style={styles.kpiVal}>{item.cars_count ?? 0}</Text><Text style={styles.kpiLabel}>Véhicules</Text></View>
-        <View style={styles.kpi}><Text style={styles.kpiVal}>{item.bookings_count ?? 0}</Text><Text style={styles.kpiLabel}>Locations</Text></View>
+        <View style={styles.kpi}><Text style={styles.kpiVal}>{item.cars_count ?? 0}</Text><Text style={styles.kpiLabel}>{t('Véhicules')}</Text></View>
+        <View style={styles.kpi}><Text style={styles.kpiVal}>{item.bookings_count ?? 0}</Text><Text style={styles.kpiLabel}>{t('Locations')}</Text></View>
         <TouchableOpacity style={[styles.kpi, styles.kpiTouchable]} onPress={() => openCommissionModal(item)} activeOpacity={0.82}>
           <Text style={styles.kpiVal}>{item.commission_rate ?? 0}%</Text>
-          <Text style={styles.kpiLabel}>Commission</Text>
+          <Text style={styles.kpiLabel}>{t('Commission')}</Text>
         </TouchableOpacity>
-        <View style={styles.kpi}><Text style={styles.kpiVal}>{item.tries_count ?? 0}</Text><Text style={styles.kpiLabel}>Tentatives</Text></View>
+        <View style={styles.kpi}><Text style={styles.kpiVal}>{item.tries_count ?? 0}</Text><Text style={styles.kpiLabel}>{t('Tentatives')}</Text></View>
       </View>
 
-      {item.rejection_reason ? <Text style={styles.warningText}>Rejet: {item.rejection_reason}</Text> : null}
-      {item.suspension_reason ? <Text style={styles.warningText}>Suspension: {item.suspension_reason}</Text> : null}
+      {item.rejection_reason ? <Text style={styles.warningText}>{t('Rejet:')} {item.rejection_reason}</Text> : null}
+      {item.suspension_reason ? <Text style={styles.warningText}>{t('Suspension:')} {item.suspension_reason}</Text> : null}
 
       <View style={styles.actions}>
         {item.status !== 'approved' && (
@@ -167,25 +169,25 @@ export default function AdminAgenciesScreen() {
             disabled={busyId === item.id}
             onPress={() => approveMutation.mutate(item)}
           >
-            {busyId === item.id ? <ActivityIndicator color="#FFF" /> : <Text style={styles.actionWhite}>Approuver</Text>}
+            {busyId === item.id ? <ActivityIndicator color="#FFF" /> : <Text style={styles.actionWhite}>{t('Approuver')}</Text>}
           </TouchableOpacity>
         )}
         {item.status === 'pending' && (
           <TouchableOpacity style={[styles.action, styles.reject]} onPress={() => setReasonModal({ type: 'reject', agency: item })}>
-            <Text style={styles.actionDanger}>Rejeter</Text>
+            <Text style={styles.actionDanger}>{t('Rejeter')}</Text>
           </TouchableOpacity>
         )}
         {item.status !== 'suspended' && !item.is_suspended ? (
           <TouchableOpacity style={[styles.action, styles.neutral]} onPress={() => setReasonModal({ type: 'suspend', agency: item })}>
-            <Text style={styles.actionNeutral}>Suspendre</Text>
+            <Text style={styles.actionNeutral}>{t('Suspendre')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={[styles.action, styles.neutral]} onPress={() => unsuspendMutation.mutate(item)}>
-            <Text style={styles.actionNeutral}>Réactiver</Text>
+            <Text style={styles.actionNeutral}>{t('Réactiver')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity style={[styles.action, styles.outline]} onPress={() => openCommissionModal(item)}>
-          <Text style={styles.outlineText}>Commission</Text>
+          <Text style={styles.outlineText}>{t('Commission')}</Text>
         </TouchableOpacity>
         {(item.cancellation_count ?? 0) > 0 ? (
           <TouchableOpacity
@@ -193,7 +195,7 @@ export default function AdminAgenciesScreen() {
             onPress={() => resetCancelMutation.mutate(item.id)}
             disabled={resetCancelMutation.isPending}
           >
-            <Text style={styles.actionNeutral}>Reset annulations</Text>
+            <Text style={styles.actionNeutral}>{t('Reset annulations')}</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -207,24 +209,24 @@ export default function AdminAgenciesScreen() {
           <Ionicons name="business-outline" size={26} color="#FFF" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroKicker}>Back-office administrateur</Text>
-          <Text style={styles.heroTitle}>Partenaires ToubCar</Text>
-          <Text style={styles.heroSub}>Validation, documents, suspension et commission.</Text>
+          <Text style={styles.heroKicker}>{t('Back-office administrateur')}</Text>
+          <Text style={styles.heroTitle}>{t('Partenaires ToubCar')}</Text>
+          <Text style={styles.heroSub}>{t('Validation, documents, suspension et commission.')}</Text>
         </View>
       </View>
 
       <View style={styles.statsGrid}>
-        <View style={[styles.statCard, styles.statPrimary]}><Text style={[styles.statVal, styles.statValLight]}>{stats?.total ?? 0}</Text><Text style={[styles.statLabel, styles.statLabelLight]}>Total</Text></View>
-        <View style={styles.statCard}><Text style={styles.statVal}>{stats?.pending ?? 0}</Text><Text style={styles.statLabel}>En attente</Text></View>
-        <View style={styles.statCard}><Text style={styles.statVal}>{stats?.approved ?? 0}</Text><Text style={styles.statLabel}>Approuvées</Text></View>
-        <View style={styles.statCard}><Text style={styles.statVal}>{stats?.suspended ?? 0}</Text><Text style={styles.statLabel}>Suspendues</Text></View>
+        <View style={[styles.statCard, styles.statPrimary]}><Text style={[styles.statVal, styles.statValLight]}>{stats?.total ?? 0}</Text><Text style={[styles.statLabel, styles.statLabelLight]}>{t('Total')}</Text></View>
+        <View style={styles.statCard}><Text style={styles.statVal}>{stats?.pending ?? 0}</Text><Text style={styles.statLabel}>{t('En attente')}</Text></View>
+        <View style={styles.statCard}><Text style={styles.statVal}>{stats?.approved ?? 0}</Text><Text style={styles.statLabel}>{t('Approuvées')}</Text></View>
+        <View style={styles.statCard}><Text style={styles.statVal}>{stats?.suspended ?? 0}</Text><Text style={styles.statLabel}>{t('Suspendues')}</Text></View>
       </View>
 
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={18} color="#9CA3AF" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher agence, email, responsable..."
+          placeholder={t('Rechercher agence, email, responsable...')}
           placeholderTextColor="#9CA3AF"
           value={search}
           onChangeText={setSearch}
@@ -258,15 +260,15 @@ export default function AdminAgenciesScreen() {
               <Ionicons name={reasonModal?.type === 'reject' ? 'close-circle-outline' : 'ban-outline'} size={24} color={COLORS.primary} />
             </View>
             <Text style={styles.modalTitle}>
-              {reasonModal?.type === 'reject' ? 'Rejeter l’agence' : 'Suspendre l’agence'}
+              {reasonModal?.type === 'reject' ? t('Rejeter l’agence') : t('Suspendre l’agence')}
             </Text>
             <Text style={styles.modalSub}>
-              {reasonModal?.agency.name} — la raison sera enregistrée dans la logique métier Laravel.
+              {reasonModal?.agency.name} {t('— la raison sera enregistrée dans la logique métier Laravel.')}
             </Text>
             <TextInput
               value={reason}
               onChangeText={(value) => { setReason(value); setReasonError(''); }}
-              placeholder="Saisir une raison claire (min. 10 caractères)"
+              placeholder={t('Saisir une raison claire (min. 10 caractères)')}
               placeholderTextColor="#9CA3AF"
               multiline
               style={styles.reasonInput}
@@ -275,12 +277,12 @@ export default function AdminAgenciesScreen() {
             {reasonError ? <Text style={styles.modalError}>{reasonError}</Text> : null}
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={closeReasonModal}>
-                <Text style={styles.cancelText}>Annuler</Text>
+                <Text style={styles.cancelText}>{t('Annuler')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBtn} onPress={submitReasonAction}>
                 {(rejectMutation.isPending || suspendMutation.isPending)
                   ? <ActivityIndicator color="#FFF" />
-                  : <Text style={styles.confirmText}>Confirmer</Text>}
+                  : <Text style={styles.confirmText}>{t('Confirmer')}</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -297,14 +299,14 @@ export default function AdminAgenciesScreen() {
             <View style={styles.modalIcon}>
               <Ionicons name="cash-outline" size={24} color={COLORS.primary} />
             </View>
-            <Text style={styles.modalTitle}>Modifier la commission</Text>
+            <Text style={styles.modalTitle}>{t('Modifier la commission')}</Text>
             <Text style={styles.modalSub}>
-              {commissionModal?.name} — ce taux sera utilisé par la logique finance Laravel.
+              {commissionModal?.name} {t('— ce taux sera utilisé par la logique finance Laravel.')}
             </Text>
             <TextInput
               value={commissionRate}
               onChangeText={(value) => { setCommissionRate(value); setCommissionError(''); }}
-              placeholder="Taux de commission (%)"
+              placeholder={t('Taux de commission (%)')}
               placeholderTextColor="#9CA3AF"
               keyboardType="numeric"
               style={styles.commissionInput}
@@ -312,10 +314,10 @@ export default function AdminAgenciesScreen() {
             {commissionError ? <Text style={styles.modalError}>{commissionError}</Text> : null}
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={closeCommissionModal}>
-                <Text style={styles.cancelText}>Annuler</Text>
+                <Text style={styles.cancelText}>{t('Annuler')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBtn} onPress={submitCommission}>
-                {commissionMutation.isPending ? <ActivityIndicator color="#FFF" /> : <Text style={styles.confirmText}>Enregistrer</Text>}
+                {commissionMutation.isPending ? <ActivityIndicator color="#FFF" /> : <Text style={styles.confirmText}>{t('Enregistrer')}</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -326,7 +328,7 @@ export default function AdminAgenciesScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Agences partenaires" subtitle="Validation, rejet, suspension — même logique Laravel" />
+      <AdminStackHeader title={t('Agences partenaires')} subtitle={t('Validation, rejet, suspension — même logique Laravel')} />
       {ReasonModal}
       {CommissionModal}
 
@@ -335,12 +337,12 @@ export default function AdminAgenciesScreen() {
       ) : isError ? (
         <View style={styles.center}>
           <Ionicons name="cloud-offline-outline" size={48} color="#D1D5DB" />
-          <Text style={styles.errTitle}>Impossible de charger les agences</Text>
+          <Text style={styles.errTitle}>{t('Impossible de charger les agences')}</Text>
           <Text style={styles.errSub}>
-            Vérifiez que la route API <Text style={{ fontWeight: '700' }}>GET /api/admin/agencies</Text> existe côté Laravel (comme sur toubcar.com).
+            {t('Vérifiez que la route API')} <Text style={{ fontWeight: '700' }}>{t('GET /api/admin/agencies')}</Text> {t('existe côté Laravel (comme sur toubcar.com).')}
           </Text>
           <TouchableOpacity style={styles.retry} onPress={() => refetch()} activeOpacity={0.85}>
-            <Text style={styles.retryTxt}>Réessayer</Text>
+            <Text style={styles.retryTxt}>{t('Réessayer')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -354,8 +356,8 @@ export default function AdminAgenciesScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="business-outline" size={48} color="#D1D5DB" />
-              <Text style={styles.emptyTitle}>Aucune agence</Text>
-              <Text style={styles.emptySub}>Les partenaires enregistrés dans le backend apparaîtront ici.</Text>
+              <Text style={styles.emptyTitle}>{t('Aucune agence')}</Text>
+              <Text style={styles.emptySub}>{t('Les partenaires enregistrés dans le backend apparaîtront ici.')}</Text>
             </View>
           }
         />

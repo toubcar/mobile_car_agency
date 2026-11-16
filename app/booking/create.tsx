@@ -30,6 +30,8 @@ import BookingDateRangePicker, { toIsoDate } from '@/components/BookingDateRange
 import { formatMoney, formatMoneyPerDay } from '@/utils/money';
 import { rentalDays } from '@/utils/rental';
 
+import { t } from '@/i18n';
+
 function defaultStartDate(): Date {
   const d = new Date();
   d.setHours(12, 0, 0, 0);
@@ -102,7 +104,7 @@ export default function CreateBookingScreen() {
       setSuccessBooking({ id: booking.id, total_price: booking.total_price });
     },
     onError: (err: { response?: { data?: { message?: string } } }) => {
-      setErrorMessage(err?.response?.data?.message ?? 'Impossible de créer la réservation.');
+      setErrorMessage(err?.response?.data?.message ?? t('Impossible de créer la réservation.'));
     },
   });
 
@@ -110,18 +112,18 @@ export default function CreateBookingScreen() {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <LinearGradient colors={['#C8E6F5', COLORS.background]} style={StyleSheet.absoluteFill} />
-        <PageHeader title="Réserver" />
+        <PageHeader title={t('Réserver')} />
         <View style={styles.authCenter}>
           <View style={styles.authIcon}>
             <Ionicons name="lock-closed-outline" size={28} color={COLORS.primary} />
           </View>
-          <Text style={styles.authTitle}>Connexion requise</Text>
-          <Text style={styles.authSub}>Connectez-vous pour finaliser votre réservation.</Text>
+          <Text style={styles.authTitle}>{t('Connexion requise')}</Text>
+          <Text style={styles.authSub}>{t('Connectez-vous pour finaliser votre réservation.')}</Text>
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() => openAuthSheet('login', carId ? `/booking/create?carId=${carId}` : undefined)}
           >
-            <Text style={styles.primaryBtnTxt}>Se connecter</Text>
+            <Text style={styles.primaryBtnTxt}>{t('Se connecter')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -133,7 +135,7 @@ export default function CreateBookingScreen() {
       ? (() => {
           const msg = (quoteError as { response?: { data?: { message?: string } } }).response?.data?.message;
           if (msg?.includes('No query results for model') && msg?.includes('quote')) {
-            return 'Le serveur doit être mis à jour (route /api/bookings/quote). Contactez l’administrateur.';
+            return t('Le serveur doit être mis à jour (route /api/bookings/quote). Contactez l’administrateur.');
           }
           return msg;
         })()
@@ -147,11 +149,11 @@ export default function CreateBookingScreen() {
   const submit = () => {
     if (bookingBlocked) return;
     if (days < 1) {
-      setErrorMessage('La date de fin doit être après la date de début.');
+      setErrorMessage(t('La date de fin doit être après la date de début.'));
       return;
     }
     if (!quote && !quoteLoading) {
-      setErrorMessage(quoteMessage ?? 'Attendez le calcul du montant par le serveur.');
+      setErrorMessage(quoteMessage ?? t('Attendez le calcul du montant par le serveur.'));
       return;
     }
     bookMutation.mutate();
@@ -163,7 +165,7 @@ export default function CreateBookingScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <LinearGradient colors={['#C8E6F5', COLORS.background]} style={styles.headerGradient} />
-      <PageHeader title="Réserver" />
+      <PageHeader title={t('Réserver')} />
 
       {isLoading ? (
         <ActivityIndicator color={COLORS.primary} style={styles.loader} />
@@ -211,16 +213,16 @@ export default function CreateBookingScreen() {
                   <Ionicons name="car-sport-outline" size={22} color="#B45309" />
                 </View>
                 <View style={styles.unavailableBody}>
-                  <Text style={styles.unavailableTitle}>Véhicule indisponible</Text>
+                  <Text style={styles.unavailableTitle}>{t('Véhicule indisponible')}</Text>
                   <Text style={styles.unavailableSub}>
                     {carUnavailable
-                      ? 'Ce véhicule est actuellement loué. Choisissez un autre modèle ou revenez plus tard.'
-                      : quoteMessage ?? 'Impossible de calculer un devis pour ces dates.'}
+                      ? t('Ce véhicule est actuellement loué. Choisissez un autre modèle ou revenez plus tard.')
+                      : quoteMessage ?? t('Impossible de calculer un devis pour ces dates.')}
                   </Text>
                 </View>
                 <TouchableOpacity style={styles.unavailableBtn} onPress={() => router.back()} activeOpacity={0.88}>
                   <Ionicons name="search-outline" size={16} color={COLORS.primary} />
-                  <Text style={styles.unavailableBtnTxt}>Voir d'autres véhicules</Text>
+                  <Text style={styles.unavailableBtnTxt}>{t("Voir d'autres véhicules")}</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
@@ -228,7 +230,7 @@ export default function CreateBookingScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="calendar" size={18} color={COLORS.primary} />
-                <Text style={styles.sectionTitle}>Période de location</Text>
+                <Text style={styles.sectionTitle}>{t('Période de location')}</Text>
               </View>
               <BookingDateRangePicker
                 startDate={startDate}
@@ -243,13 +245,13 @@ export default function CreateBookingScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={COLORS.primary} />
-                <Text style={styles.sectionTitle}>Notes (optionnel)</Text>
+                <Text style={styles.sectionTitle}>{t('Notes (optionnel)')}</Text>
               </View>
               <TextInput
                 style={styles.textarea}
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="Précisions pour l'agence…"
+                placeholder={t("Précisions pour l'agence…")}
                 placeholderTextColor="#9CA3AF"
                 multiline
                 textAlignVertical="top"
@@ -264,7 +266,7 @@ export default function CreateBookingScreen() {
             >
               <View style={styles.summaryRow}>
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLbl}>Durée</Text>
+                  <Text style={styles.summaryLbl}>{t('Durée')}</Text>
                   {quoteLoading || quoteFetching ? (
                     <ActivityIndicator color={COLORS.primary} size="small" style={{ marginTop: 6, alignSelf: 'flex-start' }} />
                   ) : (
@@ -279,7 +281,7 @@ export default function CreateBookingScreen() {
                 </View>
                 <View style={styles.summaryDivider} />
                 <View style={[styles.summaryItem, styles.summaryItemRight]}>
-                  <Text style={styles.summaryLbl}>Total estimé</Text>
+                  <Text style={styles.summaryLbl}>{t('Total estimé')}</Text>
                   <Text style={styles.summaryTotal}>
                     {quote ? formatMoney(quote.total_price) : quoteLoading || quoteFetching ? '…' : '—'}
                   </Text>
@@ -288,7 +290,7 @@ export default function CreateBookingScreen() {
 
               {quote ? (
                 <Text style={styles.summaryHint}>
-                  {formatMoney(quote.price_per_day)}/jour × {quote.days} jour{quote.days > 1 ? 's' : ''} — montant confirmé par le serveur.
+                  {formatMoney(quote.price_per_day)}/jour × {quote.days} jour{quote.days > 1 ? 's' : ''} {t('— montant confirmé par le serveur.')}
                 </Text>
               ) : null}
             </LinearGradient>
@@ -296,7 +298,7 @@ export default function CreateBookingScreen() {
 
           <View style={[styles.footer, { paddingHorizontal: contentPad, paddingBottom: footerBottomPad }]}>
             <View style={styles.footerPrice}>
-              <Text style={styles.footerLabel}>Total</Text>
+              <Text style={styles.footerLabel}>{t('Total')}</Text>
               <Text style={[styles.footerAmount, isCompact && styles.footerAmountCompact]}>
                 {quote ? formatMoney(quote.total_price) : '—'}
               </Text>
@@ -315,7 +317,7 @@ export default function CreateBookingScreen() {
                 <ActivityIndicator color="#FFF" />
               ) : (
                 <>
-                  <Text style={[styles.confirmBtnTxt, isCompact && styles.confirmBtnTxtCompact]}>Confirmer</Text>
+                  <Text style={[styles.confirmBtnTxt, isCompact && styles.confirmBtnTxtCompact]}>{t('Confirmer')}</Text>
                   <Ionicons name="checkmark-circle-outline" size={isCompact ? 16 : 18} color="#FFF" />
                 </>
               )}
@@ -348,14 +350,14 @@ export default function CreateBookingScreen() {
               </View>
             </LinearGradient>
 
-            <Text style={styles.successTitle}>Demande envoyée</Text>
+            <Text style={styles.successTitle}>{t('Demande envoyée')}</Text>
             <Text style={styles.successSub}>
-              Votre réservation a été transmise à l'agence. Vous serez notifié dès qu'elle sera confirmée.
+              {t("Votre réservation a été transmise à l'agence. Vous serez notifié dès qu'elle sera confirmée.")}
             </Text>
 
             {successBooking ? (
               <View style={styles.successAmountBox}>
-                <Text style={styles.successAmountLbl}>Montant confirmé</Text>
+                <Text style={styles.successAmountLbl}>{t('Montant confirmé')}</Text>
                 <Text style={styles.successAmount}>{formatMoney(successBooking.total_price)}</Text>
                 {car ? (
                   <Text style={styles.successCar} numberOfLines={1}>
@@ -376,7 +378,7 @@ export default function CreateBookingScreen() {
               }}
             >
               <Ionicons name="document-text-outline" size={18} color={COLORS.white} />
-              <Text style={styles.successPrimaryTxt}>Voir le détail</Text>
+              <Text style={styles.successPrimaryTxt}>{t('Voir le détail')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -388,7 +390,7 @@ export default function CreateBookingScreen() {
               }}
             >
               <Ionicons name="list-outline" size={18} color={COLORS.primary} />
-              <Text style={styles.successSecondaryTxt}>Mes réservations</Text>
+              <Text style={styles.successSecondaryTxt}>{t('Mes réservations')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -410,14 +412,14 @@ export default function CreateBookingScreen() {
             <View style={[styles.successIconCircle, styles.errorIconCircle]}>
               <Ionicons name="alert-circle" size={48} color="#DC3545" />
             </View>
-            <Text style={styles.successTitle}>Réservation impossible</Text>
+            <Text style={styles.successTitle}>{t('Réservation impossible')}</Text>
             <Text style={styles.successSub}>{errorMessage}</Text>
             <TouchableOpacity
               style={styles.successPrimaryBtn}
               activeOpacity={0.88}
               onPress={() => setErrorMessage(null)}
             >
-              <Text style={styles.successPrimaryTxt}>Compris</Text>
+              <Text style={styles.successPrimaryTxt}>{t('Compris')}</Text>
             </TouchableOpacity>
             {errorMessage?.toLowerCase().includes('disponible') ? (
               <TouchableOpacity
@@ -429,7 +431,7 @@ export default function CreateBookingScreen() {
                 }}
               >
                 <Ionicons name="search-outline" size={18} color={COLORS.primary} />
-                <Text style={styles.successSecondaryTxt}>Autres véhicules</Text>
+                <Text style={styles.successSecondaryTxt}>{t('Autres véhicules')}</Text>
               </TouchableOpacity>
             ) : null}
           </View>

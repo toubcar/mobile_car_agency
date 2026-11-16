@@ -7,6 +7,8 @@ import { useRequireRole } from '@/hooks/useRequireRole';
 import { messagesService } from '@/services/messages.service';
 import BackofficeTabIcon from '@/components/backoffice/BackofficeTabIcon';
 
+import { t } from '@/i18n';
+
 export default function AgenceLayout() {
   useRequireRole('agence');
   const insets = useSafeAreaInsets();
@@ -32,28 +34,28 @@ export default function AgenceLayout() {
       <Tabs.Screen
         name="(dashboard)/index"
         options={{
-          title: 'Tableau de bord',
+          title: t('Tableau de bord'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'grid' : 'grid-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="(dashboard)/cars"
         options={{
-          title: 'Mes véhicules',
+          title: t('Mes véhicules'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'car' : 'car-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="(dashboard)/bookings"
         options={{
-          title: 'Réservations',
+          title: t('Réservations'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'calendar' : 'calendar-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="(dashboard)/messages"
         options={{
-          title: 'Messages',
+          title: t('Messages'),
           tabBarBadge: messageBadge,
           tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} focused={focused} />,
@@ -62,7 +64,7 @@ export default function AgenceLayout() {
       <Tabs.Screen
         name="(dashboard)/profile"
         options={{
-          title: 'Mon agence',
+          title: t('Mon agence'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'person-circle' : 'person-circle-outline'} focused={focused} />,
         }}
       />

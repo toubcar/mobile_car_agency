@@ -12,41 +12,43 @@ import { adminShadow } from '@/constants/adminTheme';
 import { formatMoney } from '@/utils/money';
 import type { Booking } from '@/types';
 
+import { t, jsLocale } from '@/i18n';
+
 const SHADOW = adminShadow.card;
 const MAX_ITEMS = 5;
 
 const STATUS: Record<string, { label: string; bg: string; text: string; bar: string }> = {
-  pending:   { label: 'En attente',  bg: '#FEF3C7', text: '#92400E', bar: '#F59E0B' },
-  confirmed: { label: 'Confirmée',   bg: '#D1FAE5', text: '#065F46', bar: '#10B981' },
-  completed: { label: 'Terminée',    bg: '#DBEAFE', text: '#1E40AF', bar: '#3B82F6' },
-  cancelled: { label: 'Annulée',     bg: '#FEE2E2', text: '#991B1B', bar: '#EF4444' },
+  pending:   { get label() { return t('En attente'); },  bg: '#FEF3C7', text: '#92400E', bar: '#F59E0B' },
+  confirmed: { get label() { return t('Confirmée'); },   bg: '#D1FAE5', text: '#065F46', bar: '#10B981' },
+  completed: { get label() { return t('Terminée'); },    bg: '#DBEAFE', text: '#1E40AF', bar: '#3B82F6' },
+  cancelled: { get label() { return t('Annulée'); },     bg: '#FEE2E2', text: '#991B1B', bar: '#EF4444' },
 };
 
 type FilterKey = 'all' | 'pending' | 'confirmed' | 'completed';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: 'all', label: 'Toutes' },
-  { key: 'pending', label: 'En attente' },
-  { key: 'confirmed', label: 'Confirmées' },
-  { key: 'completed', label: 'Terminées' },
+  { key: 'all', get label() { return t('Toutes'); } },
+  { key: 'pending', get label() { return t('En attente'); } },
+  { key: 'confirmed', get label() { return t('Confirmées'); } },
+  { key: 'completed', get label() { return t('Terminées'); } },
 ];
 
 function formatRange(start: string, end: string): string {
   const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-  const s = new Date(start).toLocaleDateString('fr-FR', opts);
-  const e = new Date(end).toLocaleDateString('fr-FR', opts);
+  const s = new Date(start).toLocaleDateString(jsLocale(), opts);
+  const e = new Date(end).toLocaleDateString(jsLocale(), opts);
   return `${s} → ${e}`;
 }
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 60) return `Il y a ${mins} min`;
+  if (mins < 60) return t('Il y a :mins min', { mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `Il y a ${hours} h`;
+  if (hours < 24) return t('Il y a :hours h', { hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `Il y a ${days} j`;
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  if (days < 7) return t('Il y a :days j', { days });
+  return new Date(iso).toLocaleDateString(jsLocale(), { day: 'numeric', month: 'short' });
 }
 
 interface Props {
@@ -76,18 +78,18 @@ export default function RecentActivitySection({ bookings, isLoading, onSeeAll, o
   return (
     <View style={styles.wrap}>
       <View style={styles.header}>
-        <Text style={styles.title}>Activité récente</Text>
+        <Text style={styles.title}>{t('Activité récente')}</Text>
         <TouchableOpacity onPress={onSeeAll} activeOpacity={0.7}>
-          <Text style={styles.seeAll}>Tout voir</Text>
+          <Text style={styles.seeAll}>{t('Tout voir')}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
         {/* Mini synthèse */}
         <View style={styles.summaryRow}>
-          <SummaryChip label="Sur 5 récentes" value={filtered.length} />
-          <SummaryChip label="En attente" value={counts.pending} accent="#B45309" />
-          <SummaryChip label="Confirmées" value={counts.confirmed} accent="#059669" />
+          <SummaryChip label={t('Sur 5 récentes')} value={filtered.length} />
+          <SummaryChip label={t('En attente')} value={counts.pending} accent="#B45309" />
+          <SummaryChip label={t('Confirmées')} value={counts.confirmed} accent="#059669" />
         </View>
 
         {/* Filtres */}
@@ -124,7 +126,7 @@ export default function RecentActivitySection({ bookings, isLoading, onSeeAll, o
         ) : filtered.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>
-              {filter === 'all' ? 'Aucune réservation récente' : 'Aucune réservation pour ce filtre'}
+              {filter === 'all' ? t('Aucune réservation récente') : t('Aucune réservation pour ce filtre')}
             </Text>
           </View>
         ) : (
@@ -174,7 +176,7 @@ export default function RecentActivitySection({ bookings, isLoading, onSeeAll, o
 
         {bookings.length > MAX_ITEMS ? (
           <TouchableOpacity style={styles.moreBtn} onPress={onSeeAll} activeOpacity={0.8}>
-            <Text style={styles.moreText}>+{bookings.length - MAX_ITEMS} autres réservations ›</Text>
+            <Text style={styles.moreText}>+{bookings.length - MAX_ITEMS} {t('autres réservations ›')}</Text>
           </TouchableOpacity>
         ) : null}
       </View>

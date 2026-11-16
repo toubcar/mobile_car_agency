@@ -21,17 +21,19 @@ import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { COLORS } from '@/constants/api';
 import { PROFILE_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsiveLayout';
 
+import { t } from '@/i18n';
+
 const MENU: {
   label: string;
   sub: string;
   route: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
 }[] = [
-  { label: 'Mes réservations', sub: 'À venir et passées', route: '/(tabs)/bookings', icon: 'calendar-outline' },
-  { label: 'Favoris', sub: 'Vos véhicules enregistrés', route: '/(tabs)/wishlists', icon: 'heart-outline' },
-  { label: 'Messages', sub: 'Échanges avec les agences', route: '/(tabs)/messages', icon: 'chatbubbles-outline' },
-  { label: 'Voir mon profil', sub: 'Nom, photo et infos publiques', route: '/view-profile', icon: 'person-outline' },
-  { label: 'Paramètres du compte', sub: 'Sécurité, notifications, paiements', route: '/account-settings', icon: 'settings-outline' },
+  { get label() { return t('Mes réservations'); }, get sub() { return t('À venir et passées'); }, route: '/(tabs)/bookings', icon: 'calendar-outline' },
+  { get label() { return t('Favoris'); }, get sub() { return t('Vos véhicules enregistrés'); }, route: '/(tabs)/wishlists', icon: 'heart-outline' },
+  { get label() { return t('Messages'); }, get sub() { return t('Échanges avec les agences'); }, route: '/(tabs)/messages', icon: 'chatbubbles-outline' },
+  { get label() { return t('Voir mon profil'); }, get sub() { return t('Nom, photo et infos publiques'); }, route: '/view-profile', icon: 'person-outline' },
+  { get label() { return t('Paramètres du compte'); }, get sub() { return t('Sécurité, notifications, paiements'); }, route: '/account-settings', icon: 'settings-outline' },
 ];
 
 function getDisplayIdentity(user: { email?: string; phone?: string } | null): string {
@@ -106,10 +108,10 @@ export default function ProfileScreen() {
   });
 
   const handleLogout = () => {
-    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('Déconnexion'), t('Voulez-vous vraiment vous déconnecter ?'), [
+      { text: t('Annuler'), style: 'cancel' },
       {
-        text: 'Se déconnecter',
+        text: t('Se déconnecter'),
         style: 'destructive',
         onPress: () => {
           void logoutAndGoHome();
@@ -131,15 +133,15 @@ export default function ProfileScreen() {
             <View style={styles.guestAvatar}>
               <Ionicons name="person-outline" size={40} color={COLORS.secondary} />
             </View>
-            <Text style={[styles.guestTitle, isCompact && styles.guestTitleCompact]}>Bienvenue sur ToubCar</Text>
+            <Text style={[styles.guestTitle, isCompact && styles.guestTitleCompact]}>{t('Bienvenue sur ToubCar')}</Text>
             <Text style={styles.guestSub}>
-              Connectez-vous ou créez un compte pour accéder à toutes les fonctionnalités.
+              {t('Connectez-vous ou créez un compte pour accéder à toutes les fonctionnalités.')}
             </Text>
             <TouchableOpacity style={styles.primaryBtn} onPress={() => openAuthSheet('login')} activeOpacity={0.85}>
-              <Text style={styles.primaryBtnText}>Se connecter</Text>
+              <Text style={styles.primaryBtnText}>{t('Se connecter')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.secondaryBtn} onPress={() => openAuthSheet('signup')} activeOpacity={0.85}>
-              <Text style={styles.secondaryBtnText}>Créer un compte</Text>
+              <Text style={styles.secondaryBtnText}>{t('Créer un compte')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -158,11 +160,11 @@ export default function ProfileScreen() {
   const identity = getDisplayIdentity(user);
 
   const stats = [
-    { value: String(bookings?.length ?? 0), label: 'Locations', route: '/(tabs)/bookings' as const },
-    { value: String(favorites?.length ?? 0), label: 'Favoris', route: '/(tabs)/wishlists' as const },
+    { value: String(bookings?.length ?? 0), label: t('Locations'), route: '/(tabs)/bookings' as const },
+    { value: String(favorites?.length ?? 0), label: t('Favoris'), route: '/(tabs)/wishlists' as const },
     {
       value: String(bookings?.filter((b) => b.status === 'completed').length ?? 0),
-      label: 'Terminées',
+      label: t('Terminées'),
       route: '/(tabs)/bookings' as const,
     },
   ];
@@ -176,7 +178,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, scrollContentStyle, { maxWidth: contentWidth }]}
       >
-        <Text style={[styles.pageTitle, isCompact && styles.pageTitleCompact]}>Profil</Text>
+        <Text style={[styles.pageTitle, isCompact && styles.pageTitleCompact]}>{t('Profil')}</Text>
 
         <View style={[styles.heroCard, isCompact && styles.heroCardCompact]}>
           <LinearGradient
@@ -192,13 +194,13 @@ export default function ProfileScreen() {
             {role === 'agence' ? (
               <View style={styles.roleBadge}>
                 <Ionicons name="checkmark-circle" size={12} color={COLORS.success} />
-                <Text style={styles.roleBadgeText}>Agence partenaire</Text>
+                <Text style={styles.roleBadgeText}>{t('Agence partenaire')}</Text>
               </View>
             ) : null}
             {role === 'admin' ? (
               <View style={styles.roleBadge}>
                 <Ionicons name="shield-checkmark" size={12} color={COLORS.primary} />
-                <Text style={styles.roleBadgeText}>Administrateur</Text>
+                <Text style={styles.roleBadgeText}>{t('Administrateur')}</Text>
               </View>
             ) : null}
           </View>
@@ -228,12 +230,12 @@ export default function ProfileScreen() {
 
         {(role === 'admin' || role === 'agence') && (
           <>
-            <Text style={styles.sectionLabel}>Espace pro</Text>
+            <Text style={styles.sectionLabel}>{t('Espace pro')}</Text>
             <View style={styles.card}>
               <MenuRow
                 icon={role === 'admin' ? 'grid-outline' : 'business-outline'}
-                label={role === 'admin' ? 'Tableau de bord admin' : 'Espace agence'}
-                sub="Gestion, statistiques, réservations"
+                label={role === 'admin' ? t('Tableau de bord admin') : t('Espace agence')}
+                sub={t('Gestion, statistiques, réservations')}
                 onPress={() => {
                   allowProNavigation();
                   router.replace(role === 'admin' ? '/(admin)/(dashboard)' : '/(agence)');
@@ -245,7 +247,7 @@ export default function ProfileScreen() {
           </>
         )}
 
-        <Text style={styles.sectionLabel}>Compte</Text>
+        <Text style={styles.sectionLabel}>{t('Compte')}</Text>
         <View style={styles.card}>
           {MENU.map((item, i) => (
             <MenuRow
@@ -261,10 +263,10 @@ export default function ProfileScreen() {
         </View>
 
         <TouchableOpacity style={styles.logoutCard} onPress={handleLogout} activeOpacity={0.75}>
-          <Text style={styles.signOutText}>Se déconnecter</Text>
+          <Text style={styles.signOutText}>{t('Se déconnecter')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>ToubCar · v1.0.0</Text>
+        <Text style={styles.version}>{t('ToubCar · v1.0.0')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

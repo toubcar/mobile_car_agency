@@ -8,6 +8,8 @@ import { COLORS } from '@/constants/api';
 import { adminSystemService } from '@/services/admin-system.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 
+import { t } from '@/i18n';
+
 export default function AdminSystemScreen() {
   const queryClient = useQueryClient();
 
@@ -28,10 +30,10 @@ export default function AdminSystemScreen() {
       else await adminSystemService.toggleMaintenance();
     },
     onSuccess: (_, action) => {
-      Alert.alert('Succès', action === 'maintenance' ? 'Mode maintenance basculé.' : 'Action terminée.');
+      Alert.alert(t('Succès'), action === 'maintenance' ? t('Mode maintenance basculé.') : t('Action terminée.'));
       queryClient.invalidateQueries({ queryKey: ['admin-system-health'] });
     },
-    onError: () => Alert.alert('Erreur', 'Action impossible.'),
+    onError: () => Alert.alert(t('Erreur'), t('Action impossible.')),
   });
 
   const health = healthQuery.data;
@@ -39,7 +41,7 @@ export default function AdminSystemScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Système" subtitle="Santé API, cache, maintenance" />
+      <AdminStackHeader title={t('Système')} subtitle={t('Santé API, cache, maintenance')} />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -54,7 +56,7 @@ export default function AdminSystemScreen() {
           <ActivityIndicator color={COLORS.primary} />
         ) : health ? (
           <>
-            <Text style={styles.section}>Santé</Text>
+            <Text style={styles.section}>{t('Santé')}</Text>
             {Object.entries(health.health_checks ?? {}).map(([key, check]) => (
               <View key={key} style={styles.card}>
                 <Text style={styles.cardTitle}>{key}</Text>
@@ -65,22 +67,22 @@ export default function AdminSystemScreen() {
             ))}
             {health.maintenance?.is_enabled ? (
               <View style={styles.warn}>
-                <Text style={styles.warnTxt}>Maintenance active : {health.maintenance.message}</Text>
+                <Text style={styles.warnTxt}>{t('Maintenance active :')} {health.maintenance.message}</Text>
               </View>
             ) : null}
           </>
         ) : null}
 
-        <Text style={styles.section}>Actions</Text>
+        <Text style={styles.section}>{t('Actions')}</Text>
         <View style={styles.actions}>
-          <ActionBtn label="Vider le cache" onPress={() => actionMutation.mutate('clear_cache')} />
-          <ActionBtn label="Optimiser" onPress={() => actionMutation.mutate('optimize')} />
-          <ActionBtn label="Maintenance" onPress={() => actionMutation.mutate('maintenance')} danger />
+          <ActionBtn label={t('Vider le cache')} onPress={() => actionMutation.mutate('clear_cache')} />
+          <ActionBtn label={t('Optimiser')} onPress={() => actionMutation.mutate('optimize')} />
+          <ActionBtn label={t('Maintenance')} onPress={() => actionMutation.mutate('maintenance')} danger />
         </View>
 
         {users ? (
           <>
-            <Text style={styles.section}>Admins ({users.admins?.length ?? 0})</Text>
+            <Text style={styles.section}>{t('Admins (')}{users.admins?.length ?? 0})</Text>
             {(users.admins ?? []).map((a) => (
               <View key={a.id} style={styles.card}>
                 <Text style={styles.cardTitle}>{a.name}</Text>

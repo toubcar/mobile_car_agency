@@ -17,6 +17,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSocialAuth } from '@/hooks/useSocialAuth';
 
+import { t } from '@/i18n';
+
 const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
@@ -71,7 +73,7 @@ export default function OnboardingScreen() {
               />
             </View>
 
-            <Text style={styles.title}>C’est parti</Text>
+            <Text style={styles.title}>{t('C’est parti')}</Text>
 
             {/* ── Google ── */}
             <TouchableOpacity
@@ -82,7 +84,7 @@ export default function OnboardingScreen() {
             >
               {loadingGoogle
                 ? <ActivityIndicator color="#1A1A2E" style={{ flex: 1 }} />
-                : <Text style={styles.socialBtnText}>CONTINUER AVEC GOOGLE</Text>
+                : <Text style={styles.socialBtnText}>{t('CONTINUER AVEC GOOGLE')}</Text>
               }
               <Image source={require('../../assets/google-logo.png')} style={styles.socialIcon} resizeMode="contain" />
             </TouchableOpacity>
@@ -96,7 +98,7 @@ export default function OnboardingScreen() {
             >
               {loadingApple
                 ? <ActivityIndicator color="#1A1A2E" style={{ flex: 1 }} />
-                : <Text style={styles.socialBtnText}>CONTINUER AVEC APPLE ID</Text>
+                : <Text style={styles.socialBtnText}>{t('CONTINUER AVEC APPLE ID')}</Text>
               }
               <Image source={require('../../assets/apple-logo.png')} style={styles.appleIcon} resizeMode="contain" />
             </TouchableOpacity>
@@ -107,14 +109,14 @@ export default function OnboardingScreen() {
               activeOpacity={0.75}
               onPress={() => router.push('/(auth)/phone')}
             >
-              <Text style={styles.socialBtnText}>CONTINUER AVEC UN NUMÉRO</Text>
+              <Text style={styles.socialBtnText}>{t('CONTINUER AVEC UN NUMÉRO')}</Text>
               <Image source={require('../../assets/phone-logo.png')} style={styles.socialIcon} resizeMode="contain" />
             </TouchableOpacity>
 
             {/* ── Divider ── */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OU INSCRIPTION PAR EMAIL</Text>
+              <Text style={styles.dividerText}>{t('OU INSCRIPTION PAR EMAIL')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -122,7 +124,7 @@ export default function OnboardingScreen() {
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder="E-mail"
+                placeholder={t('E-mail')}
                 placeholderTextColor="#6B7280"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -132,7 +134,7 @@ export default function OnboardingScreen() {
             </View>
 
             <TouchableOpacity style={styles.signUpBtn} activeOpacity={0.85} onPress={handleEmailSignUp}>
-              <Text style={styles.signUpBtnText}>S'INSCRIRE</Text>
+              <Text style={styles.signUpBtnText}>{t("S'INSCRIRE")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -141,7 +143,7 @@ export default function OnboardingScreen() {
               activeOpacity={0.7}
             >
               <Text style={styles.loginLinkText}>
-                Déjà un compte ? <Text style={styles.loginLinkHighlight}>Se connecter</Text>
+                {t('Déjà un compte ?')} <Text style={styles.loginLinkHighlight}>{t('Se connecter')}</Text>
               </Text>
             </TouchableOpacity>
 
@@ -150,7 +152,7 @@ export default function OnboardingScreen() {
               onPress={() => router.replace('/(tabs)')}
               activeOpacity={0.7}
             >
-              <Text style={styles.guestLinkText}>Explorer sans compte</Text>
+              <Text style={styles.guestLinkText}>{t('Explorer sans compte')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -159,7 +161,7 @@ export default function OnboardingScreen() {
               activeOpacity={0.7}
             >
               <Ionicons name="briefcase-outline" size={14} color="#6B7280" />
-              <Text style={styles.proLoginText}>Espace agence ou administrateur</Text>
+              <Text style={styles.proLoginText}>{t('Espace agence ou administrateur')}</Text>
               <Ionicons name="chevron-forward" size={14} color="#6B7280" />
             </TouchableOpacity>
 

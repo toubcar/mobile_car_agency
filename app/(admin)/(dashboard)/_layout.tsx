@@ -6,6 +6,8 @@ import { COLORS } from '@/constants/api';
 import { messagesService } from '@/services/messages.service';
 import BackofficeTabIcon from '@/components/backoffice/BackofficeTabIcon';
 
+import { t } from '@/i18n';
+
 export default function AdminTabsLayout() {
   const insets = useSafeAreaInsets();
   const { data: conversations } = useQuery({
@@ -30,28 +32,28 @@ export default function AdminTabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tableau de bord',
+          title: t('Tableau de bord'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'grid' : 'grid-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="cars"
         options={{
-          title: 'Véhicules',
+          title: t('Véhicules'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'car' : 'car-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'Réservations',
+          title: t('Réservations'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'calendar' : 'calendar-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="messages"
         options={{
-          title: 'Messages',
+          title: t('Messages'),
           tabBarBadge: messageBadge,
           tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} focused={focused} />,
@@ -60,14 +62,14 @@ export default function AdminTabsLayout() {
       <Tabs.Screen
         name="users"
         options={{
-          title: 'Utilisateurs',
+          title: t('Utilisateurs'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'people' : 'people-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: t('Profil'),
           tabBarIcon: ({ focused }) => <BackofficeTabIcon name={focused ? 'person-circle' : 'person-circle-outline'} focused={focused} />,
         }}
       />

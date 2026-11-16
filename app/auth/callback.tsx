@@ -6,6 +6,8 @@ import { useAuthStore } from '@/store/authStore';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 import { COLORS } from '@/constants/api';
 
+import { t } from '@/i18n';
+
 /** Deep link `toubcar://auth/callback?token=...&user=...` après Google OAuth Laravel. */
 export default function AuthCallbackScreen() {
   const router = useRouter();
@@ -21,7 +23,7 @@ export default function AuthCallbackScreen() {
         const token = params.token;
         const userRaw = params.user;
         if (!token || !userRaw) {
-          throw new Error('Réponse OAuth incomplète (token ou utilisateur manquant).');
+          throw new Error(t('Réponse OAuth incomplète (token ou utilisateur manquant).'));
         }
         const user = JSON.parse(decodeURIComponent(String(userRaw)));
         await SecureStore.setItemAsync('auth_token', token);
@@ -29,8 +31,8 @@ export default function AuthCallbackScreen() {
         replaceRootByRole(router, user.role);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Connexion impossible.';
-        Alert.alert('Erreur de connexion', msg, [
-          { text: 'Retour', onPress: () => router.replace('/(auth)/onboarding') },
+        Alert.alert(t('Erreur de connexion'), msg, [
+          { text: t('Retour'), onPress: () => router.replace('/(auth)/onboarding') },
         ]);
       }
     };

@@ -11,6 +11,8 @@ import { financeService, type AdminPaymentRequest } from '@/services/finance.ser
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { formatMoney, toAmount } from '@/utils/money';
 
+import { t } from '@/i18n';
+
 export default function AdminFinanceScreen() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<'payments' | 'commissions'>('payments');
@@ -56,7 +58,7 @@ export default function AdminFinanceScreen() {
 
   const validateMutation = useMutation({
     mutationFn: () => financeService.validateCommissions(),
-    onSuccess: (res) => Alert.alert('Validation', `${res.invalid_count} anomalie(s) traitée(s).`),
+    onSuccess: (res) => Alert.alert(t('Validation'), t(':invalid_count anomalie(s) traitée(s).', { invalid_count: res.invalid_count })),
   });
 
   const payoutMutation = useMutation({
@@ -64,9 +66,9 @@ export default function AdminFinanceScreen() {
       financeService.processPayout(Number(payoutAgencyId), Number(payoutAmount), notes.trim() || undefined),
     onSuccess: () => {
       setShowPayout(false);
-      Alert.alert('Succès', 'Payout enregistré.');
+      Alert.alert(t('Succès'), t('Payout enregistré.'));
     },
-    onError: () => Alert.alert('Erreur', 'Payout impossible.'),
+    onError: () => Alert.alert(t('Erreur'), t('Payout impossible.')),
   });
 
   const requests = paymentsQuery.data?.data ?? [];
@@ -75,14 +77,14 @@ export default function AdminFinanceScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Finance" subtitle="Paiements & commissions" />
+      <AdminStackHeader title={t('Finance')} subtitle={t('Paiements & commissions')} />
 
       <View style={styles.tabs}>
         <TouchableOpacity style={[styles.tab, tab === 'payments' && styles.tabOn]} onPress={() => setTab('payments')}>
-          <Text style={[styles.tabTxt, tab === 'payments' && styles.tabTxtOn]}>Demandes</Text>
+          <Text style={[styles.tabTxt, tab === 'payments' && styles.tabTxtOn]}>{t('Demandes')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.tab, tab === 'commissions' && styles.tabOn]} onPress={() => setTab('commissions')}>
-          <Text style={[styles.tabTxt, tab === 'commissions' && styles.tabTxtOn]}>Commissions</Text>
+          <Text style={[styles.tabTxt, tab === 'commissions' && styles.tabTxtOn]}>{t('Commissions')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -93,14 +95,14 @@ export default function AdminFinanceScreen() {
         >
           <TouchableOpacity style={styles.payoutBtn} onPress={() => setShowPayout(true)}>
             <Ionicons name="cash-outline" size={18} color="#FFF" />
-            <Text style={styles.payoutTxt}>Effectuer un payout agence</Text>
+            <Text style={styles.payoutTxt}>{t('Effectuer un payout agence')}</Text>
           </TouchableOpacity>
 
           <Text style={styles.meta}>
-            En attente : {stats.pending_requests ?? stats.pending ?? 0} · Approuvées : {stats.approved_requests ?? stats.approved ?? 0}
+            {t('En attente :')} {stats.pending_requests ?? stats.pending ?? 0} {t('· Approuvées :')} {stats.approved_requests ?? stats.approved ?? 0}
           </Text>
           {(stats.total_amount ?? 0) > 0 ? (
-            <Text style={styles.meta}>Montant en attente : {formatMoney(stats.total_amount)}</Text>
+            <Text style={styles.meta}>{t('Montant en attente :')} {formatMoney(stats.total_amount)}</Text>
           ) : null}
 
           {paymentsQuery.isLoading ? (
@@ -108,15 +110,15 @@ export default function AdminFinanceScreen() {
           ) : (
             requests.map((r: AdminPaymentRequest) => (
               <View key={r.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{r.agency_name ?? `Agence #${r.agency_id}`}</Text>
+                <Text style={styles.cardTitle}>{r.agency_name ?? t('Agence #:agency_id', { agency_id: r.agency_id })}</Text>
                 <Text style={styles.cardSub}>{formatMoney(r.amount)} · {r.status}</Text>
                 {r.status === 'pending' ? (
                   <View style={styles.row}>
                     <TouchableOpacity style={styles.btnOk} onPress={() => { setReference(''); setNotes(''); setPaymentModal({ id: r.id, action: 'approve' }); }}>
-                      <Text style={styles.btnOkTxt}>Approuver</Text>
+                      <Text style={styles.btnOkTxt}>{t('Approuver')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.btnKo} onPress={() => { setReason(''); setPaymentModal({ id: r.id, action: 'reject' }); }}>
-                      <Text style={styles.btnKoTxt}>Rejeter</Text>
+                      <Text style={styles.btnKoTxt}>{t('Rejeter')}</Text>
                     </TouchableOpacity>
                   </View>
                 ) : null}
@@ -134,27 +136,27 @@ export default function AdminFinanceScreen() {
           ) : commissions ? (
             <>
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>Résumé commissions</Text>
+                <Text style={styles.cardTitle}>{t('Résumé commissions')}</Text>
                 <Text style={styles.cardSub}>
-                  Total plateforme : {formatMoney(commissions.statistics?.total_admin_commission)}
+                  {t('Total plateforme :')} {formatMoney(commissions.statistics?.total_admin_commission)}
                 </Text>
                 <Text style={styles.cardSub}>
-                  Ce mois : {formatMoney(commissions.statistics?.monthly_commission)} · Aujourd'hui : {formatMoney(commissions.statistics?.today_commission)}
+                  {t('Ce mois :')} {formatMoney(commissions.statistics?.monthly_commission)} {t("· Aujourd'hui :")} {formatMoney(commissions.statistics?.today_commission)}
                 </Text>
                 <Text style={styles.cardSub}>
-                  Taux appliqué : {toAmount(commissions.statistics?.commission_rate)}%
+                  {t('Taux appliqué :')} {toAmount(commissions.statistics?.commission_rate)}%
                 </Text>
               </View>
-              {(commissions.transactions ?? []).slice(0, 20).map((t) => (
-                <View key={t.id} style={styles.card}>
-                  <Text style={styles.cardTitle}>{t.agency_name} · {t.car}</Text>
+              {(commissions.transactions ?? []).slice(0, 20).map((row) => (
+                <View key={row.id} style={styles.card}>
+                  <Text style={styles.cardTitle}>{row.agency_name} · {row.car}</Text>
                   <Text style={styles.cardSub}>
-                    {formatMoney(t.commission_amount)} ({t.commission_rate}%) · base {formatMoney(t.original_amount)}
+                    {formatMoney(row.commission_amount)} ({row.commission_rate}{t('%) · base')} {formatMoney(row.original_amount)}
                   </Text>
                 </View>
               ))}
               <TouchableOpacity style={styles.payoutBtn} onPress={() => validateMutation.mutate()} disabled={validateMutation.isPending}>
-                <Text style={styles.payoutTxt}>Valider les commissions</Text>
+                <Text style={styles.payoutTxt}>{t('Valider les commissions')}</Text>
               </TouchableOpacity>
             </>
           ) : null}
@@ -164,21 +166,21 @@ export default function AdminFinanceScreen() {
       <Modal visible={!!paymentModal} transparent animationType="fade">
         <View style={styles.modalBg}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{paymentModal?.action === 'approve' ? 'Approuver' : 'Rejeter'}</Text>
+            <Text style={styles.modalTitle}>{paymentModal?.action === 'approve' ? t('Approuver') : t('Rejeter')}</Text>
             {paymentModal?.action === 'approve' ? (
               <>
-                <TextInput style={styles.input} value={reference} onChangeText={setReference} placeholder="Référence virement" />
-                <TextInput style={styles.input} value={notes} onChangeText={setNotes} placeholder="Note" />
+                <TextInput style={styles.input} value={reference} onChangeText={setReference} placeholder={t('Référence virement')} />
+                <TextInput style={styles.input} value={notes} onChangeText={setNotes} placeholder={t('Note')} />
               </>
             ) : (
-              <TextInput style={styles.input} value={reason} onChangeText={setReason} placeholder="Raison du rejet" />
+              <TextInput style={styles.input} value={reason} onChangeText={setReason} placeholder={t('Raison du rejet')} />
             )}
             <View style={styles.modalRow}>
-              <TouchableOpacity onPress={() => setPaymentModal(null)}><Text>Annuler</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setPaymentModal(null)}><Text>{t('Annuler')}</Text></TouchableOpacity>
               <TouchableOpacity
                 onPress={() => (paymentModal?.action === 'approve' ? approveMutation.mutate() : rejectMutation.mutate())}
               >
-                <Text style={{ color: COLORS.primary, fontWeight: '700' }}>Confirmer</Text>
+                <Text style={{ color: COLORS.primary, fontWeight: '700' }}>{t('Confirmer')}</Text>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -188,13 +190,13 @@ export default function AdminFinanceScreen() {
       <Modal visible={showPayout} transparent animationType="fade">
         <View style={styles.modalBg}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Payout agence</Text>
-            <TextInput style={styles.input} value={payoutAgencyId} onChangeText={setPayoutAgencyId} placeholder="ID agence" keyboardType="numeric" />
-            <TextInput style={styles.input} value={payoutAmount} onChangeText={setPayoutAmount} placeholder="Montant" keyboardType="numeric" />
-            <TextInput style={styles.input} value={notes} onChangeText={setNotes} placeholder="Note" />
+            <Text style={styles.modalTitle}>{t('Payout agence')}</Text>
+            <TextInput style={styles.input} value={payoutAgencyId} onChangeText={setPayoutAgencyId} placeholder={t('ID agence')} keyboardType="numeric" />
+            <TextInput style={styles.input} value={payoutAmount} onChangeText={setPayoutAmount} placeholder={t('Montant')} keyboardType="numeric" />
+            <TextInput style={styles.input} value={notes} onChangeText={setNotes} placeholder={t('Note')} />
             <View style={styles.modalRow}>
-              <TouchableOpacity onPress={() => setShowPayout(false)}><Text>Annuler</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => payoutMutation.mutate()}><Text style={{ color: COLORS.primary, fontWeight: '700' }}>Valider</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowPayout(false)}><Text>{t('Annuler')}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => payoutMutation.mutate()}><Text style={{ color: COLORS.primary, fontWeight: '700' }}>{t('Valider')}</Text></TouchableOpacity>
             </View>
           </View>
         </View>

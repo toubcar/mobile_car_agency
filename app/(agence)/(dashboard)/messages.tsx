@@ -3,6 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AdminMessagesInbox from '@/components/AdminMessagesInbox';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 /** Onglet Messages agence — même présentation que l’admin. */
 export default function AgenceMessagesScreen() {
   return (
@@ -13,7 +15,7 @@ export default function AgenceMessagesScreen() {
         heroTitle="Messages clients"
         heroSubtitle="Conversations avec vos clients"
         showPeerFilters={false}
-        emptySubtitle="Vos échanges avec les clients apparaîtront ici."
+        emptySubtitle={t('Vos échanges avec les clients apparaîtront ici.')}
       />
     </SafeAreaView>
   );

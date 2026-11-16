@@ -14,6 +14,8 @@ import { formatMoney } from '@/utils/money';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 export default function AdminCustomersScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -46,14 +48,14 @@ export default function AdminCustomersScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Clients & avis" subtitle="Gestion des clients" />
+      <AdminStackHeader title={t('Clients & avis')} subtitle={t('Gestion des clients')} />
 
       <View style={styles.tabs}>
         <TouchableOpacity style={[styles.tab, tab === 'clients' && styles.tabOn]} onPress={() => setTab('clients')}>
-          <Text style={[styles.tabTxt, tab === 'clients' && styles.tabTxtOn]}>Clients</Text>
+          <Text style={[styles.tabTxt, tab === 'clients' && styles.tabTxtOn]}>{t('Clients')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.tab, tab === 'reviews' && styles.tabOn]} onPress={() => setTab('reviews')}>
-          <Text style={[styles.tabTxt, tab === 'reviews' && styles.tabTxtOn]}>Avis</Text>
+          <Text style={[styles.tabTxt, tab === 'reviews' && styles.tabTxtOn]}>{t('Avis')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -62,7 +64,7 @@ export default function AdminCustomersScreen() {
           style={styles.search}
           value={search}
           onChangeText={setSearch}
-          placeholder="Rechercher un client…"
+          placeholder={t('Rechercher un client…')}
           placeholderTextColor="#9CA3AF"
         />
       ) : null}
@@ -86,7 +88,7 @@ export default function AdminCustomersScreen() {
               <Text style={styles.cardMeta}>{formatMoney(item.total_spent)} · {item.loyalty_status}</Text>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Aucun client.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>{t('Aucun client.')}</Text>}
         />
       ) : (
         <FlatList
@@ -96,22 +98,22 @@ export default function AdminCustomersScreen() {
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{item.user ?? 'Client'} · ★{item.rating}</Text>
+              <Text style={styles.cardTitle}>{item.user ?? t('Client')} · ★{item.rating}</Text>
               <Text style={styles.cardSub}>{item.target ?? item.review_type} · {item.status}</Text>
               {item.comment ? <Text style={styles.cardComment}>{item.comment}</Text> : null}
               {item.status === 'pending' ? (
                 <View style={styles.actions}>
                   <TouchableOpacity style={styles.btnPrimary} onPress={() => reviewMutation.mutate({ id: item.id, action: 'approve' })}>
-                    <Text style={styles.btnPrimaryTxt}>Approuver</Text>
+                    <Text style={styles.btnPrimaryTxt}>{t('Approuver')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.btnDanger} onPress={() => reviewMutation.mutate({ id: item.id, action: 'reject' })}>
-                    <Text style={styles.btnDangerTxt}>Rejeter</Text>
+                    <Text style={styles.btnDangerTxt}>{t('Rejeter')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}
             </View>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Aucun avis.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>{t('Aucun avis.')}</Text>}
         />
       )}
     </SafeAreaView>

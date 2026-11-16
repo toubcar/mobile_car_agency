@@ -19,26 +19,28 @@ import { COLORS } from '@/constants/api';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 import { registerPushTokenWithBackend, requestPushPermissions } from '@/services/pushNotifications.service';
 
+import { t } from '@/i18n';
+
 const SECTIONS = [
   {
-    title: 'Réservations',
+    get title() { return t('Réservations'); },
     items: [
-      { key: 'bookingConfirmed', label: 'Réservation confirmée', sub: 'Lorsqu’une demande est approuvée' },
-      { key: 'bookingReminder', label: 'Rappel de location', sub: '24 h avant le départ' },
-      { key: 'bookingCancelled', label: 'Réservation annulée', sub: 'Lorsqu’une réservation est annulée' },
+      { key: 'bookingConfirmed', get label() { return t('Réservation confirmée'); }, get sub() { return t('Lorsqu’une demande est approuvée'); } },
+      { key: 'bookingReminder', get label() { return t('Rappel de location'); }, get sub() { return t('24 h avant le départ'); } },
+      { key: 'bookingCancelled', get label() { return t('Réservation annulée'); }, get sub() { return t('Lorsqu’une réservation est annulée'); } },
     ],
   },
   {
-    title: 'Messages',
+    get title() { return t('Messages'); },
     items: [
-      { key: 'newMessages', label: 'Nouveaux messages', sub: 'Messages des agences ou clients' },
+      { key: 'newMessages', get label() { return t('Nouveaux messages'); }, get sub() { return t('Messages des agences ou clients'); } },
     ],
   },
   {
-    title: 'Promotions',
+    get title() { return t('Promotions'); },
     items: [
-      { key: 'specialOffers', label: 'Offres spéciales', sub: 'Réductions et promotions' },
-      { key: 'news', label: 'Actualités ToubCar', sub: 'Nouveautés et mises à jour' },
+      { key: 'specialOffers', get label() { return t('Offres spéciales'); }, get sub() { return t('Réductions et promotions'); } },
+      { key: 'news', get label() { return t('Actualités ToubCar'); }, get sub() { return t('Nouveautés et mises à jour'); } },
     ],
   },
 ];
@@ -54,12 +56,12 @@ const DEFAULT_PREFS: Record<string, boolean> = {
 };
 
 const PUSH_SECTION = {
-  title: 'Appareil',
+  get title() { return t('Appareil'); },
   items: [
     {
       key: 'notifications_push',
-      label: 'Notifications push',
-      sub: 'Recevoir les alertes même lorsque l’app est fermée',
+      get label() { return t('Notifications push'); },
+      get sub() { return t('Recevoir les alertes même lorsque l’app est fermée'); },
     },
   ],
 };
@@ -89,7 +91,7 @@ export default function NotificationsScreen() {
         marketing_emails: mobile.specialOffers ?? false,
         notifications_sms: mobile.newMessages ?? true,
       }),
-    onError: () => Alert.alert('Erreur', 'Impossible d’enregistrer les préférences.'),
+    onError: () => Alert.alert(t('Erreur'), t('Impossible d’enregistrer les préférences.')),
   });
 
   const toggle = useCallback(
@@ -101,8 +103,8 @@ export default function NotificationsScreen() {
           const granted = await requestPushPermissions();
           if (!granted) {
             Alert.alert(
-              'Autorisation requise',
-              'Activez les notifications dans les réglages de votre téléphone pour recevoir les alertes ToubCar.',
+              t('Autorisation requise'),
+              t('Activez les notifications dans les réglages de votre téléphone pour recevoir les alertes ToubCar.'),
             );
             return;
           }
@@ -126,11 +128,11 @@ export default function NotificationsScreen() {
         colors={['#C8E6F5', COLORS.background]}
         style={[styles.headerGradient, { height: headerGradientHeight }]}
       />
-      <PageHeader title="Notifications" />
+      <PageHeader title={t('Notifications')} />
 
       {!isAuthenticated ? (
         <Text style={[styles.hint, { paddingHorizontal: contentPad }]}>
-          Connectez-vous pour synchroniser vos préférences avec le serveur.
+          {t('Connectez-vous pour synchroniser vos préférences avec le serveur.')}
         </Text>
       ) : isLoading ? (
         <ActivityIndicator style={{ marginTop: 24 }} color={COLORS.primary} />

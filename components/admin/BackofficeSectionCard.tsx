@@ -5,10 +5,12 @@ import { adminShadow } from '@/constants/adminTheme';
 import type { BackofficeSection } from '@/services/backoffice.service';
 import { formatMoney, toAmount } from '@/utils/money';
 
+import { t, jsLocale } from '@/i18n';
+
 function formatValue(section: BackofficeSection) {
   if (section.metric === 'money') return formatMoney(section.value);
   if (section.metric === 'completion') return `${section.value}%`;
-  return toAmount(section.value).toLocaleString('fr-FR');
+  return toAmount(section.value).toLocaleString(jsLocale());
 }
 
 export default function BackofficeSectionCard({
@@ -34,12 +36,12 @@ export default function BackofficeSectionCard({
       {hasAttention ? (
         <View style={styles.attention}>
           <Ionicons name="alert-circle-outline" size={13} color="#B45309" />
-          <Text style={styles.attentionText}>{section.attention} à traiter</Text>
+          <Text style={styles.attentionText}>{section.attention} {t('à traiter')}</Text>
         </View>
       ) : (
         <View style={styles.attention}>
           <Ionicons name="checkmark-circle-outline" size={13} color="#059669" />
-          <Text style={[styles.attentionText, styles.okText]}>Stable</Text>
+          <Text style={[styles.attentionText, styles.okText]}>{t('Stable')}</Text>
         </View>
       )}
     </TouchableOpacity>

@@ -7,12 +7,14 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { profileService } from '@/services/profile.service';
 import { useAuthStore } from '@/store/authStore';
 
+import { t } from '@/i18n';
+
 const ITEMS = [
-  { key: 'publicProfile', label: 'Profil public', sub: 'Tout le monde peut voir votre page profil' },
-  { key: 'shareActivity', label: 'Partager l’activité', sub: 'Partager vos réservations avec ToubCar' },
-  { key: 'location', label: 'Localisation', sub: 'Activer la position précise pendant les trajets' },
-  { key: 'analytics', label: 'Analytique et cookies', sub: 'Nous aider à améliorer l’application' },
-  { key: 'personalizedAds', label: 'Publicités personnalisées', sub: 'Annonces adaptées à vos centres d’intérêt' },
+  { key: 'publicProfile', get label() { return t('Profil public'); }, get sub() { return t('Tout le monde peut voir votre page profil'); } },
+  { key: 'shareActivity', get label() { return t('Partager l’activité'); }, get sub() { return t('Partager vos réservations avec ToubCar'); } },
+  { key: 'location', get label() { return t('Localisation'); }, get sub() { return t('Activer la position précise pendant les trajets'); } },
+  { key: 'analytics', get label() { return t('Analytique et cookies'); }, get sub() { return t('Nous aider à améliorer l’application'); } },
+  { key: 'personalizedAds', get label() { return t('Publicités personnalisées'); }, get sub() { return t('Annonces adaptées à vos centres d’intérêt'); } },
 ];
 
 const DEFAULT_PREFS: Record<string, boolean> = {
@@ -42,7 +44,7 @@ export default function PrivacyScreen() {
 
   const saveMutation = useMutation({
     mutationFn: (mobile: Record<string, boolean>) => profileService.updatePreferences({ mobile }),
-    onError: () => Alert.alert('Erreur', 'Impossible d’enregistrer les préférences.'),
+    onError: () => Alert.alert(t('Erreur'), t('Impossible d’enregistrer les préférences.')),
   });
 
   const toggle = useCallback((key: string) => {
@@ -61,18 +63,18 @@ export default function PrivacyScreen() {
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.6}>
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Confidentialité</Text>
+        <Text style={styles.headerTitle}>{t('Confidentialité')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {!isAuthenticated ? (
-        <Text style={styles.hint}>Connectez-vous pour synchroniser avec Laravel (client.preferences).</Text>
+        <Text style={styles.hint}>{t('Connectez-vous pour synchroniser avec Laravel (client.preferences).')}</Text>
       ) : isLoading ? (
         <ActivityIndicator style={{ marginTop: 24 }} color="#1D3557" />
       ) : null}
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>PARAMÈTRES DE CONFIDENTIALITÉ</Text>
+        <Text style={styles.sectionTitle}>{t('PARAMÈTRES DE CONFIDENTIALITÉ')}</Text>
         <View style={styles.card}>
           {ITEMS.map((item, i) => (
             <View

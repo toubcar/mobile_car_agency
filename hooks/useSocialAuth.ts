@@ -9,6 +9,8 @@ import { authService } from '@/services/auth.service';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 import { useAuthStore } from '@/store/authStore';
 
+import { t } from '@/i18n';
+
 WebBrowser.maybeCompleteAuthSession();
 
 type SocialAuthOptions = {
@@ -58,7 +60,7 @@ export function useSocialAuth(options?: SocialAuthOptions) {
     finishGoogleLogin(accessToken)
       .catch((e: unknown) => {
         const msg = e instanceof Error ? e.message : 'Connexion impossible.';
-        Alert.alert('Erreur Google', msg);
+        Alert.alert(t('Erreur Google'), msg);
       })
       .finally(() => setLoadingGoogle(false));
   }, [googleResponse, finishGoogleLogin]);
@@ -66,8 +68,8 @@ export function useSocialAuth(options?: SocialAuthOptions) {
   const handleGoogle = useCallback(async () => {
     if (!GOOGLE_WEB_CLIENT_ID) {
       Alert.alert(
-        'Google non configuré',
-        'Ajoutez EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID dans le fichier .env mobile, puis reconstruisez l’application.',
+        t('Google non configuré'),
+        t('Ajoutez EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID dans le fichier .env mobile, puis reconstruisez l’application.'),
       );
       return;
     }
@@ -80,7 +82,7 @@ export function useSocialAuth(options?: SocialAuthOptions) {
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Connexion impossible.';
-      Alert.alert('Erreur Google', msg);
+      Alert.alert(t('Erreur Google'), msg);
     } finally {
       setLoadingGoogle(false);
     }
@@ -88,7 +90,7 @@ export function useSocialAuth(options?: SocialAuthOptions) {
 
   const handleApple = useCallback(async () => {
     if (Platform.OS !== 'ios') {
-      Alert.alert('Apple ID', 'Apple Sign In est disponible uniquement sur iOS.');
+      Alert.alert(t('Apple ID'), t('Apple Sign In est disponible uniquement sur iOS.'));
       return;
     }
     setLoadingApple(true);
@@ -101,7 +103,7 @@ export function useSocialAuth(options?: SocialAuthOptions) {
       });
       const identityToken = credential.identityToken;
       if (!identityToken) {
-        throw new Error('Jeton Apple indisponible. Réessayez ou utilisez un autre mode de connexion.');
+        throw new Error(t('Jeton Apple indisponible. Réessayez ou utilisez un autre mode de connexion.'));
       }
       const fullName = credential.fullName
         ? `${credential.fullName.givenName ?? ''} ${credential.fullName.familyName ?? ''}`.trim()
@@ -119,7 +121,7 @@ export function useSocialAuth(options?: SocialAuthOptions) {
     } catch (e: unknown) {
       const err = e as { code?: string; response?: { data?: { message?: string } } };
       if (err.code !== 'ERR_REQUEST_CANCELED') {
-        Alert.alert('Erreur Apple', err.response?.data?.message ?? 'Connexion Apple impossible.');
+        Alert.alert(t('Erreur Apple'), err.response?.data?.message ?? t('Connexion Apple impossible.'));
       }
     } finally {
       setLoadingApple(false);

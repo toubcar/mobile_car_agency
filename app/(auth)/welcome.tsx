@@ -11,6 +11,8 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { t } from '@/i18n';
+
 export default function WelcomeScreen() {
   const router = useRouter();
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -38,9 +40,9 @@ export default function WelcomeScreen() {
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.title}>Votre prochain trajet{'\n'}commence ici</Text>
+            <Text style={styles.title}>{t('Votre prochain trajet')}{'\n'}{t('commence ici')}</Text>
             <Text style={styles.subtitle}>
-              Parcourez les véhicules disponibles, réservez en quelques clics, ou connectez-vous pour gérer vos locations.
+              {t('Parcourez les véhicules disponibles, réservez en quelques clics, ou connectez-vous pour gérer vos locations.')}
             </Text>
           </View>
 
@@ -49,7 +51,7 @@ export default function WelcomeScreen() {
             activeOpacity={0.88}
             onPress={() => router.replace('/(tabs)')}
           >
-            <Text style={styles.primaryBtnText}>Explorer sans compte</Text>
+            <Text style={styles.primaryBtnText}>{t('Explorer sans compte')}</Text>
             <Ionicons name="arrow-forward" size={18} color="#FFF" />
           </TouchableOpacity>
 
@@ -58,7 +60,7 @@ export default function WelcomeScreen() {
             activeOpacity={0.85}
             onPress={() => router.push('/(auth)/login?scope=client')}
           >
-            <Text style={styles.secondaryBtnText}>Se connecter</Text>
+            <Text style={styles.secondaryBtnText}>{t('Se connecter')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -66,7 +68,7 @@ export default function WelcomeScreen() {
             activeOpacity={0.85}
             onPress={() => router.push('/(auth)/onboarding')}
           >
-            <Text style={styles.outlineBtnText}>Créer un compte</Text>
+            <Text style={styles.outlineBtnText}>{t('Créer un compte')}</Text>
           </TouchableOpacity>
 
           <View style={styles.divider} />
@@ -77,7 +79,7 @@ export default function WelcomeScreen() {
             onPress={() => router.push('/(auth)/login?scope=staff')}
           >
             <Ionicons name="briefcase-outline" size={18} color="#4B5563" />
-            <Text style={styles.proBtnText}>Espace agence ou administrateur</Text>
+            <Text style={styles.proBtnText}>{t('Espace agence ou administrateur')}</Text>
             <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
           </TouchableOpacity>
         </Animated.View>

@@ -29,6 +29,8 @@ import { formatMoneyPerDay } from '@/utils/money';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { patchCarsFavorite, patchFavoritesList } from '@/utils/favoritesCache';
 
+import { t } from '@/i18n';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('screen');
 const DISMISS_THRESHOLD = 120;
 
@@ -262,7 +264,7 @@ export default function CarDetailScreen() {
               <Ionicons name="close" size={22} color="#111827" />
             </TouchableOpacity>
             <Ionicons name="car-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.notFoundText}>Véhicule introuvable</Text>
+            <Text style={styles.notFoundText}>{t('Véhicule introuvable')}</Text>
           </View>
         ) : (
           <View style={styles.content}>
@@ -376,7 +378,7 @@ export default function CarDetailScreen() {
                 ) : (
                   <View style={styles.galleryPlaceholder}>
                     <Text style={{ fontSize: 64 }}>🚗</Text>
-                    <Text style={styles.noPhotoText}>Aucune photo disponible</Text>
+                    <Text style={styles.noPhotoText}>{t('Aucune photo disponible')}</Text>
                   </View>
                 )}
 
@@ -386,7 +388,7 @@ export default function CarDetailScreen() {
                   }]}>
                     <View style={styles.availDot} />
                     <Text style={styles.availText}>
-                      {car.is_available ? 'Disponible' : 'Indisponible'}
+                      {car.is_available ? t('Disponible') : t('Indisponible')}
                     </Text>
                   </View>
 
@@ -410,21 +412,21 @@ export default function CarDetailScreen() {
                 </View>
 
                 <View style={styles.specsGrid}>
-                  <SpecCard icon="people-outline" label="Places" value={`${car.seats ?? '—'}`} />
-                  <SpecCard icon="settings-outline" label="Boîte" value={transmissionLabel(car.transmission)} />
-                  <SpecCard icon="flash-outline" label="Carburant" value={fuelLabel(car.fuel_type)} />
-                  <SpecCard icon="calendar-outline" label="Année" value={`${car.year ?? '—'}`} />
+                  <SpecCard icon="people-outline" label={t('Places')} value={`${car.seats ?? '—'}`} />
+                  <SpecCard icon="settings-outline" label={t('Boîte')} value={transmissionLabel(car.transmission)} />
+                  <SpecCard icon="flash-outline" label={t('Carburant')} value={fuelLabel(car.fuel_type)} />
+                  <SpecCard icon="calendar-outline" label={t('Année')} value={`${car.year ?? '—'}`} />
                 </View>
 
                 {car.description ? (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>À propos</Text>
+                    <Text style={styles.sectionTitle}>{t('À propos')}</Text>
                     <Text style={styles.description}>{car.description}</Text>
                   </View>
                 ) : null}
 
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Inclus dans la location</Text>
+                  <Text style={styles.sectionTitle}>{t('Inclus dans la location')}</Text>
                   <View style={styles.includesGrid}>
                     {INCLUDES.map((item) => (
                       <View key={item.label} style={styles.includeItem}>
@@ -443,7 +445,7 @@ export default function CarDetailScreen() {
 
             <View style={styles.footer}>
               <View style={styles.footerLeft}>
-                <Text style={styles.footerLabel}>Par jour</Text>
+                <Text style={styles.footerLabel}>{t('Par jour')}</Text>
                 <Text style={styles.footerPrice}>{formatMoneyPerDay(car.price_per_day)}</Text>
               </View>
               <TouchableOpacity
@@ -453,7 +455,7 @@ export default function CarDetailScreen() {
                 activeOpacity={0.88}
               >
                 <Text style={styles.bookBtnText}>
-                  {car.is_available ? 'Réserver' : 'Indisponible'}
+                  {car.is_available ? t('Réserver') : t('Indisponible')}
                 </Text>
                 {car.is_available ? (
                   <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 6 }} />
@@ -535,10 +537,10 @@ export default function CarDetailScreen() {
 }
 
 const INCLUDES = [
-  { icon: 'shield-checkmark-outline', label: 'Assurance' },
-  { icon: 'location-outline', label: 'Livraison gratuite' },
-  { icon: 'headset-outline', label: 'Support 24/7' },
-  { icon: 'refresh-outline', label: 'Annulation flexible' },
+  { icon: 'shield-checkmark-outline', get label() { return t('Assurance'); } },
+  { icon: 'location-outline', get label() { return t('Livraison gratuite'); } },
+  { icon: 'headset-outline', get label() { return t('Support 24/7'); } },
+  { icon: 'refresh-outline', get label() { return t('Annulation flexible'); } },
 ];
 
 function SpecCard({ icon, label, value }: { icon: string; label: string; value: string }) {

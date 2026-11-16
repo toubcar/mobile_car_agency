@@ -27,11 +27,13 @@ import { useAuthStore } from '../../store/authStore';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { formatFrenchDate, toIsoDate } from '@/components/BookingDateRangePicker';
 
+import { t, jsLocale } from '@/i18n';
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  pending:   { label: 'En attente',  color: COLORS.warning,  bg: COLORS.warning + '20' },
-  confirmed: { label: 'Confirmée',   color: COLORS.success,  bg: COLORS.success + '20' },
-  cancelled: { label: 'Annulée',     color: COLORS.error,    bg: COLORS.error + '20' },
-  completed: { label: 'Terminée',    color: COLORS.accent,   bg: COLORS.accent + '20' },
+  pending:   { get label() { return t('En attente'); },  color: COLORS.warning,  bg: COLORS.warning + '20' },
+  confirmed: { get label() { return t('Confirmée'); },   color: COLORS.success,  bg: COLORS.success + '20' },
+  cancelled: { get label() { return t('Annulée'); },     color: COLORS.error,    bg: COLORS.error + '20' },
+  completed: { get label() { return t('Terminée'); },    color: COLORS.accent,   bg: COLORS.accent + '20' },
 };
 
 const MAX_CONTENT_WIDTH = 720;
@@ -116,7 +118,7 @@ function BookingsFilters({
         <Ionicons name="search-outline" size={17} color={COLORS.gray} style={styles.searchIcon} />
         <TextInput
           style={[styles.searchInput, isCompact && styles.searchInputCompact]}
-          placeholder={isCompact ? 'Véhicule...' : 'Nom du véhicule, marque...'}
+          placeholder={isCompact ? t('Véhicule...') : t('Nom du véhicule, marque...')}
           placeholderTextColor={COLORS.gray}
           value={vehicleQuery}
           onChangeText={onVehicleQueryChange}
@@ -146,7 +148,7 @@ function BookingsFilters({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {filterDate ? formatFrenchDate(filterDate) : 'Filtrer par date'}
+            {filterDate ? formatFrenchDate(filterDate) : t('Filtrer par date')}
           </Text>
         </TouchableOpacity>
 
@@ -172,11 +174,11 @@ function BookingsFilters({
       {bookingsCount > 0 ? (
         <View style={styles.filtersFooter}>
           <Text style={styles.resultCount}>
-            {filteredCount} réservation{filteredCount !== 1 ? 's' : ''}
+            {filteredCount} {t('réservation')}{filteredCount !== 1 ? 's' : ''}
           </Text>
           {hasActiveFilters ? (
             <TouchableOpacity onPress={onClearFilters}>
-              <Text style={styles.clearFiltersText}>Réinitialiser</Text>
+              <Text style={styles.clearFiltersText}>{t('Réinitialiser')}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -187,7 +189,7 @@ function BookingsFilters({
           <Pressable style={styles.modalBackdrop} onPress={onToggleDatePicker}>
             <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Choisir une date</Text>
+                <Text style={styles.modalTitle}>{t('Choisir une date')}</Text>
                 <TouchableOpacity onPress={onToggleDatePicker} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Ionicons name="close" size={22} color={COLORS.gray} />
                 </TouchableOpacity>
@@ -201,7 +203,7 @@ function BookingsFilters({
                 style={styles.modalPicker}
               />
               <TouchableOpacity style={styles.modalDoneBtn} onPress={onToggleDatePicker}>
-                <Text style={styles.modalDoneTxt}>Appliquer</Text>
+                <Text style={styles.modalDoneTxt}>{t('Appliquer')}</Text>
               </TouchableOpacity>
             </Pressable>
           </Pressable>
@@ -266,7 +268,7 @@ export default function BookingsScreen() {
 
   const listHeader = (
     <View style={[styles.headerBlock, { paddingHorizontal: contentPad, width: contentWidth, alignSelf: 'center' }]}>
-      <Text style={[styles.title, isCompact && styles.titleCompact]}>Mes Réservations</Text>
+      <Text style={[styles.title, isCompact && styles.titleCompact]}>{t('Mes Réservations')}</Text>
       <BookingsFilters
         vehicleQuery={vehicleQuery}
         onVehicleQueryChange={setVehicleQuery}
@@ -289,13 +291,13 @@ export default function BookingsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={[styles.notAuthContainer, { paddingHorizontal: layout.contentPad }]}>
           <Text style={styles.notAuthEmoji}>🔒</Text>
-          <Text style={[styles.notAuthTitle, isCompact && styles.notAuthTitleCompact]}>Connexion requise</Text>
-          <Text style={styles.notAuthText}>Connectez-vous pour voir vos réservations</Text>
+          <Text style={[styles.notAuthTitle, isCompact && styles.notAuthTitleCompact]}>{t('Connexion requise')}</Text>
+          <Text style={styles.notAuthText}>{t('Connectez-vous pour voir vos réservations')}</Text>
           <TouchableOpacity
             style={styles.loginBtn}
             onPress={() => openAuthSheet('login')}
           >
-            <Text style={styles.loginBtnText}>Se connecter</Text>
+            <Text style={styles.loginBtnText}>{t('Se connecter')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -345,23 +347,23 @@ export default function BookingsScreen() {
               <View style={[styles.emptyContainer, { paddingHorizontal: contentPad }]}>
                 <Text style={styles.emptyEmoji}>{hasActiveFilters ? '🔍' : '📅'}</Text>
                 <Text style={styles.emptyTitle}>
-                  {hasActiveFilters ? 'Aucun résultat' : 'Aucune réservation'}
+                  {hasActiveFilters ? t('Aucun résultat') : t('Aucune réservation')}
                 </Text>
                 <Text style={styles.emptyText}>
                   {hasActiveFilters
-                    ? 'Aucune réservation ne correspond à vos filtres'
-                    : "Vous n'avez pas encore de réservation"}
+                    ? t('Aucune réservation ne correspond à vos filtres')
+                    : t("Vous n'avez pas encore de réservation")}
                 </Text>
                 {hasActiveFilters ? (
                   <TouchableOpacity style={styles.browseBtn} onPress={clearFilters}>
-                    <Text style={styles.browseBtnText}>Réinitialiser les filtres</Text>
+                    <Text style={styles.browseBtnText}>{t('Réinitialiser les filtres')}</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
                     style={styles.browseBtn}
                     onPress={() => router.push('/(tabs)/search')}
                   >
-                    <Text style={styles.browseBtnText}>Explorer les voitures</Text>
+                    <Text style={styles.browseBtnText}>{t('Explorer les voitures')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -390,10 +392,10 @@ function BookingCard({
   const cancelMutation = useMutation({
     mutationFn: () => bookingsService.cancelBooking(booking.id),
     onSuccess: () => {
-      Alert.alert('Annulée', 'Votre réservation a été annulée.');
+      Alert.alert(t('Annulée'), t('Votre réservation a été annulée.'));
       onRefresh();
     },
-    onError: () => Alert.alert('Erreur', 'Impossible d’annuler cette réservation.'),
+    onError: () => Alert.alert(t('Erreur'), t('Impossible d’annuler cette réservation.')),
   });
 
   const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
@@ -418,43 +420,43 @@ function BookingCard({
 
       <View style={[styles.cardDates, isCompact && styles.cardDatesCompact]}>
         <View style={styles.dateBlock}>
-          <Text style={styles.dateLabel}>Arrivée</Text>
+          <Text style={styles.dateLabel}>{t('Arrivée')}</Text>
           <Text style={[styles.dateValue, isCompact && styles.dateValueCompact]} numberOfLines={1}>
-            {new Date(booking.start_date).toLocaleDateString('fr-FR')}
+            {new Date(booking.start_date).toLocaleDateString(jsLocale())}
           </Text>
         </View>
         <Text style={styles.dateSeparator}>→</Text>
         <View style={styles.dateBlock}>
-          <Text style={styles.dateLabel}>Départ</Text>
+          <Text style={styles.dateLabel}>{t('Départ')}</Text>
           <Text style={[styles.dateValue, isCompact && styles.dateValueCompact]} numberOfLines={1}>
-            {new Date(booking.end_date).toLocaleDateString('fr-FR')}
+            {new Date(booking.end_date).toLocaleDateString(jsLocale())}
           </Text>
         </View>
       </View>
 
       <View style={styles.cardFooter}>
         <Text style={styles.totalPrice} numberOfLines={1}>
-          Total : <Text style={styles.totalPriceNum}>{formatMoney(booking.total_price)}</Text>
+          {t('Total :')} <Text style={styles.totalPriceNum}>{formatMoney(booking.total_price)}</Text>
         </Text>
         <View style={[styles.cardActions, isCompact && styles.cardActionsCompact]}>
           <TouchableOpacity
             style={[styles.msgBtn, isCompact && styles.actionBtnCompact]}
             onPress={(e) => { e.stopPropagation?.(); router.push(`/messages/${booking.id}`); }}
           >
-            <Text style={[styles.msgBtnTxt, isCompact && styles.actionTxtCompact]}>Messages</Text>
+            <Text style={[styles.msgBtnTxt, isCompact && styles.actionTxtCompact]}>{t('Messages')}</Text>
           </TouchableOpacity>
           {canCancel ? (
             <TouchableOpacity
               style={[styles.cancelBtn, isCompact && styles.actionBtnCompact]}
               onPress={(e) => {
                 e.stopPropagation?.();
-                Alert.alert('Annuler', 'Confirmer l’annulation de cette réservation ?', [
-                  { text: 'Non', style: 'cancel' },
-                  { text: 'Oui', style: 'destructive', onPress: () => cancelMutation.mutate() },
+                Alert.alert(t('Annuler'), t('Confirmer l’annulation de cette réservation ?'), [
+                  { text: t('Non'), style: 'cancel' },
+                  { text: t('Oui'), style: 'destructive', onPress: () => cancelMutation.mutate() },
                 ]);
               }}
             >
-              <Text style={[styles.cancelBtnTxt, isCompact && styles.actionTxtCompact]}>Annuler</Text>
+              <Text style={[styles.cancelBtnTxt, isCompact && styles.actionTxtCompact]}>{t('Annuler')}</Text>
             </TouchableOpacity>
           ) : null}
         </View>

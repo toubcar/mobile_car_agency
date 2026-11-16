@@ -12,8 +12,10 @@ import { carsService } from '@/services/cars.service';
 import { formatMoneyPerDay } from '@/utils/money';
 import type { Car } from '@/types';
 
+import { t } from '@/i18n';
+
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
-const FILTERS = [{ key: '', label: 'Tous' }, { key: 'true', label: 'Disponibles' }, { key: 'false', label: 'Indisponibles' }];
+const FILTERS = [{ key: '', get label() { return t('Tous'); } }, { key: 'true', get label() { return t('Disponibles'); } }, { key: 'false', get label() { return t('Indisponibles'); } }];
 
 export default function AdminCarsScreen() {
   const router      = useRouter();
@@ -29,19 +31,19 @@ export default function AdminCarsScreen() {
   const toggleMutation = useMutation({
     mutationFn: (id: number) => carsService.toggleAvailability(id),
     onSuccess:  () => queryClient.invalidateQueries({ queryKey: ['admin-cars'] }),
-    onError:    () => Alert.alert('Erreur', 'Impossible de modifier la disponibilité.'),
+    onError:    () => Alert.alert(t('Erreur'), t('Impossible de modifier la disponibilité.')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => carsService.delete(id),
     onSuccess:  () => queryClient.invalidateQueries({ queryKey: ['admin-cars'] }),
-    onError:    () => Alert.alert('Erreur', 'Impossible de supprimer ce véhicule.'),
+    onError:    () => Alert.alert(t('Erreur'), t('Impossible de supprimer ce véhicule.')),
   });
 
   const confirmDelete = useCallback((car: Car) => {
     Alert.alert(
-      'Supprimer', `Supprimer "${car.brand} ${car.model}" ?`,
-      [{ text: 'Annuler', style: 'cancel' }, { text: 'Supprimer', style: 'destructive', onPress: () => deleteMutation.mutate(car.id) }]
+      t('Supprimer'), t("Supprimer \":brand :model\" ?", { brand: car.brand, model: car.model }),
+      [{ text: t('Annuler'), style: 'cancel' }, { text: t('Supprimer'), style: 'destructive', onPress: () => deleteMutation.mutate(car.id) }]
     );
   }, []);
 
@@ -63,16 +65,16 @@ export default function AdminCarsScreen() {
           <Ionicons name="car-sport-outline" size={28} color="#FFF" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroKicker}>Catalogue admin</Text>
-          <Text style={styles.heroTitle}>Gestion véhicules</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} véhicules synchronisés avec Laravel</Text>
+          <Text style={styles.heroKicker}>{t('Catalogue admin')}</Text>
+          <Text style={styles.heroTitle}>{t('Gestion véhicules')}</Text>
+          <Text style={styles.heroSub}>{data?.total ?? 0} {t('véhicules synchronisés avec Laravel')}</Text>
         </View>
       </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}><Text style={styles.statVal}>{cars.length}</Text><Text style={styles.statLabel}>Total</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{availableCount}</Text><Text style={styles.statLabel}>Disponibles</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#991B1B' }]}>{unavailableCount}</Text><Text style={styles.statLabel}>Indispo.</Text></View>
+        <View style={styles.statCard}><Text style={styles.statVal}>{cars.length}</Text><Text style={styles.statLabel}>{t('Total')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{availableCount}</Text><Text style={styles.statLabel}>{t('Disponibles')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#991B1B' }]}>{unavailableCount}</Text><Text style={styles.statLabel}>{t('Indispo.')}</Text></View>
       </View>
 
       <View style={styles.searchWrap}>
@@ -80,7 +82,7 @@ export default function AdminCarsScreen() {
           <Ionicons name="search-outline" size={17} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher…"
+            placeholder={t('Rechercher…')}
             placeholderTextColor="#C7C7CC"
             value={search}
             onChangeText={setSearch}
@@ -119,10 +121,10 @@ export default function AdminCarsScreen() {
                 <View style={styles.cardTop}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.carName}>{item.brand} {item.model}</Text>
-                    <Text style={styles.carMeta}>{item.year} · {item.category} · {item.registration_number ?? 'Sans immat.'}</Text>
+                    <Text style={styles.carMeta}>{item.year} · {item.category} · {item.registration_number ?? t('Sans immat.')}</Text>
                   </View>
                   <View style={[styles.statusBadge, { backgroundColor: item.is_available ? '#D1FAE5' : '#FEE2E2' }]}>
-                    <Text style={[styles.statusText, { color: item.is_available ? '#065F46' : '#991B1B' }]}>{item.is_available ? 'Disponible' : 'Indispo.'}</Text>
+                    <Text style={[styles.statusText, { color: item.is_available ? '#065F46' : '#991B1B' }]}>{item.is_available ? t('Disponible') : t('Indispo.')}</Text>
                   </View>
                   <View style={styles.cardActions}>
                     <TouchableOpacity style={styles.iconBtn} onPress={() => toggleMutation.mutate(item.id)} activeOpacity={0.7}>
@@ -136,7 +138,7 @@ export default function AdminCarsScreen() {
                 <View style={styles.cardBottom}>
                   <View style={styles.specs}>
                     <View style={styles.spec}><Ionicons name="people-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.seats}pl</Text></View>
-                    <View style={styles.spec}><Ionicons name="settings-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.transmission === 'automatic' ? 'Auto' : 'Man.'}</Text></View>
+                    <View style={styles.spec}><Ionicons name="settings-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.transmission === 'automatic' ? t('Auto') : t('Man.')}</Text></View>
                     {item.rating ? <View style={styles.spec}><Ionicons name="star" size={12} color="#F59E0B" /><Text style={styles.specTxt}>{item.rating.toFixed(1)}</Text></View> : null}
                   </View>
                   <Text style={styles.price}>{formatMoneyPerDay(item.price_per_day)}</Text>
@@ -147,7 +149,7 @@ export default function AdminCarsScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="car-outline" size={44} color="#D1D5DB" />
-              <Text style={styles.emptyTitle}>Aucun véhicule</Text>
+              <Text style={styles.emptyTitle}>{t('Aucun véhicule')}</Text>
             </View>
           }
         />

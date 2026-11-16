@@ -13,6 +13,8 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t } from '@/i18n';
+
 const DRAWER_W = Math.min(300, Dimensions.get('window').width * 0.82);
 
 export type AgenceMenuItem = {
@@ -22,17 +24,17 @@ export type AgenceMenuItem = {
 
 export const AGENCE_MENU_GROUPS: { title: string; items: AgenceMenuItem[] }[] = [
   {
-    title: 'Mon agence',
+    get title() { return t('Mon agence'); },
     items: [
-      { title: 'Profil agence', route: '/(agence)/agency-profile' },
-      { title: 'Rapports', route: '/(agence)/reports' },
-      { title: 'Tarification', route: '/(agence)/pricing' },
-      { title: 'Annulations', route: '/(agence)/cancellations' },
+      { get title() { return t('Profil agence'); }, route: '/(agence)/agency-profile' },
+      { get title() { return t('Rapports'); }, route: '/(agence)/reports' },
+      { get title() { return t('Tarification'); }, route: '/(agence)/pricing' },
+      { get title() { return t('Annulations'); }, route: '/(agence)/cancellations' },
     ],
   },
   {
-    title: 'Finance',
-    items: [{ title: 'Demande de paiement', route: '/(agence)/finance' }],
+    get title() { return t('Finance'); },
+    items: [{ get title() { return t('Demande de paiement'); }, route: '/(agence)/finance' }],
   },
 ];
 
@@ -86,8 +88,8 @@ export default function AgenceMenuDrawer({ visible, onClose }: Props) {
         ]}
       >
         <View style={styles.drawerHeader}>
-          <Text style={styles.drawerTitle}>Menu</Text>
-          <Text style={styles.drawerSub}>Espace partenaire</Text>
+          <Text style={styles.drawerTitle}>{t('Menu')}</Text>
+          <Text style={styles.drawerSub}>{t('Espace partenaire')}</Text>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>

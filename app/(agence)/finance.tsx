@@ -9,6 +9,8 @@ import { financeService } from '@/services/finance.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 export default function AgenceFinanceScreen() {
   const [amount, setAmount] = useState('');
   const [bankName, setBankName] = useState('');
@@ -26,19 +28,19 @@ export default function AgenceFinanceScreen() {
         notes: notes.trim() || undefined,
       }),
     onSuccess: () => {
-      Alert.alert('Demande envoyée', 'Votre demande de virement a été transmise.');
+      Alert.alert(t('Demande envoyée'), t('Votre demande de virement a été transmise.'));
       setAmount('');
       setBankName('');
       setRib('');
       setHolder('');
       setNotes('');
     },
-    onError: () => Alert.alert('Erreur', 'Vérifiez le montant et les coordonnées bancaires.'),
+    onError: () => Alert.alert(t('Erreur'), t('Vérifiez le montant et les coordonnées bancaires.')),
   });
 
   const submit = () => {
     if (!Number(amount) || !bankName.trim() || !rib.trim() || !holder.trim()) {
-      Alert.alert('Champs requis', 'Montant, banque, RIB et titulaire sont obligatoires.');
+      Alert.alert(t('Champs requis'), t('Montant, banque, RIB et titulaire sont obligatoires.'));
       return;
     }
     mutation.mutate();
@@ -46,24 +48,24 @@ export default function AgenceFinanceScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Paiements" subtitle="Demande de virement" />
+      <AdminStackHeader title={t('Paiements')} subtitle={t('Demande de virement')} />
 
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
         <Text style={styles.intro}>
-          Demandez un virement de vos revenus vers votre compte bancaire.
+          {t('Demandez un virement de vos revenus vers votre compte bancaire.')}
         </Text>
 
-        <Field label="Montant (DH)" value={amount} onChangeText={setAmount} keyboardType="numeric" />
-        <Field label="Nom de la banque" value={bankName} onChangeText={setBankName} />
-        <Field label="RIB / compte bancaire" value={rib} onChangeText={setRib} />
-        <Field label="Titulaire du compte" value={holder} onChangeText={setHolder} />
-        <Field label="Note (optionnel)" value={notes} onChangeText={setNotes} multiline />
+        <Field label={t('Montant (DH)')} value={amount} onChangeText={setAmount} keyboardType="numeric" />
+        <Field label={t('Nom de la banque')} value={bankName} onChangeText={setBankName} />
+        <Field label={t('RIB / compte bancaire')} value={rib} onChangeText={setRib} />
+        <Field label={t('Titulaire du compte')} value={holder} onChangeText={setHolder} />
+        <Field label={t('Note (optionnel)')} value={notes} onChangeText={setNotes} multiline />
 
         <TouchableOpacity style={styles.saveBtn} onPress={submit} disabled={mutation.isPending}>
           {mutation.isPending ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={styles.saveTxt}>Envoyer la demande</Text>
+            <Text style={styles.saveTxt}>{t('Envoyer la demande')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

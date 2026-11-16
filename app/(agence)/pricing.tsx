@@ -10,6 +10,8 @@ import { formatMoney } from '@/utils/money';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 export default function AgencePricingScreen() {
   const [carId, setCarId] = useState('');
   const [price, setPrice] = useState('');
@@ -26,7 +28,7 @@ export default function AgencePricingScreen() {
       }),
     onSuccess: (data) => {
       Alert.alert(
-        'Prix mis à jour',
+        t('Prix mis à jour'),
         `${data.brand} ${data.model} : ${formatMoney(data.old_price, { suffix: false })} → ${formatMoney(data.price_per_day)}/jour`,
       );
       setCarId('');
@@ -34,12 +36,12 @@ export default function AgencePricingScreen() {
       setReason('');
       setMultiplier('');
     },
-    onError: () => Alert.alert('Erreur', 'Vérifiez l’ID véhicule et les champs obligatoires.'),
+    onError: () => Alert.alert(t('Erreur'), t('Vérifiez l’ID véhicule et les champs obligatoires.')),
   });
 
   const submit = () => {
     if (!Number(carId) || !Number(price) || !reason.trim()) {
-      Alert.alert('Champs requis', 'ID véhicule, prix et raison sont obligatoires.');
+      Alert.alert(t('Champs requis'), t('ID véhicule, prix et raison sont obligatoires.'));
       return;
     }
     mutation.mutate();
@@ -47,19 +49,19 @@ export default function AgencePricingScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Tarification" subtitle="Prix journalier des véhicules" />
+      <AdminStackHeader title={t('Tarification')} subtitle={t('Prix journalier des véhicules')} />
 
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-        <Field label="ID du véhicule" value={carId} onChangeText={setCarId} keyboardType="numeric" />
-        <Field label="Nouveau prix (DH/jour)" value={price} onChangeText={setPrice} keyboardType="numeric" />
-        <Field label="Raison du changement" value={reason} onChangeText={setReason} multiline />
-        <Field label="Multiplicateur saisonnier (optionnel)" value={multiplier} onChangeText={setMultiplier} keyboardType="numeric" />
+        <Field label={t('ID du véhicule')} value={carId} onChangeText={setCarId} keyboardType="numeric" />
+        <Field label={t('Nouveau prix (DH/jour)')} value={price} onChangeText={setPrice} keyboardType="numeric" />
+        <Field label={t('Raison du changement')} value={reason} onChangeText={setReason} multiline />
+        <Field label={t('Multiplicateur saisonnier (optionnel)')} value={multiplier} onChangeText={setMultiplier} keyboardType="numeric" />
 
         <TouchableOpacity style={styles.saveBtn} onPress={submit} disabled={mutation.isPending}>
           {mutation.isPending ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={styles.saveTxt}>Appliquer le nouveau prix</Text>
+            <Text style={styles.saveTxt}>{t('Appliquer le nouveau prix')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

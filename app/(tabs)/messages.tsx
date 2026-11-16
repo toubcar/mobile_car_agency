@@ -6,6 +6,8 @@ import { useAuthStore } from '../../store/authStore';
 import PageHeader from '../../components/PageHeader';
 import MessagesInbox from '../../components/MessagesInbox';
 
+import { t } from '@/i18n';
+
 export default function MessagesScreen() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -13,12 +15,12 @@ export default function MessagesScreen() {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.container}>
-        <PageHeader title="Messages" showBack={false} />
+        <PageHeader title={t('Messages')} showBack={false} />
         <View style={styles.emptyState}>
           <Ionicons name="chatbubbles-outline" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>Connectez-vous pour voir vos messages</Text>
+          <Text style={styles.emptyTitle}>{t('Connectez-vous pour voir vos messages')}</Text>
           <TouchableOpacity style={styles.connectBtn} onPress={() => router.push('/(auth)/onboarding')}>
-            <Text style={styles.connectBtnText}>Se connecter</Text>
+            <Text style={styles.connectBtnText}>{t('Se connecter')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -27,7 +29,7 @@ export default function MessagesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <PageHeader title="Messages" showBack={false} />
+      <PageHeader title={t('Messages')} showBack={false} />
       <MessagesInbox />
     </SafeAreaView>
   );

@@ -12,11 +12,13 @@ import { supportService, type SupportTicket } from '@/services/support.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 const STATUS_FILTERS = [
-  { key: '', label: 'Tous' },
-  { key: 'open', label: 'Ouverts' },
-  { key: 'in_progress', label: 'En cours' },
-  { key: 'resolved', label: 'Résolus' },
+  { key: '', get label() { return t('Tous'); } },
+  { key: 'open', get label() { return t('Ouverts'); } },
+  { key: 'in_progress', get label() { return t('En cours'); } },
+  { key: 'resolved', get label() { return t('Résolus'); } },
 ];
 
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
@@ -57,13 +59,13 @@ export default function AdminSupportScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Support" subtitle="Tickets & assistance" />
+      <AdminStackHeader title={t('Support')} subtitle={t('Tickets & assistance')} />
 
       {stats ? (
         <View style={styles.statsRow}>
-          <View style={styles.stat}><Text style={styles.statVal}>{stats.open}</Text><Text style={styles.statLbl}>Ouverts</Text></View>
-          <View style={styles.stat}><Text style={styles.statVal}>{stats.urgent}</Text><Text style={styles.statLbl}>Urgents</Text></View>
-          <View style={styles.stat}><Text style={styles.statVal}>{stats.total}</Text><Text style={styles.statLbl}>Total</Text></View>
+          <View style={styles.stat}><Text style={styles.statVal}>{stats.open}</Text><Text style={styles.statLbl}>{t('Ouverts')}</Text></View>
+          <View style={styles.stat}><Text style={styles.statVal}>{stats.urgent}</Text><Text style={styles.statLbl}>{t('Urgents')}</Text></View>
+          <View style={styles.stat}><Text style={styles.statVal}>{stats.total}</Text><Text style={styles.statLbl}>{t('Total')}</Text></View>
         </View>
       ) : null}
 
@@ -93,16 +95,16 @@ export default function AdminSupportScreen() {
               <Text style={styles.cardSub}>#{item.ticket_number ?? item.id} · {item.status} · {item.priority}</Text>
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.btnNeutral} onPress={() => setReplyModal(item)}>
-                  <Text style={styles.btnNeutralTxt}>Répondre</Text>
+                  <Text style={styles.btnNeutralTxt}>{t('Répondre')}</Text>
                 </TouchableOpacity>
                 {item.status === 'open' ? (
                   <TouchableOpacity style={styles.btnPrimary} onPress={() => statusMutation.mutate({ id: item.id, s: 'in_progress' })}>
-                    <Text style={styles.btnPrimaryTxt}>En cours</Text>
+                    <Text style={styles.btnPrimaryTxt}>{t('En cours')}</Text>
                   </TouchableOpacity>
                 ) : null}
                 {item.status !== 'resolved' && item.status !== 'closed' ? (
                   <TouchableOpacity style={styles.btnPrimary} onPress={() => statusMutation.mutate({ id: item.id, s: 'resolved' })}>
-                    <Text style={styles.btnPrimaryTxt}>Résoudre</Text>
+                    <Text style={styles.btnPrimaryTxt}>{t('Résoudre')}</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>
@@ -119,30 +121,30 @@ export default function AdminSupportScreen() {
               </View>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Aucun ticket.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>{t('Aucun ticket.')}</Text>}
         />
       )}
 
       <Modal visible={!!replyModal} transparent animationType="fade" onRequestClose={() => setReplyModal(null)}>
         <View style={styles.modalBg}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Répondre au ticket</Text>
+            <Text style={styles.modalTitle}>{t('Répondre au ticket')}</Text>
             <TextInput
               style={styles.modalInput}
               value={replyText}
               onChangeText={setReplyText}
-              placeholder="Votre message…"
+              placeholder={t('Votre message…')}
               multiline
               placeholderTextColor="#9CA3AF"
             />
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setReplyModal(null)}><Text style={styles.modalCancel}>Annuler</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setReplyModal(null)}><Text style={styles.modalCancel}>{t('Annuler')}</Text></TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalSubmit}
                 disabled={!replyText.trim() || replyMutation.isPending}
                 onPress={() => replyMutation.mutate()}
               >
-                <Text style={styles.modalSubmitTxt}>Envoyer</Text>
+                <Text style={styles.modalSubmitTxt}>{t('Envoyer')}</Text>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>

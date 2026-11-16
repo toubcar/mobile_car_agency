@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import AuthBottomSheet from '@/components/AuthBottomSheet';
 import { useAuthStore } from '@/store/authStore';
 
+import { t } from '@/i18n';
+
 export type AuthSheetMode = 'signup' | 'login';
 
 type AuthSheetContextValue = {
@@ -53,7 +55,7 @@ export function AuthSheetProvider({ children }: { children: ReactNode }) {
 export function useAuthSheet(): AuthSheetContextValue {
   const ctx = useContext(AuthSheetContext);
   if (!ctx) {
-    throw new Error('useAuthSheet must be used within AuthSheetProvider');
+    throw new Error(t('useAuthSheet must be used within AuthSheetProvider'));
   }
   return ctx;
 }

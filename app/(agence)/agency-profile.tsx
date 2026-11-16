@@ -12,6 +12,8 @@ import { agencyProfileService, type AgencyDocument, type AgencyProfile } from '@
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 type Tab = 'general' | 'hours' | 'location' | 'security' | 'documents';
@@ -57,32 +59,32 @@ export default function AgencyProfileScreen() {
 
   const saveGeneral = useMutation({
     mutationFn: () => agencyProfileService.updateGeneral(general),
-    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Informations mises à jour.'); },
+    onSuccess: () => { invalidate(); Alert.alert(t('Succès'), t('Informations mises à jour.')); },
   });
 
   const saveHours = useMutation({
     mutationFn: () => agencyProfileService.updateOpeningHours(hours),
-    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Horaires mis à jour.'); },
+    onSuccess: () => { invalidate(); Alert.alert(t('Succès'), t('Horaires mis à jour.')); },
   });
 
   const saveLocation = useMutation({
     mutationFn: () => agencyProfileService.updateLocations(location),
-    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Adresse mise à jour.'); },
+    onSuccess: () => { invalidate(); Alert.alert(t('Succès'), t('Adresse mise à jour.')); },
   });
 
   const saveSecurity = useMutation({
     mutationFn: () => agencyProfileService.updateSecurity(security),
     onSuccess: () => {
       setSecurity({ current_password: '', new_password: '', new_password_confirmation: '' });
-      Alert.alert('Succès', 'Mot de passe mis à jour.');
+      Alert.alert(t('Succès'), t('Mot de passe mis à jour.'));
     },
-    onError: () => Alert.alert('Erreur', 'Vérifiez le mot de passe actuel et la confirmation.'),
+    onError: () => Alert.alert(t('Erreur'), t('Vérifiez le mot de passe actuel et la confirmation.')),
   });
 
   const uploadDoc = useMutation({
     mutationFn: (file: { uri: string; name: string; type: string }) =>
       agencyProfileService.uploadDocument({ document_type: docType, file }),
-    onSuccess: () => { invalidate(); Alert.alert('Succès', 'Document envoyé.'); },
+    onSuccess: () => { invalidate(); Alert.alert(t('Succès'), t('Document envoyé.')); },
   });
 
   const deleteDoc = useMutation({
@@ -98,17 +100,17 @@ export default function AgencyProfileScreen() {
   };
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'general', label: 'Général' },
-    { key: 'hours', label: 'Horaires' },
-    { key: 'location', label: 'Adresse' },
-    { key: 'documents', label: 'Docs' },
-    { key: 'security', label: 'Sécurité' },
+    { key: 'general', label: t('Général') },
+    { key: 'hours', label: t('Horaires') },
+    { key: 'location', label: t('Adresse') },
+    { key: 'documents', label: t('Docs') },
+    { key: 'security', label: t('Sécurité') },
   ];
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
-        <AdminStackHeader title="Profil agence" />
+        <AdminStackHeader title={t('Profil agence')} />
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} />
       </SafeAreaView>
     );
@@ -117,14 +119,14 @@ export default function AgencyProfileScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <AdminStackHeader
-        title="Profil agence"
-        subtitle={profile?.completion != null ? `${profile.completion}% complété` : undefined}
+        title={t('Profil agence')}
+        subtitle={profile?.completion != null ? t(':completion% complété', { completion: profile.completion }) : undefined}
       />
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
-        {tabs.map((t) => (
-          <TouchableOpacity key={t.key} style={[styles.tab, tab === t.key && styles.tabOn]} onPress={() => setTab(t.key)}>
-            <Text style={[styles.tabTxt, tab === t.key && styles.tabTxtOn]}>{t.label}</Text>
+        {tabs.map((item) => (
+          <TouchableOpacity key={item.key} style={[styles.tab, tab === item.key && styles.tabOn]} onPress={() => setTab(item.key)}>
+            <Text style={[styles.tabTxt, tab === item.key && styles.tabTxtOn]}>{item.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -132,11 +134,11 @@ export default function AgencyProfileScreen() {
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
         {tab === 'general' ? (
           <>
-            <Field label="Nom de l'agence" value={general.name} onChangeText={(v) => setGeneral((g) => ({ ...g, name: v }))} />
-            <Field label="N° registre" value={general.registration_number} onChangeText={(v) => setGeneral((g) => ({ ...g, registration_number: v }))} />
-            <Field label="Téléphone" value={general.phone} onChangeText={(v) => setGeneral((g) => ({ ...g, phone: v }))} />
-            <Field label="Email" value={general.email} onChangeText={(v) => setGeneral((g) => ({ ...g, email: v }))} keyboardType="email-address" />
-            <Field label="Description" value={general.description} onChangeText={(v) => setGeneral((g) => ({ ...g, description: v }))} multiline />
+            <Field label={t("Nom de l'agence")} value={general.name} onChangeText={(v) => setGeneral((g) => ({ ...g, name: v }))} />
+            <Field label={t('N° registre')} value={general.registration_number} onChangeText={(v) => setGeneral((g) => ({ ...g, registration_number: v }))} />
+            <Field label={t('Téléphone')} value={general.phone} onChangeText={(v) => setGeneral((g) => ({ ...g, phone: v }))} />
+            <Field label={t('Email')} value={general.email} onChangeText={(v) => setGeneral((g) => ({ ...g, email: v }))} keyboardType="email-address" />
+            <Field label={t('Description')} value={general.description} onChangeText={(v) => setGeneral((g) => ({ ...g, description: v }))} multiline />
             <SaveBtn loading={saveGeneral.isPending} onPress={() => saveGeneral.mutate()} />
           </>
         ) : null}
@@ -169,10 +171,10 @@ export default function AgencyProfileScreen() {
 
         {tab === 'location' ? (
           <>
-            <Field label="Adresse" value={location.address} onChangeText={(v) => setLocation((l) => ({ ...l, address: v }))} />
-            <Field label="Ville" value={location.city} onChangeText={(v) => setLocation((l) => ({ ...l, city: v }))} />
-            <Field label="Code postal" value={location.postal_code} onChangeText={(v) => setLocation((l) => ({ ...l, postal_code: v }))} />
-            <Field label="Pays" value={location.country} onChangeText={(v) => setLocation((l) => ({ ...l, country: v }))} />
+            <Field label={t('Adresse')} value={location.address} onChangeText={(v) => setLocation((l) => ({ ...l, address: v }))} />
+            <Field label={t('Ville')} value={location.city} onChangeText={(v) => setLocation((l) => ({ ...l, city: v }))} />
+            <Field label={t('Code postal')} value={location.postal_code} onChangeText={(v) => setLocation((l) => ({ ...l, postal_code: v }))} />
+            <Field label={t('Pays')} value={location.country} onChangeText={(v) => setLocation((l) => ({ ...l, country: v }))} />
             <SaveBtn loading={saveLocation.isPending} onPress={() => saveLocation.mutate()} />
           </>
         ) : null}
@@ -180,15 +182,15 @@ export default function AgencyProfileScreen() {
         {tab === 'documents' ? (
           <>
             <View style={styles.docTypes}>
-              {(['license', 'insurance', 'registration', 'other'] as const).map((t) => (
-                <TouchableOpacity key={t} style={[styles.docChip, docType === t && styles.docChipOn]} onPress={() => setDocType(t)}>
-                  <Text style={[styles.docChipTxt, docType === t && styles.docChipTxtOn]}>{t}</Text>
+              {(['license', 'insurance', 'registration', 'other'] as const).map((kind) => (
+                <TouchableOpacity key={kind} style={[styles.docChip, docType === kind && styles.docChipOn]} onPress={() => setDocType(kind)}>
+                  <Text style={[styles.docChipTxt, docType === kind && styles.docChipTxtOn]}>{kind}</Text>
                 </TouchableOpacity>
               ))}
             </View>
             <TouchableOpacity style={styles.uploadBtn} onPress={pickDoc} disabled={uploadDoc.isPending}>
               <Ionicons name="cloud-upload-outline" size={18} color="#FFF" />
-              <Text style={styles.uploadTxt}>{uploadDoc.isPending ? 'Envoi…' : 'Ajouter un document'}</Text>
+              <Text style={styles.uploadTxt}>{uploadDoc.isPending ? t('Envoi…') : t('Ajouter un document')}</Text>
             </TouchableOpacity>
             {(profile?.documents ?? []).map((doc, idx) => (
               <View key={`${doc.filename}-${idx}`} style={styles.docRow}>
@@ -206,9 +208,9 @@ export default function AgencyProfileScreen() {
 
         {tab === 'security' ? (
           <>
-            <Field label="Mot de passe actuel" value={security.current_password} onChangeText={(v) => setSecurity((s) => ({ ...s, current_password: v }))} secure />
-            <Field label="Nouveau mot de passe" value={security.new_password} onChangeText={(v) => setSecurity((s) => ({ ...s, new_password: v }))} secure />
-            <Field label="Confirmation" value={security.new_password_confirmation} onChangeText={(v) => setSecurity((s) => ({ ...s, new_password_confirmation: v }))} secure />
+            <Field label={t('Mot de passe actuel')} value={security.current_password} onChangeText={(v) => setSecurity((s) => ({ ...s, current_password: v }))} secure />
+            <Field label={t('Nouveau mot de passe')} value={security.new_password} onChangeText={(v) => setSecurity((s) => ({ ...s, new_password: v }))} secure />
+            <Field label={t('Confirmation')} value={security.new_password_confirmation} onChangeText={(v) => setSecurity((s) => ({ ...s, new_password_confirmation: v }))} secure />
             <SaveBtn loading={saveSecurity.isPending} onPress={() => saveSecurity.mutate()} />
           </>
         ) : null}
@@ -240,7 +242,7 @@ function Field({ label, value, onChangeText, keyboardType, multiline, secure }: 
 function SaveBtn({ loading, onPress }: { loading: boolean; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.saveBtn} onPress={onPress} disabled={loading}>
-      {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveTxt}>Enregistrer</Text>}
+      {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveTxt}>{t('Enregistrer')}</Text>}
     </TouchableOpacity>
   );
 }

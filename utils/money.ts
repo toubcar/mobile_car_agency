@@ -1,3 +1,4 @@
+import { jsLocale } from '@/i18n';
 /** Devise affichée dans l'app — dirham marocain (DH). */
 export const CURRENCY_CODE = 'DH';
 
@@ -17,7 +18,7 @@ export function toAmount(value: unknown): number {
 export function formatMoney(value: unknown, options?: { decimals?: number; suffix?: boolean }): string {
   const { decimals = 0, suffix = true } = options ?? {};
   const amount = toAmount(value);
-  const formatted = amount.toLocaleString('fr-FR', {
+  const formatted = amount.toLocaleString(jsLocale(), {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
@@ -31,12 +32,12 @@ export function formatMoney(value: unknown, options?: { decimals?: number; suffi
 export function formatMoneyCompact(value: unknown): string {
   const amount = toAmount(value);
   if (amount >= 1_000_000) {
-    return `${(amount / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}M`;
+    return `${(amount / 1_000_000).toLocaleString(jsLocale(), { maximumFractionDigits: 1 })}M`;
   }
   if (amount >= 1_000) {
-    return `${(amount / 1_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}k`;
+    return `${(amount / 1_000).toLocaleString(jsLocale(), { maximumFractionDigits: 1 })}k`;
   }
-  return amount.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+  return amount.toLocaleString(jsLocale(), { maximumFractionDigits: 0 });
 }
 
 /** Pourcentage 0–100 (arrondi entier, plafonné). */

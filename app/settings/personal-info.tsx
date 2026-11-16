@@ -21,6 +21,8 @@ import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
+import { t } from '@/i18n';
+
 export default function PersonalInfoScreen() {
   const router = useRouter();
   const { isCompact, scrollContentStyle, headerGradientHeight, insets } = useResponsiveLayout({
@@ -35,16 +37,16 @@ export default function PersonalInfoScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Champ requis', 'Le nom complet est obligatoire.');
+      Alert.alert(t('Champ requis'), t('Le nom complet est obligatoire.'));
       return;
     }
     setSaving(true);
     try {
       await apiClient.put('/profile', { name: name.trim(), email: email.trim(), phone: phone.trim() });
       updateUser({ name: name.trim(), email: email.trim(), phone: phone.trim() });
-      Alert.alert('Enregistré', 'Votre profil a été mis à jour.', [{ text: 'OK', onPress: () => router.back() }]);
+      Alert.alert(t('Enregistré'), t('Votre profil a été mis à jour.'), [{ text: 'OK', onPress: () => router.back() }]);
     } catch {
-      Alert.alert('Erreur', 'Enregistrement impossible. Réessayez.');
+      Alert.alert(t('Erreur'), t('Enregistrement impossible. Réessayez.'));
     } finally {
       setSaving(false);
     }
@@ -57,7 +59,7 @@ export default function PersonalInfoScreen() {
         colors={['#C8E6F5', COLORS.background]}
         style={[styles.headerGradient, { height: headerGradientHeight }]}
       />
-      <PageHeader title="Informations personnelles" />
+      <PageHeader title={t('Informations personnelles')} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -69,21 +71,21 @@ export default function PersonalInfoScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.sectionTitle}>Vos coordonnées</Text>
+          <Text style={styles.sectionTitle}>{t('Vos coordonnées')}</Text>
           <View style={styles.card}>
             <View style={[styles.field, styles.fieldBorder]}>
-              <Text style={styles.fieldLabel}>Nom complet</Text>
+              <Text style={styles.fieldLabel}>{t('Nom complet')}</Text>
               <TextInput
                 style={[styles.fieldInput, isCompact && styles.fieldInputCompact]}
                 value={name}
                 onChangeText={setName}
-                placeholder="Votre nom"
+                placeholder={t('Votre nom')}
                 placeholderTextColor={COLORS.gray}
                 returnKeyType="next"
               />
             </View>
             <View style={[styles.field, styles.fieldBorder]}>
-              <Text style={styles.fieldLabel}>E-mail</Text>
+              <Text style={styles.fieldLabel}>{t('E-mail')}</Text>
               <TextInput
                 style={[styles.fieldInput, isCompact && styles.fieldInputCompact]}
                 value={email}
@@ -96,7 +98,7 @@ export default function PersonalInfoScreen() {
               />
             </View>
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Téléphone</Text>
+              <Text style={styles.fieldLabel}>{t('Téléphone')}</Text>
               <TextInput
                 style={[styles.fieldInput, isCompact && styles.fieldInputCompact]}
                 value={phone}
@@ -118,7 +120,7 @@ export default function PersonalInfoScreen() {
             {saving ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.saveBtnText}>Enregistrer</Text>
+              <Text style={styles.saveBtnText}>{t('Enregistrer')}</Text>
             )}
           </TouchableOpacity>
         </ScrollView>

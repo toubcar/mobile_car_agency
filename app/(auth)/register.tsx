@@ -20,6 +20,8 @@ import { Image } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 
+import { t } from '@/i18n';
+
 const { width: W } = Dimensions.get('window');
 
 const SOURCES = [
@@ -55,11 +57,11 @@ export default function RegisterScreen() {
 
   /* ── Password rules ── */
   const rules = [
-    { label: '1 majuscule', ok: /[A-Z]/.test(password) },
-    { label: '1 minuscule', ok: /[a-z]/.test(password) },
-    { label: '1 chiffre', ok: /[0-9]/.test(password) },
-    { label: '8 à 16 caractères', ok: password.length >= 8 && password.length <= 16 },
-    { label: '1 caractère spécial', ok: /[^A-Za-z0-9]/.test(password) },
+    { label: t('1 majuscule'), ok: /[A-Z]/.test(password) },
+    { label: t('1 minuscule'), ok: /[a-z]/.test(password) },
+    { label: t('1 chiffre'), ok: /[0-9]/.test(password) },
+    { label: t('8 à 16 caractères'), ok: password.length >= 8 && password.length <= 16 },
+    { label: t('1 caractère spécial'), ok: /[^A-Za-z0-9]/.test(password) },
   ];
   const passwordValid = rules.every((r) => r.ok);
 
@@ -74,11 +76,11 @@ export default function RegisterScreen() {
 
   const goNext = () => {
     if (step === 1 && !step1Valid) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs correctement.');
+      Alert.alert(t('Champs requis'), t('Veuillez remplir tous les champs correctement.'));
       return;
     }
     if (step === 2 && !passwordValid) {
-      Alert.alert('Mot de passe faible', 'Le mot de passe doit respecter toutes les règles.');
+      Alert.alert(t('Mot de passe faible'), t('Le mot de passe doit respecter toutes les règles.'));
       return;
     }
     setStep((s) => s + 1);
@@ -90,7 +92,7 @@ export default function RegisterScreen() {
       await register(name.trim(), email.trim(), password, phone.trim());
       replaceRootByRole(router, useAuthStore.getState().role);
     } catch (error: any) {
-      Alert.alert('Inscription échouée', error?.response?.data?.message ?? 'Une erreur est survenue.');
+      Alert.alert(t('Inscription échouée'), error?.response?.data?.message ?? t('Une erreur est survenue.'));
     }
   };
 
@@ -141,19 +143,19 @@ export default function RegisterScreen() {
             {step === 1 && (
               <View style={styles.stepBlock}>
                 <Text style={styles.stepTitle}>
-                  {accountType === 'agency' ? 'Votre agence' : 'Vos informations'}
+                  {accountType === 'agency' ? t('Votre agence') : t('Vos informations')}
                 </Text>
                 <Text style={styles.stepSub}>
                   {accountType === 'agency'
-                    ? 'Présentez votre agence'
-                    : 'Créez votre compte client'}
+                    ? t('Présentez votre agence')
+                    : t('Créez votre compte client')}
                 </Text>
 
                 <View style={styles.inputWrap}>
                   <Ionicons name="person-outline" size={17} color="#6B7280" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder={accountType === 'agency' ? 'Nom de l’agence' : 'Nom complet'}
+                    placeholder={accountType === 'agency' ? t('Nom de l’agence') : t('Nom complet')}
                     placeholderTextColor="#9CA3AF"
                     value={name}
                     onChangeText={setName}
@@ -165,7 +167,7 @@ export default function RegisterScreen() {
                   <Ionicons name="mail-outline" size={17} color="#6B7280" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Adresse e-mail"
+                    placeholder={t('Adresse e-mail')}
                     placeholderTextColor="#9CA3AF"
                     value={email}
                     onChangeText={setEmail}
@@ -178,7 +180,7 @@ export default function RegisterScreen() {
                   <Ionicons name="call-outline" size={17} color="#6B7280" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Numéro de téléphone"
+                    placeholder={t('Numéro de téléphone')}
                     placeholderTextColor="#9CA3AF"
                     value={phone}
                     onChangeText={setPhone}
@@ -191,13 +193,13 @@ export default function RegisterScreen() {
             {/* ── STEP 2: Password ── */}
             {step === 2 && (
               <View style={styles.stepBlock}>
-                <Text style={styles.stepTitle}>Créez votre{'\n'}mot de passe</Text>
-                <Text style={styles.stepSub}>Choisissez un mot de passe robuste</Text>
+                <Text style={styles.stepTitle}>{t('Créez votre')}{'\n'}{t('mot de passe')}</Text>
+                <Text style={styles.stepSub}>{t('Choisissez un mot de passe robuste')}</Text>
 
                 <View style={styles.inputWrap}>
                   <TextInput
                     style={[styles.input, { flex: 1 }]}
-                    placeholder="Mot de passe"
+                    placeholder={t('Mot de passe')}
                     placeholderTextColor="#9CA3AF"
                     value={password}
                     onChangeText={setPassword}
@@ -232,8 +234,8 @@ export default function RegisterScreen() {
             {/* ── STEP 3: Source ── */}
             {step === 3 && (
               <View style={styles.stepBlock}>
-                <Text style={styles.stepTitle}>Bienvenue sur{'\n'}ToubCar !</Text>
-                <Text style={styles.stepSub}>Comment avez-vous entendu parler de nous ?</Text>
+                <Text style={styles.stepTitle}>{t('Bienvenue sur')}{'\n'}{t('ToubCar !')}</Text>
+                <Text style={styles.stepSub}>{t('Comment avez-vous entendu parler de nous ?')}</Text>
 
                 <View style={styles.sourceList}>
                   {SOURCES.map((s) => {
@@ -288,7 +290,7 @@ export default function RegisterScreen() {
                 {isLoading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.nextBtnText}>CRÉER LE COMPTE</Text>
+                  <Text style={styles.nextBtnText}>{t('CRÉER LE COMPTE')}</Text>
                 )}
               </TouchableOpacity>
             )}

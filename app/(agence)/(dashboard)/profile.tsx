@@ -7,6 +7,8 @@ import { COLORS } from '@/constants/api';
 import { useAuthStore } from '@/store/authStore';
 import { useLogout } from '@/hooks/useLogout';
 
+import { t } from '@/i18n';
+
 const SHADOW = adminShadow.card;
 
 function Row({ icon, label, sub, onPress, danger }: {
@@ -42,10 +44,10 @@ export default function AgenceProfileScreen() {
     .join('');
 
   const handleLogout = () =>
-    Alert.alert('Se déconnecter', 'Quitter votre espace agence ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('Se déconnecter'), t('Quitter votre espace agence ?'), [
+      { text: t('Annuler'), style: 'cancel' },
       {
-        text: 'Se déconnecter',
+        text: t('Se déconnecter'),
         style: 'destructive',
         onPress: () => {
           void logoutAndGoHome();
@@ -61,43 +63,43 @@ export default function AgenceProfileScreen() {
             <Text style={styles.avatarTxt}>{initials}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.heroKicker}>Espace partenaire</Text>
+            <Text style={styles.heroKicker}>{t('Espace partenaire')}</Text>
             <Text style={styles.name}>{user?.name ?? '—'}</Text>
             <Text style={styles.email}>{user?.email ?? '—'}</Text>
           </View>
           <View style={styles.badge}>
             <Ionicons name="business-outline" size={13} color="#D6EAF8" />
-            <Text style={styles.badgeTxt}>Agence</Text>
+            <Text style={styles.badgeTxt}>{t('Agence')}</Text>
           </View>
         </View>
 
-        <Text style={adminStyles.sectionLabel}>MON AGENCE</Text>
+        <Text style={adminStyles.sectionLabel}>{t('MON AGENCE')}</Text>
         <View style={styles.group}>
           <Row
             icon="business-outline"
-            label="Profil agence"
-            sub="Informations, horaires, documents"
+            label={t('Profil agence')}
+            sub={t('Informations, horaires, documents')}
             onPress={() => router.push('/(agence)/agency-profile')}
           />
           <View style={styles.sep} />
           <Row
             icon="bar-chart-outline"
-            label="Rapports"
-            sub="Revenus, flotte, performance"
+            label={t('Rapports')}
+            sub={t('Revenus, flotte, performance')}
             onPress={() => router.push('/(agence)/reports')}
           />
           <View style={styles.sep} />
           <Row
             icon="pricetags-outline"
-            label="Tarification"
-            sub="Prix journalier des véhicules"
+            label={t('Tarification')}
+            sub={t('Prix journalier des véhicules')}
             onPress={() => router.push('/(agence)/pricing')}
           />
           <View style={styles.sep} />
           <Row
             icon="close-circle-outline"
-            label="Annulations"
-            sub="Quota et statut du compte"
+            label={t('Annulations')}
+            sub={t('Quota et statut du compte')}
             onPress={() => router.push('/(agence)/cancellations')}
           />
         </View>
@@ -106,18 +108,18 @@ export default function AgenceProfileScreen() {
         <View style={styles.group}>
           <Row
             icon="wallet-outline"
-            label="Demande de paiement"
-            sub="Virement vers votre compte bancaire"
+            label={t('Demande de paiement')}
+            sub={t('Virement vers votre compte bancaire')}
             onPress={() => router.push('/(agence)/finance')}
           />
         </View>
 
         <Text style={adminStyles.sectionLabel}>SESSION</Text>
         <View style={styles.group}>
-          <Row icon="log-out-outline" label="Se déconnecter" sub="Retour à l'accueil public" onPress={handleLogout} danger />
+          <Row icon="log-out-outline" label={t('Se déconnecter')} sub={t("Retour à l'accueil public")} onPress={handleLogout} danger />
         </View>
 
-        <Text style={styles.footer}>ToubCar · Espace Agence</Text>
+        <Text style={styles.footer}>{t('ToubCar · Espace Agence')}</Text>
       </ScrollView>
     </SafeAreaView>
   );

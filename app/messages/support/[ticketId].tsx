@@ -11,6 +11,8 @@ import { messagesService, type ChatMessage } from '@/services/messages.service';
 import { COLORS } from '@/constants/api';
 import { useAuthStore } from '@/store/authStore';
 
+import { t, jsLocale } from '@/i18n';
+
 function isMine(item: ChatMessage, userId?: number): boolean {
   if (item.sender_type === 'admin') return true;
   return item.sender_class === 'App\\Models\\User' && item.sender_id === userId;
@@ -61,7 +63,7 @@ export default function SupportMessageThreadScreen() {
           <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{item.message}</Text>
           {item.created_at ? (
             <Text style={[styles.bubbleTime, mine && styles.bubbleTimeMine]}>
-              {new Date(item.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(item.created_at).toLocaleTimeString(jsLocale(), { hour: '2-digit', minute: '2-digit' })}
             </Text>
           ) : null}
         </View>
@@ -97,7 +99,7 @@ export default function SupportMessageThreadScreen() {
             inverted
             ListEmptyComponent={
               <View style={styles.emptyThread}>
-                <Text style={styles.emptyThreadTxt}>Aucun message — répondez pour démarrer la conversation.</Text>
+                <Text style={styles.emptyThreadTxt}>{t('Aucun message — répondez pour démarrer la conversation.')}</Text>
               </View>
             }
             renderItem={renderItem}
@@ -107,7 +109,7 @@ export default function SupportMessageThreadScreen() {
               style={styles.input}
               value={text}
               onChangeText={setText}
-              placeholder="Répondre en tant que support…"
+              placeholder={t('Répondre en tant que support…')}
               placeholderTextColor="#9CA3AF"
               multiline
             />
@@ -158,6 +160,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   bubbleMine: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  bubbleOther: {},
   bubbleText: { fontSize: 15, color: '#111827', lineHeight: 20 },
   bubbleTextMine: { color: '#FFF' },
   bubbleTime: { fontSize: 10, color: '#9CA3AF', marginTop: 4, alignSelf: 'flex-end' },

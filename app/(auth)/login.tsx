@@ -12,6 +12,8 @@ import { COLORS, APP_NAME } from '@/constants/api';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 import { goToHome } from '@/utils/authNavigation';
 
+import { t } from '@/i18n';
+
 export default function LoginScreen() {
   const router = useRouter();
   const { scope, required } = useLocalSearchParams<{ scope?: string; required?: string }>();
@@ -45,7 +47,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
+      Alert.alert(t('Champs requis'), t('Veuillez remplir tous les champs.'));
       return;
     }
     try {
@@ -56,7 +58,7 @@ export default function LoginScreen() {
         err && typeof err === 'object' && 'response' in err
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
-      Alert.alert('Connexion impossible', msg ?? 'Vérifiez votre e-mail et votre mot de passe.');
+      Alert.alert(t('Connexion impossible'), msg ?? t('Vérifiez votre e-mail et votre mot de passe.'));
     }
   };
 
@@ -75,23 +77,23 @@ export default function LoginScreen() {
               </View>
               {isStaff ? (
                 <>
-                  <Text style={styles.kicker}>{APP_NAME} Pro</Text>
-                  <Text style={styles.title}>Espace professionnel</Text>
+                  <Text style={styles.kicker}>{APP_NAME} {t('Pro')}</Text>
+                  <Text style={styles.title}>{t('Espace professionnel')}</Text>
                   <Text style={styles.subtitle}>
-                    Connexion réservée aux agences partenaires et à l’équipe {APP_NAME}.
+                    {t('Connexion réservée aux agences partenaires et à l’équipe')} {APP_NAME}.
                   </Text>
                 </>
               ) : (
                 <>
-                  <Text style={styles.title}>Bon retour</Text>
-                  <Text style={styles.subtitle}>Connectez-vous pour réserver et suivre vos locations.</Text>
+                  <Text style={styles.title}>{t('Bon retour')}</Text>
+                  <Text style={styles.subtitle}>{t('Connectez-vous pour réserver et suivre vos locations.')}</Text>
                 </>
               )}
             </View>
 
             <View style={styles.form}>
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Adresse e-mail</Text>
+                <Text style={styles.fieldLabel}>{t('Adresse e-mail')}</Text>
                 <View style={[styles.inputRow, focused === 'email' && styles.inputRowFocused]}>
                   <Ionicons name="mail-outline" size={18} color={focused === 'email' ? COLORS.primary : '#9CA3AF'} />
                   <TextInput
@@ -110,7 +112,7 @@ export default function LoginScreen() {
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Mot de passe</Text>
+                <Text style={styles.fieldLabel}>{t('Mot de passe')}</Text>
                 <View style={[styles.inputRow, focused === 'password' && styles.inputRowFocused]}>
                   <Ionicons name="lock-closed-outline" size={18} color={focused === 'password' ? COLORS.primary : '#9CA3AF'} />
                   <TextInput
@@ -132,19 +134,19 @@ export default function LoginScreen() {
               </View>
 
               <TouchableOpacity style={[styles.btn, isLoading && styles.btnDisabled]} onPress={handleLogin} activeOpacity={0.85} disabled={isLoading}>
-                {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>Se connecter</Text>}
+                {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>{t('Se connecter')}</Text>}
               </TouchableOpacity>
             </View>
 
             {!isStaff ? (
               <TouchableOpacity style={styles.footerLink} onPress={() => router.push('/(auth)/onboarding')} activeOpacity={0.7}>
                 <Text style={styles.footerLinkText}>
-                  Pas encore de compte ? <Text style={styles.footerLinkBold}>S’inscrire</Text>
+                  {t('Pas encore de compte ?')} <Text style={styles.footerLinkBold}>{t('S’inscrire')}</Text>
                 </Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity style={styles.footerLink} onPress={() => goToHome(router)} activeOpacity={0.7}>
-                <Text style={styles.footerLinkText}>Retour à l’accueil voyageur</Text>
+                <Text style={styles.footerLinkText}>{t('Retour à l’accueil voyageur')}</Text>
               </TouchableOpacity>
             )}
           </ScrollView>

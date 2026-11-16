@@ -24,22 +24,24 @@ import { API_BASE_URL } from '../../constants/api';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { patchCarsFavorite, patchFavoritesList } from '@/utils/favoritesCache';
 
+import { t } from '@/i18n';
+
 function describeApiError(err: unknown): string {
   if (!axios.isAxiosError(err)) {
-    return err instanceof Error ? err.message : 'Erreur inconnue';
+    return err instanceof Error ? err.message : t('Erreur inconnue');
   }
   if (err.code === 'ECONNABORTED') {
-    return 'Délai dépassé — Laravel est-il démarré ?';
+    return t('Délai dépassé — Laravel est-il démarré ?');
   }
   if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
-    return 'Réseau inaccessible — même Wi‑Fi que le PC ? Pare-feu ? php artisan serve --host=0.0.0.0';
+    return t('Réseau inaccessible — même Wi‑Fi que le PC ? Pare-feu ? php artisan serve --host=0.0.0.0');
   }
   const st = err.response?.status;
   if (st === 404) {
-    return '404 — vérifiez que API_BASE_URL se termine par /api';
+    return t('404 — vérifiez que API_BASE_URL se termine par /api');
   }
   if (st != null && st >= 500) {
-    return `Erreur serveur (${st}) — consultez les logs Laravel.`;
+    return t('Erreur serveur (:st) — consultez les logs Laravel.', { st });
   }
   const msg = (err.response?.data as { message?: string } | undefined)?.message;
   return msg || err.message;
@@ -50,13 +52,13 @@ const FEATURED_W = W * 0.66;
 const GRID_W     = (W - 48) / 2;
 
 const CATEGORIES = [
-  { key: 'all',         label: 'All' },
+  { key: 'all',         get label() { return t('All'); } },
   { key: 'SUV',         label: 'SUV' },
-  { key: 'Sedan',       label: 'Sedan' },
-  { key: 'Economy',     label: 'Economy' },
-  { key: 'Luxury',      label: 'Luxury' },
-  { key: 'Hatchback',   label: 'Hatchback' },
-  { key: 'Convertible', label: 'Convertible' },
+  { key: 'Sedan',       get label() { return t('Sedan'); } },
+  { key: 'Economy',     get label() { return t('Economy'); } },
+  { key: 'Luxury',      get label() { return t('Luxury'); } },
+  { key: 'Hatchback',   get label() { return t('Hatchback'); } },
+  { key: 'Convertible', get label() { return t('Convertible'); } },
 ];
 
 export default function HomeScreen() {
@@ -101,7 +103,7 @@ export default function HomeScreen() {
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return 'Bonjour';
-    if (h < 18) return 'Bon après-midi';
+    if (h < 18) return t('Bon après-midi');
     return 'Bonsoir';
   };
 
@@ -118,7 +120,7 @@ export default function HomeScreen() {
         <View style={styles.greetBlock}>
           <Text style={styles.greetSmall}>{greeting()}</Text>
           <Text style={styles.greetName}>
-            {user?.name ? user.name.split(' ')[0] : 'Bienvenue'} 👋
+            {user?.name ? user.name.split(' ')[0] : t('Bienvenue')} 👋
           </Text>
         </View>
 
@@ -149,8 +151,8 @@ export default function HomeScreen() {
         <View style={styles.searchLeft}>
           <Ionicons name="search-outline" size={16} color="#9CA3AF" />
           <View style={{ marginLeft: 10 }}>
-            <Text style={styles.searchTitle}>Où souhaitez-vous louer ?</Text>
-            <Text style={styles.searchSub}>Ville · Type · Disponibilité</Text>
+            <Text style={styles.searchTitle}>{t('Où souhaitez-vous louer ?')}</Text>
+            <Text style={styles.searchSub}>{t('Ville · Type · Disponibilité')}</Text>
           </View>
         </View>
         <View style={styles.filterBtn}>
@@ -162,13 +164,13 @@ export default function HomeScreen() {
         <View style={styles.errorBanner}>
           <Ionicons name="cloud-offline-outline" size={22} color="#B45309" />
           <View style={styles.errorBannerText}>
-            <Text style={styles.errorBannerTitle}>Impossible de charger les véhicules</Text>
+            <Text style={styles.errorBannerTitle}>{t('Impossible de charger les véhicules')}</Text>
             <Text style={styles.errorBannerSub}>
               {loadErrorHint}
               {'\n'}
-              API : {API_BASE_URL}
+              {t('API :')} {API_BASE_URL}
               {'\n'}
-              Vérifiez : Laravel actif (php artisan serve --host=0.0.0.0 --port=8000), même Wi‑Fi que le téléphone.
+              {t('Vérifiez : Laravel actif (php artisan serve --host=0.0.0.0 --port=8000), même Wi‑Fi que le téléphone.')}
             </Text>
           </View>
           <TouchableOpacity
@@ -176,7 +178,7 @@ export default function HomeScreen() {
             onPress={() => { refetchFeatured(); refetchBrowse(); }}
             activeOpacity={0.8}
           >
-            <Text style={styles.retryBtnText}>Réessayer</Text>
+            <Text style={styles.retryBtnText}>{t('Réessayer')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -188,11 +190,11 @@ export default function HomeScreen() {
         <View style={styles.block}>
           <View style={styles.blockHeader}>
             <View>
-              <Text style={styles.blockTitle}>Véhicules à la une</Text>
-              <Text style={styles.blockSub}>Sélection pour vous</Text>
+              <Text style={styles.blockTitle}>{t('Véhicules à la une')}</Text>
+              <Text style={styles.blockSub}>{t('Sélection pour vous')}</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
-              <Text style={styles.seeAll}>Tout voir</Text>
+              <Text style={styles.seeAll}>{t('Tout voir')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -221,11 +223,11 @@ export default function HomeScreen() {
         <View style={styles.block}>
           <View style={styles.blockHeader}>
             <View>
-              <Text style={styles.blockTitle}>Parcourir</Text>
+              <Text style={styles.blockTitle}>{t('Parcourir')}</Text>
               <Text style={styles.blockSub}>{allCars.length} disponible{allCars.length > 1 ? 's' : ''}</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
-              <Text style={styles.seeAll}>Tout voir</Text>
+              <Text style={styles.seeAll}>{t('Tout voir')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -267,7 +269,7 @@ export default function HomeScreen() {
               {allCars.length === 0 && (
                 <View style={styles.emptyBlock}>
                   <Ionicons name="car-outline" size={40} color="#D1D5DB" />
-                  <Text style={styles.emptyText}>Aucun véhicule dans cette catégorie</Text>
+                  <Text style={styles.emptyText}>{t('Aucun véhicule dans cette catégorie')}</Text>
                 </View>
               )}
             </View>
@@ -331,7 +333,7 @@ function FeaturedCard({ car, onPress, isAuthenticated, onAuthRequired }: {
           <View style={[styles.availBadge, { backgroundColor: car.is_available ? '#ECFDF5' : '#FEF2F2' }]}>
             <View style={[styles.availDot, { backgroundColor: car.is_available ? '#10B981' : '#EF4444' }]} />
             <Text style={[styles.availText, { color: car.is_available ? '#065F46' : '#991B1B' }]}>
-              {car.is_available ? 'Disponible' : 'Loué'}
+              {car.is_available ? t('Disponible') : t('Loué')}
             </Text>
           </View>
         </View>

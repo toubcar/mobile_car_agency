@@ -23,6 +23,8 @@ import RecentActivitySection from '@/components/admin/RecentActivitySection';
 import { formatMoney, formatMoneyCompact, percentOf } from '@/utils/money';
 import type { Booking } from '@/types';
 
+import { t, jsLocale } from '@/i18n';
+
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 10;
 const GRID_PAD = 16;
@@ -31,7 +33,7 @@ const SHADOW = adminShadow.card;
 const FIXED_HEADER_H = 48;
 
 function formatDateFr(): string {
-  return new Date().toLocaleDateString('fr-FR', {
+  return new Date().toLocaleDateString(jsLocale(), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -156,7 +158,7 @@ export default function AgenceDashboard() {
             activeOpacity={0.8}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
-            accessibilityLabel="Ouvrir le menu"
+            accessibilityLabel={t('Ouvrir le menu')}
           >
             <Ionicons name="menu" size={22} color="#FFF" />
           </TouchableOpacity>
@@ -171,7 +173,7 @@ export default function AgenceDashboard() {
               activeOpacity={0.8}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
-              accessibilityLabel="Mon agence"
+              accessibilityLabel={t('Mon agence')}
             >
               <Ionicons name="business-outline" size={20} color="#FFF" />
             </TouchableOpacity>
@@ -203,7 +205,7 @@ export default function AgenceDashboard() {
           <View style={[styles.heroContent, { paddingTop: fixedHeaderOffset }]}>
             <View style={styles.heroBadge}>
               <Ionicons name="business-outline" size={13} color="#AED6F1" />
-              <Text style={styles.heroBadgeText}>Partenaire agence</Text>
+              <Text style={styles.heroBadgeText}>{t('Partenaire agence')}</Text>
             </View>
 
             {statsLoading && !stats ? (
@@ -212,19 +214,19 @@ export default function AgenceDashboard() {
               <View style={styles.heroMetrics}>
                 <HeroMetric
                   icon="wallet-outline"
-                  label="Ce mois"
+                  label={t('Ce mois')}
                   value={`${formatMoneyCompact(stats?.revenue_this_month ?? 0)} DH`}
                 />
                 <View style={styles.heroDivider} />
                 <HeroMetric
                   icon="calendar-outline"
-                  label="Actives"
+                  label={t('Actives')}
                   value={String(stats?.active_bookings ?? 0)}
                 />
                 <View style={styles.heroDivider} />
                 <HeroMetric
                   icon="car-outline"
-                  label="Véhicules"
+                  label={t('Véhicules')}
                   value={String(stats?.total_cars ?? 0)}
                 />
               </View>
@@ -235,7 +237,7 @@ export default function AgenceDashboard() {
         <View style={styles.floatingRev}>
           <LinearGradient colors={['#FFFFFF', '#F8FAFC']} style={styles.floatingRevInner}>
             <View style={styles.revLeft}>
-              <Text style={styles.revEyebrow}>Revenu total agence</Text>
+              <Text style={styles.revEyebrow}>{t('Revenu total agence')}</Text>
               {statsLoading && !stats ? (
                 <ActivityIndicator color={COLORS.primary} style={{ alignSelf: 'flex-start', marginTop: 8 }} />
               ) : (
@@ -244,7 +246,7 @@ export default function AgenceDashboard() {
               <View style={styles.revChip}>
                 <Ionicons name="trending-up" size={12} color="#059669" />
                 <Text style={styles.revChipText}>
-                  {stats?.available_cars ?? 0} véhicule{(stats?.available_cars ?? 0) !== 1 ? 's' : ''} disponible{(stats?.available_cars ?? 0) !== 1 ? 's' : ''}
+                  {stats?.available_cars ?? 0} {t('véhicule')}{(stats?.available_cars ?? 0) !== 1 ? 's' : ''} disponible{(stats?.available_cars ?? 0) !== 1 ? 's' : ''}
                 </Text>
               </View>
             </View>
@@ -252,7 +254,7 @@ export default function AgenceDashboard() {
               <Text style={styles.revRingPct}>
                 {percentOf(stats?.available_cars ?? 0, stats?.total_cars ?? 0)}%
               </Text>
-              <Text style={styles.revRingLabel}>Dispo.</Text>
+              <Text style={styles.revRingLabel}>{t('Dispo.')}</Text>
             </View>
           </LinearGradient>
         </View>
@@ -266,7 +268,7 @@ export default function AgenceDashboard() {
             >
               <Ionicons name="cloud-offline-outline" size={22} color="#B45309" />
               <View style={{ flex: 1 }}>
-                <Text style={styles.errorTitle}>Connexion API interrompue</Text>
+                <Text style={styles.errorTitle}>{t('Connexion API interrompue')}</Text>
                 <Text style={styles.errorSub}>
                   {loadErrorHint}
                   {'\n'}
@@ -277,39 +279,39 @@ export default function AgenceDashboard() {
             </TouchableOpacity>
           )}
 
-          <Text style={styles.sectionTitle}>Vue d'ensemble</Text>
+          <Text style={styles.sectionTitle}>{t("Vue d'ensemble")}</Text>
           {statsLoading && !stats ? (
             <View style={styles.loadingBox}><ActivityIndicator color={COLORS.primary} /></View>
           ) : (
             <>
               <View style={styles.kpiGrid}>
                 <KpiTile
-                  label="Véhicules"
+                  label={t('Véhicules')}
                   value={stats?.total_cars ?? 0}
                   sub={`${stats?.available_cars ?? 0} disponibles`}
                   accent="#1D3557"
                   onPress={() => router.push('/(agence)/cars')}
                 />
                 <KpiTile
-                  label="Réservations"
+                  label={t('Réservations')}
                   value={stats?.total_bookings ?? 0}
                   sub={`${stats?.active_bookings ?? 0} en cours`}
                   accent="#D97706"
                   onPress={() => router.push('/(agence)/bookings')}
                 />
                 <KpiTile
-                  label="Mois en cours"
+                  label={t('Mois en cours')}
                   value={formatMoneyCompact(stats?.revenue_this_month ?? 0)}
-                  sub="DH (mois en cours)"
+                  sub={t('DH (mois en cours)')}
                   accent="#4F46E5"
                   onPress={() => router.push('/(agence)/reports')}
                 />
               </View>
 
               <View style={styles.utilCard}>
-                <Text style={styles.utilCardTitle}>Taux d'utilisation</Text>
-                <UtilizationBar label="Parc disponible" current={stats?.available_cars ?? 0} total={stats?.total_cars ?? 0} color="#1D3557" />
-                <UtilizationBar label="Réservations actives" current={stats?.active_bookings ?? 0} total={stats?.total_bookings ?? 0} color="#D97706" />
+                <Text style={styles.utilCardTitle}>{t("Taux d'utilisation")}</Text>
+                <UtilizationBar label={t('Parc disponible')} current={stats?.available_cars ?? 0} total={stats?.total_cars ?? 0} color="#1D3557" />
+                <UtilizationBar label={t('Réservations actives')} current={stats?.active_bookings ?? 0} total={stats?.total_bookings ?? 0} color="#D97706" />
               </View>
             </>
           )}

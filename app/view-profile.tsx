@@ -14,6 +14,8 @@ import { COLORS } from '@/constants/api';
 import PageHeader from '@/components/PageHeader';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
+import { t } from '@/i18n';
+
 const ROLE_LABELS: Record<string, string> = {
   client: 'Client',
   agence: 'Agence',
@@ -56,10 +58,10 @@ export default function ViewProfileScreen() {
     user?.email && !user.email.includes('@toubcar.app') ? user.email : '—';
 
   const INFO = [
-    { label: 'Nom complet', value: displayName },
-    { label: 'E-mail', value: email },
-    { label: 'Téléphone', value: user?.phone || '—' },
-    { label: 'Rôle', value: ROLE_LABELS[user?.role ?? ''] ?? user?.role ?? '—' },
+    { label: t('Nom complet'), value: displayName },
+    { label: t('E-mail'), value: email },
+    { label: t('Téléphone'), value: user?.phone || '—' },
+    { label: t('Rôle'), value: ROLE_LABELS[user?.role ?? ''] ?? user?.role ?? '—' },
   ];
 
   return (
@@ -69,7 +71,7 @@ export default function ViewProfileScreen() {
         colors={['#C8E6F5', COLORS.background]}
         style={[styles.headerGradient, { height: headerGradientHeight }]}
       />
-      <PageHeader title="Profil" />
+      <PageHeader title={t('Profil')} />
 
       <ScrollView
         contentContainerStyle={[styles.scroll, scrollContentStyle]}
@@ -92,7 +94,7 @@ export default function ViewProfileScreen() {
           ) : null}
         </View>
 
-        <Text style={styles.sectionTitle}>Informations</Text>
+        <Text style={styles.sectionTitle}>{t('Informations')}</Text>
         <View style={styles.card}>
           {INFO.map((item, i) => (
             <View key={item.label} style={i < INFO.length - 1 ? styles.infoRowBorder : undefined}>
@@ -106,7 +108,7 @@ export default function ViewProfileScreen() {
           onPress={() => router.push('/settings/personal-info')}
           activeOpacity={0.85}
         >
-          <Text style={styles.editBtnText}>Modifier le profil</Text>
+          <Text style={styles.editBtnText}>{t('Modifier le profil')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

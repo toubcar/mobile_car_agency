@@ -11,6 +11,8 @@ import { resolveNotificationRoute } from '@/utils/notificationNavigation';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 export default function AdminNotificationsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -51,14 +53,14 @@ export default function AdminNotificationsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title="Notifications" subtitle="Alertes plateforme" />
+      <AdminStackHeader title={t('Notifications')} subtitle={t('Alertes plateforme')} />
 
       {stats ? (
         <View style={styles.statsRow}>
-          <Text style={styles.statsTxt}>{stats.unread} non lues · {stats.total} total</Text>
+          <Text style={styles.statsTxt}>{stats.unread} {t('non lues ·')} {stats.total} total</Text>
           <View style={styles.statsActions}>
-            <TouchableOpacity onPress={() => markAll.mutate()}><Text style={styles.link}>Tout lire</Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => clearAll.mutate()}><Text style={[styles.link, styles.linkDanger]}>Effacer</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => markAll.mutate()}><Text style={styles.link}>{t('Tout lire')}</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => clearAll.mutate()}><Text style={[styles.link, styles.linkDanger]}>{t('Effacer')}</Text></TouchableOpacity>
           </View>
         </View>
       ) : null}
@@ -66,8 +68,8 @@ export default function AdminNotificationsScreen() {
       {isError ? (
         <TouchableOpacity style={styles.errorBox} onPress={() => refetch()} activeOpacity={0.85}>
           <Ionicons name="cloud-offline-outline" size={28} color="#B45309" />
-          <Text style={styles.errorTitle}>Impossible de charger les notifications</Text>
-          <Text style={styles.errorSub}>Appuyez pour réessayer</Text>
+          <Text style={styles.errorTitle}>{t('Impossible de charger les notifications')}</Text>
+          <Text style={styles.errorSub}>{t('Appuyez pour réessayer')}</Text>
         </TouchableOpacity>
       ) : isLoading ? (
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
@@ -100,7 +102,7 @@ export default function AdminNotificationsScreen() {
               </View>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Aucune notification.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>{t('Aucune notification.')}</Text>}
         />
       )}
     </SafeAreaView>

@@ -10,6 +10,8 @@ import { COLORS } from '@/constants/api';
 import { usersService } from '@/services/users.service';
 import type { User } from '@/types';
 
+import { t, jsLocale } from '@/i18n';
+
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
 export default function UserDetailScreen() {
@@ -25,13 +27,13 @@ export default function UserDetailScreen() {
   const toggleMutation = useMutation({
     mutationFn: () => usersService.toggleVerification(Number(id)),
     onSuccess:  () => queryClient.invalidateQueries({ queryKey: ['user', id] }),
-    onError:    () => Alert.alert('Erreur', 'Modification impossible.'),
+    onError:    () => Alert.alert(t('Erreur'), t('Modification impossible.')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => usersService.delete(Number(id)),
     onSuccess:  () => { queryClient.invalidateQueries({ queryKey: ['admin-users'] }); router.back(); },
-    onError:    () => Alert.alert('Erreur', 'Suppression impossible.'),
+    onError:    () => Alert.alert(t('Erreur'), t('Suppression impossible.')),
   });
 
   if (isLoading || !user) {
@@ -50,10 +52,10 @@ export default function UserDetailScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={22} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profil utilisateur</Text>
+        <Text style={styles.headerTitle}>{t('Profil utilisateur')}</Text>
         <TouchableOpacity
           style={styles.deleteHeaderBtn}
-          onPress={() => Alert.alert('Supprimer', `Supprimer "${user.name}" ?`, [{ text: 'Annuler', style: 'cancel' }, { text: 'Supprimer', style: 'destructive', onPress: () => deleteMutation.mutate() }])}
+          onPress={() => Alert.alert(t('Supprimer'), t("Supprimer \":name\" ?", { name: user.name }), [{ text: t('Annuler'), style: 'cancel' }, { text: t('Supprimer'), style: 'destructive', onPress: () => deleteMutation.mutate() }])}
           activeOpacity={0.7}
         >
           <Ionicons name="trash-outline" size={18} color="#FF3B30" />
@@ -64,25 +66,25 @@ export default function UserDetailScreen() {
         <View style={styles.heroCard}>
           <View style={styles.avatar}><Text style={styles.avatarTxt}>{initials}</Text></View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.heroKicker}>Profil utilisateur</Text>
+            <Text style={styles.heroKicker}>{t('Profil utilisateur')}</Text>
             <Text style={styles.name}>{user.name}</Text>
             <Text style={styles.roleText}>{user.role}</Text>
           </View>
           <View style={[styles.verifyBadge, { backgroundColor: user.is_verified ? '#D1FAE5' : '#FEF3C7' }]}>
             <Ionicons name={user.is_verified ? 'checkmark-circle' : 'time'} size={13} color={user.is_verified ? '#065F46' : '#92400E'} />
             <Text style={[styles.verifyTxt, { color: user.is_verified ? '#065F46' : '#92400E' }]}>
-              {user.is_verified ? 'Vérifié' : 'À vérifier'}
+              {user.is_verified ? t('Vérifié') : t('À vérifier')}
             </Text>
           </View>
         </View>
 
         {/* Info */}
-        <Text style={styles.section}>Coordonnées</Text>
+        <Text style={styles.section}>{t('Coordonnées')}</Text>
         <View style={styles.card}>
           {[
-            { icon: 'mail-outline'     as const, label: 'Email',          value: user.email },
-            ...(user.phone ? [{ icon: 'call-outline' as const, label: 'Téléphone', value: user.phone }] : []),
-            { icon: 'calendar-outline' as const, label: 'Membre depuis',  value: new Date(user.created_at ?? Date.now()).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) },
+            { icon: 'mail-outline'     as const, label: t('Email'),          value: user.email },
+            ...(user.phone ? [{ icon: 'call-outline' as const, label: t('Téléphone'), value: user.phone }] : []),
+            { icon: 'calendar-outline' as const, label: t('Membre depuis'),  value: new Date(user.created_at ?? Date.now()).toLocaleDateString(jsLocale(), { day: '2-digit', month: 'long', year: 'numeric' }) },
           ].map((r, i, arr) => (
             <View key={r.label}>
               <View style={styles.infoRow}>
@@ -97,14 +99,14 @@ export default function UserDetailScreen() {
           ))}
         </View>
 
-        <Text style={styles.section}>Actions</Text>
+        <Text style={styles.section}>{t('Actions')}</Text>
         <View style={styles.card}>
           <TouchableOpacity
             style={styles.actionRow}
             onPress={() => Alert.alert(
-              user.is_verified ? 'Retirer la vérification' : 'Vérifier',
-              `Modifier le statut de vérification de "${user.name}" ?`,
-              [{ text: 'Annuler', style: 'cancel' }, { text: 'Confirmer', onPress: () => toggleMutation.mutate() }]
+              user.is_verified ? t('Retirer la vérification') : t('Vérifier'),
+              t("Modifier le statut de vérification de \":name\" ?", { name: user.name }),
+              [{ text: t('Annuler'), style: 'cancel' }, { text: t('Confirmer'), onPress: () => toggleMutation.mutate() }]
             )}
             activeOpacity={0.7}
           >
@@ -112,7 +114,7 @@ export default function UserDetailScreen() {
               <Ionicons name={user.is_verified ? 'shield-outline' : 'shield-checkmark-outline'} size={18} color={user.is_verified ? '#FF3B30' : '#10B981'} />
             </View>
             <Text style={[styles.actionLabel, { color: user.is_verified ? '#FF3B30' : '#10B981' }]}>
-              {user.is_verified ? 'Retirer la vérification' : 'Vérifier le compte'}
+              {user.is_verified ? t('Retirer la vérification') : t('Vérifier le compte')}
             </Text>
             {toggleMutation.isPending
               ? <ActivityIndicator size="small" color="#8E8E93" />
@@ -124,16 +126,16 @@ export default function UserDetailScreen() {
         {/* Delete */}
         <TouchableOpacity
           style={styles.deleteBtn}
-          onPress={() => Alert.alert('Supprimer', `Supprimer définitivement "${user.name}" ?`, [
-            { text: 'Annuler', style: 'cancel' },
-            { text: 'Supprimer', style: 'destructive', onPress: () => deleteMutation.mutate() },
+          onPress={() => Alert.alert(t('Supprimer'), t("Supprimer définitivement \":name\" ?", { name: user.name }), [
+            { text: t('Annuler'), style: 'cancel' },
+            { text: t('Supprimer'), style: 'destructive', onPress: () => deleteMutation.mutate() },
           ])}
           activeOpacity={0.85}
           disabled={deleteMutation.isPending}
         >
           {deleteMutation.isPending
             ? <ActivityIndicator color="#FF3B30" />
-            : <Text style={styles.deleteBtnTxt}>Supprimer le compte</Text>
+            : <Text style={styles.deleteBtnTxt}>{t('Supprimer le compte')}</Text>
           }
         </TouchableOpacity>
       </ScrollView>

@@ -14,6 +14,8 @@ import type { Car } from '@/types';
 
 import { ADMIN_BG, adminShadow } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 const SHADOW = adminShadow.card;
 
 export default function AgenceCarsScreen() {
@@ -29,13 +31,13 @@ export default function AgenceCarsScreen() {
   const toggleMutation = useMutation({
     mutationFn: (id: number) => carsService.toggleAvailability(id, 'agence'),
     onSuccess:  () => queryClient.invalidateQueries({ queryKey: ['agence-cars'] }),
-    onError:    () => Alert.alert('Erreur', 'Modification impossible.'),
+    onError:    () => Alert.alert(t('Erreur'), t('Modification impossible.')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => carsService.delete(id, 'agence'),
     onSuccess:  () => queryClient.invalidateQueries({ queryKey: ['agence-cars'] }),
-    onError:    () => Alert.alert('Erreur', 'Suppression impossible.'),
+    onError:    () => Alert.alert(t('Erreur'), t('Suppression impossible.')),
   });
 
   const cars = data?.data ?? [];
@@ -55,16 +57,16 @@ export default function AgenceCarsScreen() {
           <Ionicons name="car-sport-outline" size={28} color="#FFF" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroKicker}>Flotte agence</Text>
-          <Text style={styles.heroTitle}>Mes véhicules</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} véhicule{(data?.total ?? 0) !== 1 ? 's' : ''} prêt{(data?.total ?? 0) !== 1 ? 's' : ''} à gérer</Text>
+          <Text style={styles.heroKicker}>{t('Flotte agence')}</Text>
+          <Text style={styles.heroTitle}>{t('Mes véhicules')}</Text>
+          <Text style={styles.heroSub}>{data?.total ?? 0} {t('véhicule')}{(data?.total ?? 0) !== 1 ? 's' : ''} {t('prêt')}{(data?.total ?? 0) !== 1 ? 's' : ''} {t('à gérer')}</Text>
         </View>
       </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}><Text style={styles.statVal}>{cars.length}</Text><Text style={styles.statLabel}>Total</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{availableCount}</Text><Text style={styles.statLabel}>Disponibles</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#991B1B' }]}>{unavailableCount}</Text><Text style={styles.statLabel}>Masqués</Text></View>
+        <View style={styles.statCard}><Text style={styles.statVal}>{cars.length}</Text><Text style={styles.statLabel}>{t('Total')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{availableCount}</Text><Text style={styles.statLabel}>{t('Disponibles')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#991B1B' }]}>{unavailableCount}</Text><Text style={styles.statLabel}>{t('Masqués')}</Text></View>
       </View>
 
       <View style={styles.searchWrap}>
@@ -72,7 +74,7 @@ export default function AgenceCarsScreen() {
           <Ionicons name="search-outline" size={17} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher…"
+            placeholder={t('Rechercher…')}
             placeholderTextColor="#C7C7CC"
             value={search}
             onChangeText={setSearch}
@@ -96,11 +98,11 @@ export default function AgenceCarsScreen() {
                 <View style={styles.cardTop}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.carName}>{item.brand} {item.model}</Text>
-                    <Text style={styles.carMeta}>{item.year} · {item.registration_number ?? 'Sans immat.'}</Text>
+                    <Text style={styles.carMeta}>{item.year} · {item.registration_number ?? t('Sans immat.')}</Text>
                   </View>
                   <View style={[styles.availBadge, { backgroundColor: item.is_available ? '#D1FAE5' : '#FEE2E2' }]}>
                     <Text style={[styles.availTxt, { color: item.is_available ? '#065F46' : '#991B1B' }]}>
-                      {item.is_available ? 'Disponible' : 'Masqué'}
+                      {item.is_available ? t('Disponible') : t('Masqué')}
                     </Text>
                   </View>
                   <View style={styles.actions}>
@@ -116,9 +118,9 @@ export default function AgenceCarsScreen() {
                     <TouchableOpacity
                       style={[styles.iconBtn, { backgroundColor: '#FEF2F2' }]}
                       onPress={() =>
-                        Alert.alert('Supprimer', `Supprimer "${item.brand} ${item.model}" ?`, [
-                          { text: 'Annuler', style: 'cancel' },
-                          { text: 'Supprimer', style: 'destructive', onPress: () => deleteMutation.mutate(item.id) },
+                        Alert.alert(t('Supprimer'), t("Supprimer \":brand :model\" ?", { brand: item.brand, model: item.model }), [
+                          { text: t('Annuler'), style: 'cancel' },
+                          { text: t('Supprimer'), style: 'destructive', onPress: () => deleteMutation.mutate(item.id) },
                         ])
                       }
                       activeOpacity={0.7}
@@ -131,7 +133,7 @@ export default function AgenceCarsScreen() {
                 <View style={styles.cardBottom}>
                   <View style={styles.specs}>
                     <View style={styles.spec}><Ionicons name="people-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.seats}pl</Text></View>
-                    <View style={styles.spec}><Ionicons name="settings-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.transmission === 'automatic' ? 'Auto' : 'Man.'}</Text></View>
+                    <View style={styles.spec}><Ionicons name="settings-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.transmission === 'automatic' ? t('Auto') : t('Man.')}</Text></View>
                     {item.rating ? <View style={styles.spec}><Ionicons name="star" size={12} color="#F59E0B" /><Text style={styles.specTxt}>{item.rating.toFixed(1)}</Text></View> : null}
                   </View>
                   <Text style={styles.price}>{formatMoneyPerDay(item.price_per_day)}</Text>
@@ -142,10 +144,10 @@ export default function AgenceCarsScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="car-outline" size={48} color="#D1D5DB" />
-              <Text style={styles.emptyTitle}>Aucun véhicule</Text>
-              <Text style={styles.emptySub}>Ajoutez votre premier véhicule</Text>
+              <Text style={styles.emptyTitle}>{t('Aucun véhicule')}</Text>
+              <Text style={styles.emptySub}>{t('Ajoutez votre premier véhicule')}</Text>
               <TouchableOpacity style={styles.emptyBtn} onPress={() => router.push('/car-form/new' as any)} activeOpacity={0.8}>
-                <Text style={styles.emptyBtnTxt}>Ajouter un véhicule</Text>
+                <Text style={styles.emptyBtnTxt}>{t('Ajouter un véhicule')}</Text>
               </TouchableOpacity>
             </View>
           }
@@ -182,6 +184,7 @@ const styles = StyleSheet.create({
   iconBtn:  { width: 34, height: 34, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   specs:      { flexDirection: 'row', gap: 10 },
+  spec:       { flexDirection: 'row', alignItems: 'center', gap: 3 },
   specTxt:  { fontSize: 12, color: '#8E8E93' },
   availBadge: { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3, marginRight: 6 },
   availTxt:   { fontSize: 10, fontWeight: '800' },

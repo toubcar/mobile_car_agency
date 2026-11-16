@@ -19,10 +19,12 @@ import { formatMoney } from '@/utils/money';
 import PageHeader from '@/components/PageHeader';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
+import { t, jsLocale } from '@/i18n';
+
 const PAY_STATUS: Record<string, { label: string; color: string; bg: string }> = {
-  paid: { label: 'Payé', color: COLORS.success, bg: COLORS.success + '18' },
-  unpaid: { label: 'Non payé', color: COLORS.warning, bg: COLORS.warning + '22' },
-  refunded: { label: 'Remboursé', color: COLORS.secondary, bg: COLORS.secondary + '18' },
+  paid: { get label() { return t('Payé'); }, color: COLORS.success, bg: COLORS.success + '18' },
+  unpaid: { get label() { return t('Non payé'); }, color: COLORS.warning, bg: COLORS.warning + '22' },
+  refunded: { get label() { return t('Remboursé'); }, color: COLORS.secondary, bg: COLORS.secondary + '18' },
 };
 
 function PaymentBookingCard({
@@ -54,7 +56,7 @@ function PaymentBookingCard({
         </View>
       </View>
       <Text style={styles.bookingSub} numberOfLines={1}>
-        {new Date(booking.start_date).toLocaleDateString('fr-FR')} · {formatMoney(booking.total_price)}
+        {new Date(booking.start_date).toLocaleDateString(jsLocale())} · {formatMoney(booking.total_price)}
       </Text>
     </TouchableOpacity>
   );
@@ -81,7 +83,7 @@ export default function PaymentsScreen() {
         colors={['#C8E6F5', COLORS.background]}
         style={[styles.headerGradient, { height: headerGradientHeight }]}
       />
-      <PageHeader title="Paiements" />
+      <PageHeader title={t('Paiements')} />
       {children}
     </SafeAreaView>
   );
@@ -89,9 +91,9 @@ export default function PaymentsScreen() {
   if (!isAuthenticated) {
     return shell(
       <View style={[styles.center, { paddingHorizontal: contentPad }]}>
-        <Text style={styles.centerTxt}>Connectez-vous pour voir vos paiements.</Text>
+        <Text style={styles.centerTxt}>{t('Connectez-vous pour voir vos paiements.')}</Text>
         <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push('/(auth)/onboarding')}>
-          <Text style={styles.primaryBtnTxt}>Se connecter</Text>
+          <Text style={styles.primaryBtnTxt}>{t('Se connecter')}</Text>
         </TouchableOpacity>
       </View>,
     );
@@ -101,13 +103,13 @@ export default function PaymentsScreen() {
     return shell(
       <ScrollView contentContainerStyle={[styles.scroll, scrollContentStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Paiements agence</Text>
+          <Text style={styles.infoTitle}>{t('Paiements agence')}</Text>
           <Text style={styles.infoSub}>
-            Demandez un virement depuis votre espace agence pour récupérer vos gains.
+            {t('Demandez un virement depuis votre espace agence pour récupérer vos gains.')}
           </Text>
         </View>
         <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push('/(agence)/finance')}>
-          <Text style={styles.primaryBtnTxt}>Demander un virement</Text>
+          <Text style={styles.primaryBtnTxt}>{t('Demander un virement')}</Text>
         </TouchableOpacity>
       </ScrollView>,
     );
@@ -118,8 +120,8 @@ export default function PaymentsScreen() {
       <ScrollView contentContainerStyle={[styles.scroll, scrollContentStyle]} showsVerticalScrollIndicator={false}>
         <TouchableOpacity style={styles.linkCard} onPress={() => router.push('/(admin)/finance')}>
           <View style={styles.linkBody}>
-            <Text style={styles.linkTitle}>Demandes de paiement</Text>
-            <Text style={styles.linkSub}>Approuver ou rejeter les virements agences</Text>
+            <Text style={styles.linkTitle}>{t('Demandes de paiement')}</Text>
+            <Text style={styles.linkSub}>{t('Approuver ou rejeter les virements agences')}</Text>
           </View>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
@@ -134,10 +136,10 @@ export default function PaymentsScreen() {
       <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
     ) : (
       <ScrollView contentContainerStyle={[styles.scroll, scrollContentStyle]} showsVerticalScrollIndicator={false}>
-        <Text style={styles.section}>Statut paiement — mes réservations</Text>
+        <Text style={styles.section}>{t('Statut paiement — mes réservations')}</Text>
         {list.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.empty}>Aucune réservation pour le moment.</Text>
+            <Text style={styles.empty}>{t('Aucune réservation pour le moment.')}</Text>
           </View>
         ) : isWide ? (
           <View style={[styles.grid, { gap: cardGap }]}>

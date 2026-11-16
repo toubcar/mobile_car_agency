@@ -21,6 +21,8 @@ import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 
+import { t } from '@/i18n';
+
 const { width } = Dimensions.get('window');
 const CODE_LENGTH = 6;
 
@@ -53,14 +55,14 @@ export default function PhoneAuthScreen() {
 
   useEffect(() => {
     if (countdown <= 0) return;
-    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [countdown]);
 
   const handleSendOTP = async () => {
     const cleaned = phone.replace(/\s/g, '');
     if (cleaned.length < 8) {
-      Alert.alert('Numéro invalide', 'Veuillez entrer un numéro valide.');
+      Alert.alert(t('Numéro invalide'), t('Veuillez entrer un numéro valide.'));
       return;
     }
     setLoading(true);
@@ -73,15 +75,15 @@ export default function PhoneAuthScreen() {
       if (r.dev_code) {
         const digits = String(r.dev_code).split('');
         setOtpDigits(digits);
-        Alert.alert('Mode développement', `Code OTP : ${r.dev_code}`);
+        Alert.alert(t('Mode développement'), t('Code OTP : :dev_code', { dev_code: r.dev_code }));
       } else {
         Alert.alert(
-          'Code envoyé',
-          'Si vous ne recevez pas le SMS sous 2 minutes, vérifiez le numéro (+212) ou réessayez.',
+          t('Code envoyé'),
+          t('Si vous ne recevez pas le SMS sous 2 minutes, vérifiez le numéro (+212) ou réessayez.'),
         );
       }
     } catch (e: any) {
-      Alert.alert('Erreur', e.response?.data?.message || 'Impossible d\'envoyer le code.');
+      Alert.alert(t('Erreur'), e.response?.data?.message || t("Impossible d'envoyer le code."));
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export default function PhoneAuthScreen() {
   const handleVerifyOTP = async () => {
     const code = otpDigits.join('');
     if (code.length < CODE_LENGTH) {
-      Alert.alert('Code incomplet', 'Entrez les 6 chiffres du code reçu.');
+      Alert.alert(t('Code incomplet'), t('Entrez les 6 chiffres du code reçu.'));
       return;
     }
     setLoading(true);
@@ -100,7 +102,7 @@ export default function PhoneAuthScreen() {
       await loginWithToken(res.token, res.user);
       replaceRootByRole(router, res.user.role);
     } catch (e: any) {
-      Alert.alert('Code incorrect', e.response?.data?.message || 'Le code est invalide ou expiré.');
+      Alert.alert(t('Code incorrect'), e.response?.data?.message || t('Le code est invalide ou expiré.'));
     } finally {
       setLoading(false);
     }
@@ -163,9 +165,9 @@ export default function PhoneAuthScreen() {
                     <Ionicons name="phone-portrait-outline" size={40} color="#1D3557" />
                   </View>
 
-                  <Text style={styles.title}>Votre numéro</Text>
+                  <Text style={styles.title}>{t('Votre numéro')}</Text>
                   <Text style={styles.sub}>
-                    Entrez votre numéro de téléphone.{'\n'}Nous vous enverrons un code de vérification.
+                    {t('Entrez votre numéro de téléphone.')}{'\n'}{t('Nous vous enverrons un code de vérification.')}
                   </Text>
 
                   <View style={styles.phoneRow}>
@@ -175,7 +177,7 @@ export default function PhoneAuthScreen() {
                     </View>
                     <TextInput
                       style={styles.phoneInput}
-                      placeholder="6 XX XX XX XX"
+                      placeholder={t('6 XX XX XX XX')}
                       placeholderTextColor="#9CA3AF"
                       keyboardType="phone-pad"
                       value={phone}
@@ -194,7 +196,7 @@ export default function PhoneAuthScreen() {
                   >
                     {loading
                       ? <ActivityIndicator color="#fff" />
-                      : <Text style={styles.primaryBtnText}>ENVOYER LE CODE</Text>
+                      : <Text style={styles.primaryBtnText}>{t('ENVOYER LE CODE')}</Text>
                     }
                   </TouchableOpacity>
                 </>
@@ -204,9 +206,9 @@ export default function PhoneAuthScreen() {
                     <Ionicons name="shield-checkmark-outline" size={40} color="#1D3557" />
                   </View>
 
-                  <Text style={styles.title}>Vérification</Text>
+                  <Text style={styles.title}>{t('Vérification')}</Text>
                   <Text style={styles.sub}>
-                    Code envoyé au{'\n'}
+                    {t('Code envoyé au')}{'\n'}
                     <Text style={styles.phoneHighlight}>+212 {phone}</Text>
                   </Text>
 
@@ -217,7 +219,7 @@ export default function PhoneAuthScreen() {
                         ref={ref => { inputRefs.current[idx] = ref; }}
                         style={[styles.otpBox, digit ? styles.otpBoxFilled : null]}
                         value={digit}
-                        onChangeText={t => handleDigitChange(t, idx)}
+                        onChangeText={(text) => handleDigitChange(text, idx)}
                         onKeyPress={e => handleDigitKeyPress(e, idx)}
                         keyboardType="numeric"
                         maxLength={1}
@@ -234,7 +236,7 @@ export default function PhoneAuthScreen() {
                   >
                     {loading
                       ? <ActivityIndicator color="#fff" />
-                      : <Text style={styles.primaryBtnText}>VÉRIFIER</Text>
+                      : <Text style={styles.primaryBtnText}>{t('VÉRIFIER')}</Text>
                     }
                   </TouchableOpacity>
 
@@ -244,7 +246,7 @@ export default function PhoneAuthScreen() {
                     activeOpacity={countdown > 0 ? 1 : 0.7}
                   >
                     <Text style={[styles.resendText, countdown > 0 && styles.resendTextDisabled]}>
-                      {countdown > 0 ? `Renvoyer dans ${countdown}s` : 'Renvoyer le code'}
+                      {countdown > 0 ? t('Renvoyer dans :countdowns', { countdown }) : t('Renvoyer le code')}
                     </Text>
                   </TouchableOpacity>
                 </>

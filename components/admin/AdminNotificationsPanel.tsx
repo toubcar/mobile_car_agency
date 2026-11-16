@@ -26,6 +26,8 @@ import {
   resolveNotificationRoute,
 } from '@/utils/notificationNavigation';
 
+import { t } from '@/i18n';
+
 const SCREEN_H = Dimensions.get('window').height;
 const PANEL_WIDTH = Math.min(360, Dimensions.get('window').width - 32);
 const SCROLL_AFTER = 4;
@@ -175,7 +177,7 @@ export default function AdminNotificationsPanel({ visible, onClose, onUnreadChan
         ? fallbackAlerts.map((alert, i) => ({
             id: `fallback-${i}`,
             title: alert,
-            message: 'Alerte plateforme',
+            message: t('Alerte plateforme'),
             is_read: false,
           }))
         : items,
@@ -249,8 +251,8 @@ export default function AdminNotificationsPanel({ visible, onClose, onUnreadChan
           activeOpacity={0.85}
         >
           <Ionicons name="cloud-offline-outline" size={24} color="#B45309" />
-          <Text style={styles.errorTitle}>Chargement impossible</Text>
-          <Text style={styles.errorSub}>Appuyez pour réessayer</Text>
+          <Text style={styles.errorTitle}>{t('Chargement impossible')}</Text>
+          <Text style={styles.errorSub}>{t('Appuyez pour réessayer')}</Text>
         </TouchableOpacity>
       );
     }
@@ -259,7 +261,7 @@ export default function AdminNotificationsPanel({ visible, onClose, onUnreadChan
       return (
         <View style={[styles.centerBox, { height: EMPTY_HEIGHT }]}>
           <Ionicons name="notifications-off-outline" size={36} color="#D1D5DB" />
-          <Text style={styles.emptyText}>Aucune notification</Text>
+          <Text style={styles.emptyText}>{t('Aucune notification')}</Text>
         </View>
       );
     }
@@ -286,7 +288,7 @@ export default function AdminNotificationsPanel({ visible, onClose, onUnreadChan
           <View style={styles.scrollHint}>
             <Ionicons name="chevron-down" size={14} color="#9CA3AF" />
             <Text style={styles.scrollHintText}>
-              {layout.count! - SCROLL_AFTER} de plus — faites défiler
+              {layout.count! - SCROLL_AFTER} {t('de plus — faites défiler')}
             </Text>
           </View>
         </View>
@@ -324,7 +326,7 @@ export default function AdminNotificationsPanel({ visible, onClose, onUnreadChan
           <View style={styles.panelHeader}>
             <View style={styles.panelTitleRow}>
               <Ionicons name="notifications" size={20} color={COLORS.primary} />
-              <Text style={styles.panelTitle}>Notifications</Text>
+              <Text style={styles.panelTitle}>{t('Notifications')}</Text>
               {unread > 0 && (
                 <View style={styles.unreadPill}>
                   <Text style={styles.unreadPillText}>{unread > 99 ? '99+' : unread}</Text>
@@ -338,10 +340,10 @@ export default function AdminNotificationsPanel({ visible, onClose, onUnreadChan
 
           {!useFallback && stats ? (
             <View style={styles.statsRow}>
-              <Text style={styles.statsTxt}>{stats.unread} non lues · {stats.total} total</Text>
+              <Text style={styles.statsTxt}>{stats.unread} {t('non lues ·')} {stats.total} total</Text>
               {stats.unread > 0 && (
                 <TouchableOpacity onPress={() => markAll.mutate()} disabled={markAll.isPending}>
-                  <Text style={styles.link}>Tout lire</Text>
+                  <Text style={styles.link}>{t('Tout lire')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -350,7 +352,7 @@ export default function AdminNotificationsPanel({ visible, onClose, onUnreadChan
           {renderList()}
 
           {useFallback ? (
-            <Text style={styles.fallbackHint}>Alertes synthèse — API notifications indisponible</Text>
+            <Text style={styles.fallbackHint}>{t('Alertes synthèse — API notifications indisponible')}</Text>
           ) : null}
         </View>
       </View>

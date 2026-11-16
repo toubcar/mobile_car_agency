@@ -13,25 +13,27 @@ import { formatMoney } from '@/utils/money';
 import { rentalDays } from '@/utils/rental';
 import type { Booking } from '@/types';
 
+import { t, jsLocale } from '@/i18n';
+
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
 const STATUS: Record<string, { label: string; bg: string; text: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
-  pending:   { label: 'En attente',  bg: '#FEF3C7', text: '#92400E', icon: 'time-outline' },
-  confirmed: { label: 'Confirmée',   bg: '#D1FAE5', text: '#065F46', icon: 'checkmark-circle-outline' },
-  completed: { label: 'Terminée',    bg: '#DBEAFE', text: '#1E40AF', icon: 'checkmark-done-outline' },
-  cancelled: { label: 'Annulée',     bg: '#FEE2E2', text: '#991B1B', icon: 'close-circle-outline' },
+  pending:   { get label() { return t('En attente'); },  bg: '#FEF3C7', text: '#92400E', icon: 'time-outline' },
+  confirmed: { get label() { return t('Confirmée'); },   bg: '#D1FAE5', text: '#065F46', icon: 'checkmark-circle-outline' },
+  completed: { get label() { return t('Terminée'); },    bg: '#DBEAFE', text: '#1E40AF', icon: 'checkmark-done-outline' },
+  cancelled: { get label() { return t('Annulée'); },     bg: '#FEE2E2', text: '#991B1B', icon: 'close-circle-outline' },
 };
 
 const FILTERS = [
-  { key: '',           label: 'Toutes' },
-  { key: 'pending',    label: 'En attente' },
-  { key: 'confirmed',  label: 'Confirmées' },
-  { key: 'completed',  label: 'Terminées' },
-  { key: 'cancelled',  label: 'Annulées' },
+  { key: '',           get label() { return t('Toutes'); } },
+  { key: 'pending',    get label() { return t('En attente'); } },
+  { key: 'confirmed',  get label() { return t('Confirmées'); } },
+  { key: 'completed',  get label() { return t('Terminées'); } },
+  { key: 'cancelled',  get label() { return t('Annulées'); } },
 ];
 
 function fmt(d: string) {
-  return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+  return new Date(d).toLocaleDateString(jsLocale(), { day: '2-digit', month: 'short' });
 }
 
 export default function AdminBookingsScreen() {
@@ -53,23 +55,23 @@ export default function AdminBookingsScreen() {
           <Ionicons name="calendar-outline" size={28} color="#FFF" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroKicker}>Back-office administrateur</Text>
-          <Text style={styles.heroTitle}>Réservations</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} demandes synchronisées avec Laravel</Text>
+          <Text style={styles.heroKicker}>{t('Back-office administrateur')}</Text>
+          <Text style={styles.heroTitle}>{t('Réservations')}</Text>
+          <Text style={styles.heroSub}>{data?.total ?? 0} {t('demandes synchronisées avec Laravel')}</Text>
         </View>
       </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#92400E' }]}>{stats?.pending ?? 0}</Text><Text style={styles.statLabel}>En attente</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{stats?.active ?? 0}</Text><Text style={styles.statLabel}>Confirmées</Text></View>
-        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#1E40AF' }]}>{stats?.completed ?? 0}</Text><Text style={styles.statLabel}>Terminées</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#92400E' }]}>{stats?.pending ?? 0}</Text><Text style={styles.statLabel}>{t('En attente')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{stats?.active ?? 0}</Text><Text style={styles.statLabel}>{t('Confirmées')}</Text></View>
+        <View style={styles.statCard}><Text style={[styles.statVal, { color: '#1E40AF' }]}>{stats?.completed ?? 0}</Text><Text style={styles.statLabel}>{t('Terminées')}</Text></View>
       </View>
 
       <View style={styles.revenueCard}>
         <View>
-          <Text style={styles.revenueLabel}>Revenu plateforme</Text>
+          <Text style={styles.revenueLabel}>{t('Revenu plateforme')}</Text>
           <Text style={styles.revenueValue}>{formatMoney(stats?.revenue ?? 0)}</Text>
-          <Text style={styles.revenueHint}>Locations actives et terminées (toutes pages)</Text>
+          <Text style={styles.revenueHint}>{t('Locations actives et terminées (toutes pages)')}</Text>
         </View>
         <Ionicons name="trending-up-outline" size={22} color={COLORS.primary} />
       </View>
@@ -129,7 +131,7 @@ export default function AdminBookingsScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="calendar-outline" size={44} color="#D1D5DB" />
-              <Text style={styles.emptyTitle}>Aucune réservation</Text>
+              <Text style={styles.emptyTitle}>{t('Aucune réservation')}</Text>
             </View>
           }
         />

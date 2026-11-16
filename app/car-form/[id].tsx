@@ -12,6 +12,8 @@ import { carsService } from '@/services/cars.service';
 import { useAuthStore } from '@/store/authStore';
 import type { Car } from '@/types';
 
+import { t } from '@/i18n';
+
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 const FUELS = ['Essence', 'Diesel', 'Électrique', 'Hybride'];
 
@@ -63,11 +65,11 @@ export default function CarFormScreen() {
   const set = (key: keyof Car, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
   const validateForm = () => {
-    if (!form.brand?.trim()) return 'La marque est obligatoire.';
-    if (!form.model?.trim()) return 'Le modèle est obligatoire.';
-    if (!form.registration_number?.trim()) return 'L’immatriculation est obligatoire.';
-    if (!form.year || form.year < 1980) return 'L’année du véhicule est invalide.';
-    if (!form.price_per_day || form.price_per_day <= 0) return 'Le prix par jour doit être supérieur à 0.';
+    if (!form.brand?.trim()) return t('La marque est obligatoire.');
+    if (!form.model?.trim()) return t('Le modèle est obligatoire.');
+    if (!form.registration_number?.trim()) return t('L’immatriculation est obligatoire.');
+    if (!form.year || form.year < 1980) return t('L’année du véhicule est invalide.');
+    if (!form.price_per_day || form.price_per_day <= 0) return t('Le prix par jour doit être supérieur à 0.');
     return '';
   };
 
@@ -77,10 +79,10 @@ export default function CarFormScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-cars'] });
       queryClient.invalidateQueries({ queryKey: ['agence-cars'] });
-      Alert.alert('Succès', isNew ? 'Véhicule ajouté.' : 'Véhicule mis à jour.');
+      Alert.alert(t('Succès'), isNew ? t('Véhicule ajouté.') : t('Véhicule mis à jour.'));
       router.back();
     },
-    onError: (err: any) => Alert.alert('Erreur', err?.response?.data?.message ?? 'Une erreur est survenue.'),
+    onError: (err: any) => Alert.alert(t('Erreur'), err?.response?.data?.message ?? t('Une erreur est survenue.')),
   });
 
   const submit = () => {
@@ -104,7 +106,7 @@ export default function CarFormScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={22} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isNew ? 'Nouveau véhicule' : 'Modifier le véhicule'}</Text>
+        <Text style={styles.headerTitle}>{isNew ? t('Nouveau véhicule') : t('Modifier le véhicule')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -115,10 +117,10 @@ export default function CarFormScreen() {
               <Ionicons name="car-sport-outline" size={26} color="#FFF" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.heroKicker}>{role === 'agence' ? 'Flotte agence' : 'Catalogue admin'}</Text>
-              <Text style={styles.heroTitle}>{form.brand || form.model ? `${form.brand ?? ''} ${form.model ?? ''}`.trim() : 'Nouveau véhicule'}</Text>
+              <Text style={styles.heroKicker}>{role === 'agence' ? t('Flotte agence') : t('Catalogue admin')}</Text>
+              <Text style={styles.heroTitle}>{form.brand || form.model ? `${form.brand ?? ''} ${form.model ?? ''}`.trim() : t('Nouveau véhicule')}</Text>
               <Text style={styles.heroSub}>
-                {form.registration_number?.trim() ? form.registration_number : 'Immatriculation requise'} · {form.is_available ? 'Disponible' : 'Masqué'}
+                {form.registration_number?.trim() ? form.registration_number : t('Immatriculation requise')} · {form.is_available ? t('Disponible') : t('Masqué')}
               </Text>
             </View>
           </View>
@@ -131,30 +133,30 @@ export default function CarFormScreen() {
           ) : null}
 
           {/* Informations */}
-          <Text style={styles.section}>Informations</Text>
+          <Text style={styles.section}>{t('Informations')}</Text>
           <View style={styles.card}>
-            <Field label="Marque"       value={form.brand}    onChangeText={(v) => set('brand', v)}    placeholder="Ex: Renault" sep />
-            <Field label="Modèle"       value={form.model}    onChangeText={(v) => set('model', v)}    placeholder="Ex: Clio"    sep />
-            <Field label="Immatriculation" value={form.registration_number} onChangeText={(v) => set('registration_number', v)} placeholder="Ex: 12345-A-16" sep />
-            <Field label="Année" value={String(form.year ?? '')} onChangeText={(v) => set('year', parseInt(v) || 0)} placeholder="2023" keyboardType="numeric" />
+            <Field label={t('Marque')}       value={form.brand}    onChangeText={(v) => set('brand', v)}    placeholder={t('Ex: Renault')} sep />
+            <Field label={t('Modèle')}       value={form.model}    onChangeText={(v) => set('model', v)}    placeholder={t('Ex: Clio')}    sep />
+            <Field label={t('Immatriculation')} value={form.registration_number} onChangeText={(v) => set('registration_number', v)} placeholder={t('Ex: 12345-A-16')} sep />
+            <Field label={t('Année')} value={String(form.year ?? '')} onChangeText={(v) => set('year', parseInt(v) || 0)} placeholder="2023" keyboardType="numeric" />
           </View>
 
           {/* Specs */}
-          <Text style={styles.section}>Caractéristiques</Text>
+          <Text style={styles.section}>{t('Caractéristiques')}</Text>
           <View style={styles.card}>
-            <Field label="Places" value={String(form.seats ?? '')} onChangeText={(v) => set('seats', parseInt(v) || 0)} placeholder="5" keyboardType="numeric" sep />
+            <Field label={t('Places')} value={String(form.seats ?? '')} onChangeText={(v) => set('seats', parseInt(v) || 0)} placeholder="5" keyboardType="numeric" sep />
             <View style={[styles.rowField, styles.fieldBorder]}>
-              <Text style={styles.fieldLabel}>Transmission</Text>
+              <Text style={styles.fieldLabel}>{t('Transmission')}</Text>
               <View style={styles.toggleRow}>
-                {(['manual', 'automatic'] as const).map((t) => (
-                  <TouchableOpacity key={t} style={[styles.toggleBtn, form.transmission === t && styles.toggleBtnActive]} onPress={() => set('transmission', t)} activeOpacity={0.7}>
-                    <Text style={[styles.toggleTxt, form.transmission === t && styles.toggleTxtActive]}>{t === 'manual' ? 'Manuelle' : 'Auto'}</Text>
+                {(['manual', 'automatic'] as const).map((mode) => (
+                  <TouchableOpacity key={mode} style={[styles.toggleBtn, form.transmission === mode && styles.toggleBtnActive]} onPress={() => set('transmission', mode)} activeOpacity={0.7}>
+                    <Text style={[styles.toggleTxt, form.transmission === mode && styles.toggleTxtActive]}>{mode === 'manual' ? t('Manuelle') : t('Auto')}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
             <View style={styles.rowField}>
-              <Text style={styles.fieldLabel}>Carburant</Text>
+              <Text style={styles.fieldLabel}>{t('Carburant')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                 {FUELS.map((f) => (
                   <TouchableOpacity key={f} style={[styles.chip, form.fuel_type === f && styles.chipActive]} onPress={() => set('fuel_type', f)} activeOpacity={0.7}>
@@ -166,17 +168,17 @@ export default function CarFormScreen() {
           </View>
 
           {/* Price */}
-          <Text style={styles.section}>Tarif</Text>
+          <Text style={styles.section}>{t('Tarif')}</Text>
           <View style={styles.card}>
-            <Field label="Prix / jour (DH)" value={String(form.price_per_day ?? '')} onChangeText={(v) => set('price_per_day', parseFloat(v) || 0)} placeholder="5000" keyboardType="numeric" />
+            <Field label={t('Prix / jour (DH)')} value={String(form.price_per_day ?? '')} onChangeText={(v) => set('price_per_day', parseFloat(v) || 0)} placeholder="5000" keyboardType="numeric" />
           </View>
 
           {/* Description */}
-          <Text style={styles.section}>Description</Text>
+          <Text style={styles.section}>{t('Description')}</Text>
           <View style={styles.card}>
             <TextInput
               style={styles.textarea}
-              placeholder="Description du véhicule…"
+              placeholder={t('Description du véhicule…')}
               placeholderTextColor="#C7C7CC"
               value={form.description ?? ''}
               onChangeText={(v) => set('description', v)}
@@ -185,12 +187,12 @@ export default function CarFormScreen() {
           </View>
 
           {/* Availability */}
-          <Text style={styles.section}>Disponibilité</Text>
+          <Text style={styles.section}>{t('Disponibilité')}</Text>
           <View style={[styles.card, styles.availabilityCard]}>
             <View style={[styles.rowField, { paddingVertical: 14 }]}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.availabilityTitle}>Disponible à la location</Text>
-                <Text style={styles.availabilitySub}>{form.is_available ? 'Visible aux clients et prêt à réserver' : 'Masqué aux clients, gardé côté back-office'}</Text>
+                <Text style={styles.availabilityTitle}>{t('Disponible à la location')}</Text>
+                <Text style={styles.availabilitySub}>{form.is_available ? t('Visible aux clients et prêt à réserver') : t('Masqué aux clients, gardé côté back-office')}</Text>
               </View>
               <Switch value={form.is_available ?? true} onValueChange={(v) => set('is_available', v)} trackColor={{ false: '#E5E5EA', true: COLORS.primary }} thumbColor="#FFF" />
             </View>
@@ -205,7 +207,7 @@ export default function CarFormScreen() {
           >
             {mutation.isPending
               ? <ActivityIndicator color="#FFF" />
-              : <Text style={styles.saveBtnTxt}>{isNew ? 'Ajouter le véhicule' : 'Enregistrer les modifications'}</Text>
+              : <Text style={styles.saveBtnTxt}>{isNew ? t('Ajouter le véhicule') : t('Enregistrer les modifications')}</Text>
             }
           </TouchableOpacity>
         </ScrollView>

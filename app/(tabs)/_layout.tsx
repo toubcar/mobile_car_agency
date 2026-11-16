@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 
+import { t } from '@/i18n';
+
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -45,7 +47,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Explorer',
+          title: t('Explorer'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'search' : 'search-outline'}
@@ -58,7 +60,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="wishlists"
         options={{
-          title: 'Favoris',
+          title: t('Favoris'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'heart' : 'heart-outline'}
@@ -71,7 +73,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="messages"
         options={{
-          title: 'Messages',
+          title: t('Messages'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
@@ -84,7 +86,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'Réservations',
+          title: t('Réservations'),
           href: isAuthenticated ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
@@ -98,7 +100,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: isAuthenticated ? 'Profil' : 'Connexion',
+          title: isAuthenticated ? t('Profil') : t('Connexion'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person-circle' : 'person-circle-outline'}

@@ -9,12 +9,14 @@ import { messagesService, type InboxConversation } from '@/services/messages.ser
 import { COLORS } from '@/constants/api';
 import { adminShadow } from '@/constants/adminTheme';
 
+import { t } from '@/i18n';
+
 type FilterKey = 'all' | 'client' | 'agency';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: 'client', label: 'Clients' },
-  { key: 'agency', label: 'Agences' },
+  { key: 'all', get label() { return t('Tous'); } },
+  { key: 'client', get label() { return t('Clients'); } },
+  { key: 'agency', get label() { return t('Agences'); } },
 ];
 
 function peerIcon(peer?: string | null): React.ComponentProps<typeof Ionicons>['name'] {
@@ -116,7 +118,7 @@ export default function AdminMessagesInbox({
       {conversations.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>Aucune conversation</Text>
+          <Text style={styles.emptyTitle}>{t('Aucune conversation')}</Text>
           <Text style={styles.emptySub}>{emptySubtitle}</Text>
         </View>
       ) : (
@@ -148,7 +150,7 @@ export default function AdminMessagesInbox({
                     <Text style={styles.statusTxt}>{item.status}</Text>
                   </View>
                   {item.peer_type ? (
-                    <Text style={styles.peerTag}>{item.peer_type === 'client' ? 'Client' : 'Agence'}</Text>
+                    <Text style={styles.peerTag}>{item.peer_type === 'client' ? t('Client') : t('Agence')}</Text>
                   ) : null}
                 </View>
               </View>

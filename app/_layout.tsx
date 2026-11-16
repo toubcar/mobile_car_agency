@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/authStore';
 import { useEnforcePublicStartup } from '../hooks/useEnforcePublicStartup';
 import { AuthSheetProvider } from '@/contexts/AuthSheetContext';
+import { initI18n, useLocale, useLocaleStore } from '@/i18n';
 
 /** Toujours repasser par le splash au cold start (évite restauration sur login admin). */
 export const unstable_settings = {
@@ -23,20 +24,30 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const loadUser = useAuthStore((state) => state.loadUser);
+  const languageReady = useLocaleStore((state) => state.ready);
+  const locale = useLocale();
   useEnforcePublicStartup();
 
+  // La langue choisie (et le sens de lecture) est lue avant d'afficher quoi que ce soit
   useEffect(() => {
+    void initI18n();
+  }, []);
+
+  useEffect(() => {
+    if (!languageReady) return;
     void loadUser().catch(() => {
       /* erreurs réseau gérées dans loadUser / clearSession */
     });
-  }, [loadUser]);
+  }, [loadUser, languageReady]);
+
+  if (!languageReady) return null;
 
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthSheetProvider>
         <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+        <Stack key={locale} screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />

@@ -13,24 +13,27 @@ import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
+import { LOCALES, getLocale, t } from '@/i18n';
+
 const SECTIONS = [
   {
-    title: 'Compte',
+    get title() { return t('Compte'); },
     items: [
-      { label: 'Informations personnelles', sub: 'Nom, e-mail, téléphone', route: '/settings/personal-info' },
-      { label: 'Connexion et sécurité', sub: 'Mot de passe, comptes liés', route: '/settings/login-security' },
+      { get label() { return t('Informations personnelles'); }, get sub() { return t('Nom, e-mail, téléphone'); }, route: '/settings/personal-info' },
+      { get label() { return t('Connexion et sécurité'); }, get sub() { return t('Mot de passe, comptes liés'); }, route: '/settings/login-security' },
     ],
   },
   {
-    title: 'Préférences',
+    get title() { return t('Préférences'); },
     items: [
-      { label: 'Notifications', sub: 'Push, e-mail et SMS', route: '/settings/notifications' },
+      { get label() { return t('Langue'); }, get sub() { return LOCALES.find((l) => l.code === getLocale())?.name ?? ''; }, route: '/settings/language' },
+      { get label() { return t('Notifications'); }, get sub() { return t('Push, e-mail et SMS'); }, route: '/settings/notifications' },
     ],
   },
   {
-    title: 'Paiements',
+    get title() { return t('Paiements'); },
     items: [
-      { label: 'Paiements et historique', sub: 'Moyens de paiement, coupons', route: '/payments' },
+      { get label() { return t('Paiements et historique'); }, get sub() { return t('Moyens de paiement, coupons'); }, route: '/payments' },
     ],
   },
 ];
@@ -46,7 +49,7 @@ export default function AccountSettingsScreen() {
         colors={['#C8E6F5', COLORS.background]}
         style={[styles.headerGradient, { height: headerGradientHeight }]}
       />
-      <PageHeader title="Paramètres du compte" />
+      <PageHeader title={t('Paramètres du compte')} />
 
       <ScrollView
         contentContainerStyle={[styles.scroll, scrollContentStyle]}
