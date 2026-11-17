@@ -15,6 +15,10 @@ Rien n'est envoyé (ni e-mail, ni SMS) et la base de production n'est jamais tou
 brew install php mariadb node        # si ce n'est pas déjà fait
 ```
 
+Cette branche ne garde plus le fichier `.env` dans git (il contenait des secrets) : en changeant de branche,
+git le retire du dossier. Le serveur local n'en a pas besoin, et il revient quand vous repassez sur `master`,
+mais gardez-en une copie : `cp .env ../CarAgency.env.bak`.
+
 ```bash
 cd CarAgency
 git fetch && git checkout feature/functional-tests-and-mobile-sync
@@ -137,6 +141,16 @@ Les messages du serveur (erreurs, notifications) suivent la langue choisie.
 | Données incohérentes | `scripts/local-dev.sh reset` puis `start` |
 | Le `.env` de l'app a été modifié | Relancer avec `npx expo start -c` |
 | « Project is incompatible with this version of Expo Go » | Expo Go trop récent : voir 3.B / 3.C |
+| « These migration files are copies and would run twice » | Des copies « … 2.php » (souvent laissées par la synchronisation iCloud du dossier Documents) : les déplacer hors du projet, voir ci-dessous |
+
+Déplacer les copies « … 2.xxx » de CarAgency (seulement les fichiers non suivis par git ; ils sont rangés dans `../copies-CarAgency`, rien n'est supprimé) :
+
+```bash
+cd CarAgency
+git ls-files --others --exclude-standard | grep ' 2\.[A-Za-z]*$' | while IFS= read -r f; do
+  mkdir -p "../copies-CarAgency/$(dirname "$f")" && mv "$f" "../copies-CarAgency/$f"
+done
+```
 
 ## 6. Vérifications automatiques
 
