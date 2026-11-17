@@ -71,7 +71,7 @@ export default function AdminProfileScreen() {
           </View>
         </View>
 
-        <Text style={adminStyles.sectionLabel}>SESSION</Text>
+        <Text style={adminStyles.sectionLabel}>{t('SESSION')}</Text>
         <View style={styles.group}>
           <Row icon="log-out-outline" label={t('Se déconnecter')} sub={t("Retour à l'accueil public")} onPress={handleLogout} danger />
         </View>

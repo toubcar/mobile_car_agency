@@ -18,7 +18,7 @@ interface AuthState {
   isAuthenticated: boolean;
   role: 'client' | 'agence' | 'admin' | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone?: string, agency?: { address: string; city: string }) => Promise<void>;
   logout: () => Promise<void>;
   /** Jeton invalide / 401 — remet l’app en invité sans appeler l’API logout. */
   clearSession: () => Promise<void>;
@@ -45,10 +45,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async (name, email, password, phone) => {
+  register: async (name, email, password, phone, agency) => {
     set({ isLoading: true });
     try {
-      const response = await authService.register(name, email, password, phone);
+      const response = await authService.register(name, email, password, phone, agency);
       const user = normalizeSessionUser(response.user);
       set({ user, isAuthenticated: true, role: user.role });
     } finally {

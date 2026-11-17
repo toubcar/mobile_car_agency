@@ -104,7 +104,7 @@ export default function AgenceProfileScreen() {
           />
         </View>
 
-        <Text style={adminStyles.sectionLabel}>FINANCE</Text>
+        <Text style={adminStyles.sectionLabel}>{t('FINANCE')}</Text>
         <View style={styles.group}>
           <Row
             icon="wallet-outline"
@@ -114,7 +114,7 @@ export default function AgenceProfileScreen() {
           />
         </View>
 
-        <Text style={adminStyles.sectionLabel}>SESSION</Text>
+        <Text style={adminStyles.sectionLabel}>{t('SESSION')}</Text>
         <View style={styles.group}>
           <Row icon="log-out-outline" label={t('Se déconnecter')} sub={t("Retour à l'accueil public")} onPress={handleLogout} danger />
         </View>

@@ -12,13 +12,21 @@ export const authService = {
     return response.data;
   },
 
-  async register(name: string, email: string, password: string, phone?: string): Promise<AuthResponse> {
+  /** Inscription client, ou agence partenaire (`agency` : compte en attente de validation par l'administrateur). */
+  async register(
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+    agency?: { address: string; city: string },
+  ): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/register', {
       name,
       email,
       password,
       password_confirmation: password,
       phone,
+      ...(agency ? { role: 'agence', address: agency.address, city: agency.city } : {}),
     });
     await tokenStorage.set(response.data.token);
     return response.data;

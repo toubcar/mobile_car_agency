@@ -24,6 +24,7 @@ import { t, dirIcon } from '@/i18n';
 
 const { width: W } = Dimensions.get('window');
 
+// The values stay in French (they are compared below); the screen shows them translated: t('Recommandation d’un ami'), t('Recommandation d’une agence'), t('Autre')
 const SOURCES = [
   'Facebook',
   'Instagram',
@@ -47,6 +48,9 @@ export default function RegisterScreen() {
   const [name,  setName]  = useState('');
   const [email, setEmail] = useState(typeof emailParam === 'string' ? emailParam : '');
   const [phone, setPhone] = useState('');
+  // an agency also gives where it is (the website asks the same)
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
 
   /* ── Step 2 fields ── */
   const [password,     setPassword]     = useState('');
@@ -66,7 +70,11 @@ export default function RegisterScreen() {
   const passwordValid = rules.every((r) => r.ok);
 
   /* ── Step 1 validation ── */
-  const step1Valid = name.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && phone.trim().length >= 8;
+  const step1Valid =
+    name.trim().length >= 2 &&
+    /\S+@\S+\.\S+/.test(email) &&
+    phone.trim().length >= 8 &&
+    (accountType !== 'agency' || (address.trim().length >= 3 && city.trim().length >= 2));
 
   /* ── Navigation ── */
   const goBack = () => {
@@ -89,7 +97,13 @@ export default function RegisterScreen() {
   /* ── Final submit ── */
   const handleSubmit = async () => {
     try {
-      await register(name.trim(), email.trim(), password, phone.trim());
+      await register(
+        name.trim(),
+        email.trim(),
+        password,
+        phone.trim(),
+        accountType === 'agency' ? { address: address.trim(), city: city.trim() } : undefined,
+      );
       replaceRootByRole(router, useAuthStore.getState().role);
     } catch (error: any) {
       Alert.alert(t('Inscription échouée'), error?.response?.data?.message ?? t('Une erreur est survenue.'));
@@ -187,6 +201,35 @@ export default function RegisterScreen() {
                     keyboardType="phone-pad"
                   />
                 </View>
+
+                {accountType === 'agency' ? (
+                  <>
+                    <View style={styles.inputWrap}>
+                      <Ionicons name="location-outline" size={17} color="#6B7280" style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.input}
+                        placeholder={t('Adresse de l\'agence')}
+                        placeholderTextColor="#9CA3AF"
+                        value={address}
+                        onChangeText={setAddress}
+                      />
+                    </View>
+                    <View style={styles.inputWrap}>
+                      <Ionicons name="business-outline" size={17} color="#6B7280" style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.input}
+                        placeholder={t('Ville')}
+                        placeholderTextColor="#9CA3AF"
+                        value={city}
+                        onChangeText={setCity}
+                        autoCapitalize="words"
+                      />
+                    </View>
+                    <Text style={styles.stepSub}>
+                      {t('Votre compte sera actif après validation par l\'équipe ToubCar. Vous pourrez compléter votre profil et vos documents en attendant.')}
+                    </Text>
+                  </>
+                ) : null}
               </View>
             )}
 
@@ -256,7 +299,7 @@ export default function RegisterScreen() {
                           styles.sourceBtnText,
                           isLast ? styles.sourceBtnTextLight : styles.sourceBtnTextDark,
                         ]}>
-                          {s}
+                          {t(s)}
                         </Text>
                         {isSelected && (
                           <Ionicons name="checkmark" size={16} color={isLast ? '#1D3557' : '#FFFFFF'} />
@@ -278,7 +321,7 @@ export default function RegisterScreen() {
                 activeOpacity={0.88}
                 disabled={step === 1 && !step1Valid}
               >
-                <Text style={styles.nextBtnText}>SUIVANT</Text>
+                <Text style={styles.nextBtnText}>{t('SUIVANT')}</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity

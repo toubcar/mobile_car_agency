@@ -82,6 +82,16 @@ export default function WelcomeScreen() {
             <Text style={styles.proBtnText}>{t('Espace agence ou administrateur')}</Text>
             <Ionicons name={dirIcon('chevron-forward')} size={16} color="#9CA3AF" />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.proBtn}
+            activeOpacity={0.75}
+            onPress={() => router.push({ pathname: '/(auth)/register', params: { type: 'agency' } })}
+          >
+            <Ionicons name="storefront-outline" size={18} color="#4B5563" />
+            <Text style={styles.proBtnText}>{t('Devenir agence partenaire')}</Text>
+            <Ionicons name={dirIcon('chevron-forward')} size={16} color="#9CA3AF" />
+          </TouchableOpacity>
         </Animated.View>
       </SafeAreaView>
     </LinearGradient>
