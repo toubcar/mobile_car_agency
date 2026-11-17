@@ -12,7 +12,7 @@ Rien n'est envoyé (ni e-mail, ni SMS) et la base de production n'est jamais tou
 ## 1. Une seule fois : installer les outils
 
 ```bash
-brew install php mariadb node        # si ce n'est pas déjà fait
+brew install php composer mariadb node    # si ce n'est pas déjà fait
 ```
 
 Cette branche ne garde plus le fichier `.env` dans git (il contenait des secrets) : en changeant de branche,
