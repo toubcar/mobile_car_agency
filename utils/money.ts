@@ -1,8 +1,9 @@
-import { jsLocale } from '@/i18n';
-/** Devise affichée dans l'app — dirham marocain (DH). */
+import { jsLocale, t } from '@/i18n';
+
+/** Devise affichée dans l'app — dirham marocain (DH ; MAD en anglais, درهم en arabe : t('DH')). */
 export const CURRENCY_CODE = 'DH';
 
-/** Suffixe tarif journalier véhicule */
+/** Suffixe tarif journalier véhicule (traduit : t('DH/j')) */
 export const CURRENCY_PER_DAY = 'DH/j';
 
 /**
@@ -22,7 +23,7 @@ export function formatMoney(value: unknown, options?: { decimals?: number; suffi
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
-  return suffix ? `${formatted} ${CURRENCY_CODE}` : formatted;
+  return suffix ? `${formatted} ${t(CURRENCY_CODE)}` : formatted;
 }
 
 /**
@@ -49,5 +50,5 @@ export function percentOf(part: unknown, total: unknown, cap = 100): number {
 
 /** Prix par jour : 12 345 DH/j */
 export function formatMoneyPerDay(value: unknown): string {
-  return `${formatMoney(value, { suffix: false })} ${CURRENCY_PER_DAY}`;
+  return `${formatMoney(value, { suffix: false })} ${t(CURRENCY_PER_DAY)}`;
 }

@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import * as SecureStore from 'expo-secure-store';
 import { authService } from '@/services/auth.service';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 import { useAuthStore } from '@/store/authStore';
@@ -21,6 +20,7 @@ type SocialAuthOptions = {
 const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const GOOGLE_CLIENT_ID_PLACEHOLDER = 'not-configured.apps.googleusercontent.com';
 
 /** Google + Apple — API mobile Sanctum (pas de redirection vers le site web). */
 export function useSocialAuth(options?: SocialAuthOptions) {
@@ -29,10 +29,12 @@ export function useSocialAuth(options?: SocialAuthOptions) {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingApple, setLoadingApple] = useState(false);
 
+  // expo-auth-session throws while rendering when a client id is missing (an empty .env on a developer's machine
+  // closed the whole app at start). The placeholder keeps it running: handleGoogle refuses to start without a real id.
   const [, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID ?? GOOGLE_WEB_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID ?? GOOGLE_WEB_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID || GOOGLE_CLIENT_ID_PLACEHOLDER,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID || GOOGLE_CLIENT_ID_PLACEHOLDER,
+    iosClientId: GOOGLE_IOS_CLIENT_ID || GOOGLE_WEB_CLIENT_ID || GOOGLE_CLIENT_ID_PLACEHOLDER,
   });
 
   const finishGoogleLogin = useCallback(

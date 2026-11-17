@@ -67,7 +67,7 @@ export default function AdminCarsScreen() {
         <View style={{ flex: 1 }}>
           <Text style={styles.heroKicker}>{t('Catalogue admin')}</Text>
           <Text style={styles.heroTitle}>{t('Gestion véhicules')}</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} {t('véhicules synchronisés avec Laravel')}</Text>
+          <Text style={styles.heroSub}>{data?.total ?? 0} {t('véhicules')}</Text>
         </View>
       </View>
 

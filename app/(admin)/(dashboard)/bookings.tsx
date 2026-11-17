@@ -57,7 +57,7 @@ export default function AdminBookingsScreen() {
         <View style={{ flex: 1 }}>
           <Text style={styles.heroKicker}>{t('Back-office administrateur')}</Text>
           <Text style={styles.heroTitle}>{t('Réservations')}</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} {t('demandes synchronisées avec Laravel')}</Text>
+          <Text style={styles.heroSub}>{data?.total ?? 0} {t('demandes')}</Text>
         </View>
       </View>
 

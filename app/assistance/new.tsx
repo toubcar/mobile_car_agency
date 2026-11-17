@@ -42,7 +42,7 @@ export default function NewTicketScreen() {
     mutationFn: () => supportService.create({ category, priority, subject: subject.trim(), message: message.trim() }),
     onSuccess: (ticket) => {
       void queryClient.invalidateQueries({ queryKey: ['support'] });
-      router.replace(`/support/${ticket.id}`);
+      router.replace(`/assistance/${ticket.id}`);
     },
     onError: (err) => {
       const body = axios.isAxiosError(err) ? (err.response?.data as { message?: string } | undefined) : undefined;

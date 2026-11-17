@@ -10,6 +10,14 @@ import AdminStackHeader from '@/components/admin/AdminStackHeader';
 
 import { t } from '@/i18n';
 
+const HEALTH_LABELS: Record<string, () => string> = {
+  database: () => t('Base de données'),
+  storage: () => t('Stockage'),
+  cache: () => t('Cache'),
+  queue: () => t('File d\'attente'),
+  mail: () => t('E-mail'),
+};
+
 export default function AdminSystemScreen() {
   const queryClient = useQueryClient();
 
@@ -74,9 +82,9 @@ export default function AdminSystemScreen() {
             <Text style={styles.section}>{t('Santé')}</Text>
             {Object.entries(health.health_checks ?? {}).map(([key, check]) => (
               <View key={key} style={styles.card}>
-                <Text style={styles.cardTitle}>{key}</Text>
-                <Text style={[styles.cardSub, { color: check.status === 'ok' ? '#065F46' : '#991B1B' }]}>
-                  {check.status} — {check.message}
+                <Text style={styles.cardTitle}>{HEALTH_LABELS[key]?.() ?? key}</Text>
+                <Text style={[styles.cardSub, { color: check.status === 'healthy' || check.status === 'ok' ? '#065F46' : check.status === 'warning' ? '#92400E' : '#991B1B' }]}>
+                  {check.status === 'healthy' || check.status === 'ok' ? t('Opérationnel') : check.status === 'warning' ? t('Attention') : t('Erreur')} — {check.message}
                 </Text>
               </View>
             ))}

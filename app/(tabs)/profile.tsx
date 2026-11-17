@@ -34,8 +34,8 @@ const MENU: {
   { get label() { return t('Mes réservations'); }, get sub() { return t('À venir et passées'); }, route: '/(tabs)/bookings', icon: 'calendar-outline' },
   { get label() { return t('Favoris'); }, get sub() { return t('Vos véhicules enregistrés'); }, route: '/(tabs)/wishlists', icon: 'heart-outline' },
   { get label() { return t('Messages'); }, get sub() { return t('Échanges avec les agences'); }, route: '/(tabs)/messages', icon: 'chatbubbles-outline' },
-  { get label() { return t('Notifications'); }, get sub() { return t('Réservations, paiements, messages'); }, route: '/notifications', icon: 'notifications-outline' },
-  { get label() { return t('Assistance'); }, get sub() { return t('Vos tickets et notre équipe'); }, route: '/support', icon: 'help-buoy-outline' },
+  { get label() { return t('Notifications'); }, get sub() { return t('Réservations, paiements, messages'); }, route: '/my-notifications', icon: 'notifications-outline' },
+  { get label() { return t('Assistance'); }, get sub() { return t('Vos tickets et notre équipe'); }, route: '/assistance', icon: 'help-buoy-outline' },
   { get label() { return t('Voir mon profil'); }, get sub() { return t('Nom, photo et infos publiques'); }, route: '/view-profile', icon: 'person-outline' },
   { get label() { return t('Paramètres du compte'); }, get sub() { return t('Sécurité, notifications, paiements'); }, route: '/account-settings', icon: 'settings-outline' },
 ];

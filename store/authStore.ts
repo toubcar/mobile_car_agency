@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '../services/tokenStorage';
 import { User } from '../types';
 import { authService } from '../services/auth.service';
 
@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearSession: async () => {
     try {
-      await SecureStore.deleteItemAsync('auth_token');
+      await tokenStorage.clear();
     } catch {
       // Clé déjà absente ou erreur stockage — on efface quand même l’état app.
     }
@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await authService.logout();
     } finally {
       try {
-        await SecureStore.deleteItemAsync('auth_token');
+        await tokenStorage.clear();
       } catch {
         /* déjà supprimé */
       }

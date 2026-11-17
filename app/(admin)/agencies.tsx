@@ -279,7 +279,7 @@ export default function AdminAgenciesScreen() {
               {reasonModal?.type === 'reject' ? t('Rejeter l’agence') : t('Suspendre l’agence')}
             </Text>
             <Text style={styles.modalSub}>
-              {reasonModal?.agency.name} {t('— la raison sera enregistrée dans la logique métier Laravel.')}
+              {reasonModal?.agency.name} {t('— la raison sera enregistrée.')}
             </Text>
             <TextInput
               value={reason}
@@ -317,7 +317,7 @@ export default function AdminAgenciesScreen() {
             </View>
             <Text style={styles.modalTitle}>{t('Modifier la commission')}</Text>
             <Text style={styles.modalSub}>
-              {commissionModal?.name} {t('— ce taux sera utilisé par la logique finance Laravel.')}
+              {commissionModal?.name} {t('— ce taux sera utilisé pour les calculs financiers.')}
             </Text>
             <TextInput
               value={commissionRate}
@@ -344,7 +344,7 @@ export default function AdminAgenciesScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title={t('Agences partenaires')} subtitle={t('Validation, rejet, suspension — même logique Laravel')} />
+      <AdminStackHeader title={t('Agences partenaires')} subtitle={t('Validation, rejet, suspension — comme sur le site')} />
       {ReasonModal}
       {CommissionModal}
 
@@ -355,7 +355,7 @@ export default function AdminAgenciesScreen() {
           <Ionicons name="cloud-offline-outline" size={48} color="#D1D5DB" />
           <Text style={styles.errTitle}>{t('Impossible de charger les agences')}</Text>
           <Text style={styles.errSub}>
-            {t('Vérifiez que la route API')} <Text style={{ fontWeight: '700' }}>{t('GET /api/admin/agencies')}</Text> {t('existe côté Laravel (comme sur toubcar.com).')}
+            {t('Vérifiez votre connexion et réessayez.')}
           </Text>
           <TouchableOpacity style={styles.retry} onPress={() => refetch()} activeOpacity={0.85}>
             <Text style={styles.retryTxt}>{t('Réessayer')}</Text>
@@ -373,7 +373,7 @@ export default function AdminAgenciesScreen() {
             <View style={styles.empty}>
               <Ionicons name="business-outline" size={48} color="#D1D5DB" />
               <Text style={styles.emptyTitle}>{t('Aucune agence')}</Text>
-              <Text style={styles.emptySub}>{t('Les partenaires enregistrés dans le backend apparaîtront ici.')}</Text>
+              <Text style={styles.emptySub}>{t('Les agences partenaires apparaîtront ici.')}</Text>
             </View>
           }
         />

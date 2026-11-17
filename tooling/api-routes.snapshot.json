@@ -26,6 +26,10 @@
       "path": "/auth/apple"
     },
     {
+      "method": "POST",
+      "path": "/auth/forgot-password"
+    },
+    {
       "method": "GET",
       "path": "/cars"
     },
@@ -35,11 +39,27 @@
     },
     {
       "method": "GET",
+      "path": "/cars/filters"
+    },
+    {
+      "method": "GET",
       "path": "/cars/{id}"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/{id}/reviews"
+    },
+    {
+      "method": "GET",
+      "path": "/bookings/quote"
     },
     {
       "method": "POST",
       "path": "/auth/logout"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/email/resend"
     },
     {
       "method": "GET",
@@ -50,6 +70,26 @@
       "path": "/profile"
     },
     {
+      "method": "PUT",
+      "path": "/profile/password"
+    },
+    {
+      "method": "POST",
+      "path": "/profile/picture"
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/picture"
+    },
+    {
+      "method": "POST",
+      "path": "/profile/documents"
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/documents/{type}"
+    },
+    {
       "method": "GET",
       "path": "/profile/preferences"
     },
@@ -58,12 +98,16 @@
       "path": "/profile/preferences"
     },
     {
-      "method": "GET",
-      "path": "/bookings"
+      "method": "POST",
+      "path": "/device-tokens"
+    },
+    {
+      "method": "DELETE",
+      "path": "/device-tokens"
     },
     {
       "method": "GET",
-      "path": "/bookings/quote"
+      "path": "/bookings"
     },
     {
       "method": "POST",
@@ -79,6 +123,10 @@
     },
     {
       "method": "POST",
+      "path": "/cars/{id}/reviews"
+    },
+    {
+      "method": "POST",
       "path": "/cars/{id}/favorite"
     },
     {
@@ -87,18 +135,34 @@
     },
     {
       "method": "GET",
-      "path": "/admin/bookings"
+      "path": "/agencies/{agency}/public"
     },
     {
       "method": "GET",
-      "path": "/admin/bookings/{booking}"
+      "path": "/notifications"
     },
     {
       "method": "PATCH",
-      "path": "/admin/bookings/{booking}/status"
+      "path": "/notifications/read-all"
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/clear"
+    },
+    {
+      "method": "PATCH",
+      "path": "/notifications/{notification}/read"
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/{notification}"
     },
     {
       "method": "GET",
+      "path": "/support/tickets"
+    },
+    {
+      "method": "POST",
       "path": "/support/tickets"
     },
     {
@@ -116,6 +180,18 @@
     {
       "method": "POST",
       "path": "/support/tickets/{ticket}/reply"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/bookings/{booking}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/bookings/{booking}/status"
     },
     {
       "method": "PATCH",
@@ -144,26 +220,6 @@
     {
       "method": "DELETE",
       "path": "/fleet/external-sites/{externalSite}"
-    },
-    {
-      "method": "GET",
-      "path": "/notifications"
-    },
-    {
-      "method": "PATCH",
-      "path": "/notifications/read-all"
-    },
-    {
-      "method": "DELETE",
-      "path": "/notifications/clear"
-    },
-    {
-      "method": "PATCH",
-      "path": "/notifications/{notification}/read"
-    },
-    {
-      "method": "DELETE",
-      "path": "/notifications/{notification}"
     },
     {
       "method": "GET",
@@ -387,6 +443,42 @@
     },
     {
       "method": "GET",
+      "path": "/agence/backoffice/overview"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/backoffice/modules/{module}"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/profile"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/general"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/opening-hours"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/locations"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/profile/documents"
+    },
+    {
+      "method": "DELETE",
+      "path": "/agence/profile/documents/{index}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/security"
+    },
+    {
+      "method": "GET",
       "path": "/agence/dashboard/stats"
     },
     {
@@ -418,48 +510,12 @@
       "path": "/agence/cars/{car}/toggle-availability"
     },
     {
-      "method": "GET",
-      "path": "/agence/backoffice/overview"
-    },
-    {
-      "method": "GET",
-      "path": "/agence/backoffice/modules/{module}"
-    },
-    {
       "method": "POST",
       "path": "/agence/finance/request-payment"
     },
     {
       "method": "PATCH",
       "path": "/agence/pricing/car-price"
-    },
-    {
-      "method": "GET",
-      "path": "/agence/profile"
-    },
-    {
-      "method": "PATCH",
-      "path": "/agence/profile/general"
-    },
-    {
-      "method": "PATCH",
-      "path": "/agence/profile/opening-hours"
-    },
-    {
-      "method": "PATCH",
-      "path": "/agence/profile/locations"
-    },
-    {
-      "method": "POST",
-      "path": "/agence/profile/documents"
-    },
-    {
-      "method": "DELETE",
-      "path": "/agence/profile/documents/{index}"
-    },
-    {
-      "method": "PATCH",
-      "path": "/agence/profile/security"
     },
     {
       "method": "GET",

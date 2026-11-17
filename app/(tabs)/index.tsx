@@ -24,35 +24,15 @@ import { API_BASE_URL } from '../../constants/api';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { patchCarsFavorite, patchFavoritesList } from '@/utils/favoritesCache';
 
+import { describeApiError } from '@/utils/apiError';
 import { t } from '@/i18n';
-
-function describeApiError(err: unknown): string {
-  if (!axios.isAxiosError(err)) {
-    return err instanceof Error ? err.message : t('Erreur inconnue');
-  }
-  if (err.code === 'ECONNABORTED') {
-    return t('Délai dépassé — Laravel est-il démarré ?');
-  }
-  if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
-    return t('Réseau inaccessible — même Wi‑Fi que le PC ? Pare-feu ? php artisan serve --host=0.0.0.0');
-  }
-  const st = err.response?.status;
-  if (st === 404) {
-    return t('404 — vérifiez que API_BASE_URL se termine par /api');
-  }
-  if (st != null && st >= 500) {
-    return t('Erreur serveur (:st) — consultez les logs Laravel.', { st });
-  }
-  const msg = (err.response?.data as { message?: string } | undefined)?.message;
-  return msg || err.message;
-}
 
 const { width: W } = Dimensions.get('window');
 const FEATURED_W = W * 0.66;
 const GRID_W     = (W - 48) / 2;
 
 const CATEGORIES = [
-  { key: 'all',         get label() { return t('All'); } },
+  { key: 'all',         get label() { return t('Tous'); } },
   { key: 'SUV',         label: 'SUV' },
   { key: 'Sedan',       get label() { return t('Sedan'); } },
   { key: 'Economy',     get label() { return t('Economy'); } },
@@ -167,10 +147,7 @@ export default function HomeScreen() {
             <Text style={styles.errorBannerTitle}>{t('Impossible de charger les véhicules')}</Text>
             <Text style={styles.errorBannerSub}>
               {loadErrorHint}
-              {'\n'}
-              {t('API :')} {API_BASE_URL}
-              {'\n'}
-              {t('Vérifiez : Laravel actif (php artisan serve --host=0.0.0.0 --port=8000), même Wi‑Fi que le téléphone.')}
+              {__DEV__ ? `\n${API_BASE_URL}\n${t('En test local : le serveur doit tourner et le téléphone être sur le même Wi‑Fi.')}` : ''}
             </Text>
           </View>
           <TouchableOpacity

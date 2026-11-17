@@ -86,7 +86,8 @@ export function useLocale(): Locale {
   return useLocaleStore((state) => state.locale);
 }
 
-function apply(locale: Locale): void {
+/** Applique la langue en mémoire (sans stockage ni sens de lecture) : ce que font initI18n et setLocale, et ce dont les tests ont besoin. */
+export function applyLocale(locale: Locale): void {
   current = locale;
   useLocaleStore.setState({ locale });
 }
@@ -98,7 +99,7 @@ export async function initI18n(): Promise<void> {
   try {
     const saved = await storage().getItem(STORAGE_KEY);
     if (isLocale(saved)) {
-      apply(saved);
+      applyLocale(saved);
     }
   } catch {
     /* stockage indisponible : français */
@@ -130,7 +131,7 @@ export async function setLocale(locale: Locale): Promise<void> {
   }
 
   const directionChanges = isRtlLocale(locale) !== I18nManager.isRTL;
-  apply(locale);
+  applyLocale(locale);
 
   if (directionChanges) {
     I18nManager.allowRTL(isRtlLocale(locale));

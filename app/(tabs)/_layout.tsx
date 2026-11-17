@@ -112,7 +112,8 @@ export default function TabsLayout() {
       />
 
       {/* Écrans recherche (hors barre) */}
-      <Tabs.Screen name="search-filters" options={{ href: null }} />
+      {/* the floating tab bar would cover the "Voir les résultats" buttons of the filter screen */}
+      <Tabs.Screen name="search-filters" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen name="search" options={{ href: null }} />
     </Tabs>
   );

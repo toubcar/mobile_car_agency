@@ -68,7 +68,7 @@ export default function PrivacyScreen() {
       </View>
 
       {!isAuthenticated ? (
-        <Text style={styles.hint}>{t('Connectez-vous pour synchroniser avec Laravel (client.preferences).')}</Text>
+        <Text style={styles.hint}>{t('Connectez-vous pour enregistrer vos préférences sur votre compte.')}</Text>
       ) : isLoading ? (
         <ActivityIndicator style={{ marginTop: 24 }} color="#1D3557" />
       ) : null}

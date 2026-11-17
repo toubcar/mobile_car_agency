@@ -81,7 +81,7 @@ export function resolveNotificationRoute(
       return '/(tabs)/messages';
     }
     if (category === 'support' || type.includes('support') || url.includes('support')) {
-      return id ? `/support/${id}` : '/support';
+      return id ? `/assistance/${id}` : '/assistance';
     }
     if (category === 'booking' || type.includes('booking') || type.includes('reservation') || type.includes('rental') || url.includes('rental') || url.includes('booking')) {
       return id ? `/booking/${id}` : '/(tabs)/bookings';
@@ -90,7 +90,7 @@ export function resolveNotificationRoute(
 
   if (role === 'agence') {
     if (category === 'support' || type.includes('support') || url.includes('support') || url.includes('ticket')) {
-      return id ? `/support/${id}` : '/support';
+      return id ? `/assistance/${id}` : '/assistance';
     }
     if (category === 'reservation' || url.includes('booking') || url.includes('rental')) {
       if (id) return `/booking/${id}`;

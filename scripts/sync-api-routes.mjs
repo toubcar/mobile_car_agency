@@ -16,12 +16,13 @@ const OPTIONAL_PUBLIC = [
 ];
 
 function findCarAgencyApiPhp() {
+  // CAR_AGENCY_PATH (the checkout to read) wins over the usual sibling folders
   const candidates = [
-    path.join(root, '..', '..', 'Cars', 'CarAgency', 'routes', 'api.php'),
-    path.join(root, '..', 'CarAgency', 'routes', 'api.php'),
     process.env.CAR_AGENCY_PATH
       ? path.join(process.env.CAR_AGENCY_PATH, 'routes', 'api.php')
       : null,
+    path.join(root, '..', '..', 'Cars', 'CarAgency', 'routes', 'api.php'),
+    path.join(root, '..', 'CarAgency', 'routes', 'api.php'),
   ].filter(Boolean);
   return candidates.find((p) => fs.existsSync(p)) ?? null;
 }
@@ -39,9 +40,12 @@ function parseRoutes(apiPhp) {
   for (const rawLine of apiPhp.split('\n')) {
     const line = rawLine.trim();
 
-    const prefixMatches = [...line.matchAll(/prefix\s*\(\s*['"]([^'"]+)['"]\s*\)/g)];
-    for (const m of prefixMatches) {
-      prefixStack.push(joinPaths(prefixStack[prefixStack.length - 1], m[1]));
+    // Every route group opens a level of the stack (with its prefix, if it has one) and "});" closes it,
+    // so groups without a prefix (middleware only) do not pop the prefix of the group around them
+    if (/->group\s*\(\s*function/.test(line)) {
+      const prefix = line.match(/prefix\s*\(\s*['"]([^'"]+)['"]\s*\)/);
+      const top = prefixStack[prefixStack.length - 1];
+      prefixStack.push(prefix ? joinPaths(top, prefix[1]) : top);
     }
 
     const routeMatch = line.match(/Route::(get|post|put|patch|delete)\s*\(\s*['"]([^'"]+)['"]/i);

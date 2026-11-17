@@ -55,7 +55,7 @@ export default function AdminUsersScreen() {
         <View style={{ flex: 1 }}>
           <Text style={styles.heroKicker}>{t('Sécurité admin')}</Text>
           <Text style={styles.heroTitle}>{t('Utilisateurs')}</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} compte{(data?.total ?? 0) !== 1 ? 's' : ''} {t('synchronisé')}{(data?.total ?? 0) !== 1 ? 's' : ''} {t('avec Laravel')}</Text>
+          <Text style={styles.heroSub}>{data?.total ?? 0} {t('comptes')}</Text>
         </View>
       </View>
 

@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from './tokenStorage';
 import apiClient from './api';
 import { AuthResponse, User } from '../types';
 
@@ -8,7 +8,7 @@ export const authService = {
       email,
       password,
     });
-    await SecureStore.setItemAsync('auth_token', response.data.token);
+    await tokenStorage.set(response.data.token);
     return response.data;
   },
 
@@ -20,7 +20,7 @@ export const authService = {
       password_confirmation: password,
       phone,
     });
-    await SecureStore.setItemAsync('auth_token', response.data.token);
+    await tokenStorage.set(response.data.token);
     return response.data;
   },
 
@@ -70,14 +70,14 @@ export const authService = {
   /** `POST /auth/phone/verify` — enregistre le token Sanctum */
   async verifyPhoneOtp(phone: string, code: string): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/phone/verify', { phone, code });
-    await SecureStore.setItemAsync('auth_token', response.data.token);
+    await tokenStorage.set(response.data.token);
     return response.data;
   },
 
   /** `POST /auth/google` — token d’accès Google (userinfo) */
   async loginWithGoogle(accessToken: string): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/google', { access_token: accessToken });
-    await SecureStore.setItemAsync('auth_token', response.data.token);
+    await tokenStorage.set(response.data.token);
     return response.data;
   },
 
@@ -87,16 +87,16 @@ export const authService = {
       identity_token: identityToken,
       ...(fullName != null && fullName !== '' ? { full_name: fullName } : {}),
     });
-    await SecureStore.setItemAsync('auth_token', response.data.token);
+    await tokenStorage.set(response.data.token);
     return response.data;
   },
 
   async getToken(): Promise<string | null> {
-    return SecureStore.getItemAsync('auth_token');
+    return tokenStorage.get();
   },
 
   async isLoggedIn(): Promise<boolean> {
-    const token = await SecureStore.getItemAsync('auth_token');
+    const token = await tokenStorage.get();
     return !!token;
   },
 };

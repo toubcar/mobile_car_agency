@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from './tokenStorage';
 import { API_BASE_URL } from '../constants/api';
 import { getLocale } from '@/i18n';
 
@@ -15,7 +15,7 @@ const apiClient = axios.create({
 // Attach token automatically to every request
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = await SecureStore.getItemAsync('auth_token');
+    const token = await tokenStorage.get();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

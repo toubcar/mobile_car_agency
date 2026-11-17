@@ -87,7 +87,7 @@ export default function AgencyStatusScreen({ agency }: { agency: UserAgencyStatu
           </TouchableOpacity>
         ) : null}
 
-        <TouchableOpacity style={styles.secondary} onPress={() => router.push('/support')} activeOpacity={0.85}>
+        <TouchableOpacity style={styles.secondary} onPress={() => router.push('/assistance')} activeOpacity={0.85}>
           <Text style={styles.secondaryText}>{t('Contacter l\'assistance')}</Text>
         </TouchableOpacity>
 

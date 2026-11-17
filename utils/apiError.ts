@@ -15,12 +15,12 @@ export function describeApiError(err: unknown): string {
     return t('Délai dépassé — le serveur met trop de temps à répondre.');
   }
   if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
-    return t('Serveur inaccessible (même Wi‑Fi, pare-feu, ou backend arrêté).');
+    return t('Serveur inaccessible. Vérifiez votre connexion internet.');
   }
   const st = err.response?.status;
   if (st === 401) return t('Session expirée — reconnectez-vous.');
-  if (st === 404) return t('Route introuvable — vérifiez l’URL de l’API.');
-  if (st != null && st >= 500) return t('Erreur serveur (:st).', { st });
+  if (st === 404) return t('Service introuvable. Réessayez plus tard.');
+  if (st != null && st >= 500) return t('Erreur du serveur (:st). Réessayez plus tard.', { st });
   const msg = (err.response?.data as { message?: string } | undefined)?.message;
   return msg || err.message;
 }

@@ -39,8 +39,8 @@ export const AGENCE_MENU_GROUPS: { title: string; items: AgenceMenuItem[] }[] = 
   {
     get title() { return t('Aide et réglages'); },
     items: [
-      { get title() { return t('Notifications'); }, route: '/notifications' },
-      { get title() { return t('Assistance'); }, route: '/support' },
+      { get title() { return t('Notifications'); }, route: '/my-notifications' },
+      { get title() { return t('Assistance'); }, route: '/assistance' },
       { get title() { return t('Langue'); }, route: '/settings/language' },
     ],
   },

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { tokenStorage } from '@/services/tokenStorage';
 import { useAuthStore } from '@/store/authStore';
 import { replaceRootByRole } from '@/utils/replaceByRole';
 import { COLORS } from '@/constants/api';
@@ -26,7 +26,7 @@ export default function AuthCallbackScreen() {
           throw new Error(t('Réponse OAuth incomplète (token ou utilisateur manquant).'));
         }
         const user = JSON.parse(decodeURIComponent(String(userRaw)));
-        await SecureStore.setItemAsync('auth_token', token);
+        await tokenStorage.set(token);
         await loginWithToken(token, user);
         replaceRootByRole(router, user.role);
       } catch (e: unknown) {

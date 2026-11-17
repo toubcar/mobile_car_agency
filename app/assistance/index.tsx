@@ -30,7 +30,7 @@ export default function SupportTicketsScreen() {
         title={t('Assistance')}
         right={
           isAuthenticated ? (
-            <TouchableOpacity onPress={() => router.push('/support/new')} style={styles.addBtn} activeOpacity={0.8}>
+            <TouchableOpacity onPress={() => router.push('/assistance/new')} style={styles.addBtn} activeOpacity={0.8}>
               <Ionicons name="add" size={20} color="#FFF" />
             </TouchableOpacity>
           ) : undefined
@@ -54,7 +54,7 @@ export default function SupportTicketsScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.card} onPress={() => router.push(`/support/${item.id}`)} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.card} onPress={() => router.push(`/assistance/${item.id}`)} activeOpacity={0.8}>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.subject} numberOfLines={1}>{item.subject}</Text>
                 <Text style={styles.meta}>
@@ -73,7 +73,7 @@ export default function SupportTicketsScreen() {
               <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
               <Text style={styles.emptyTitle}>{t('Aucun ticket pour le moment')}</Text>
               <Text style={styles.emptyText}>{t('Un souci avec une réservation, un paiement ou votre compte ? Écrivez-nous.')}</Text>
-              <TouchableOpacity style={styles.cta} onPress={() => router.push('/support/new')} activeOpacity={0.85}>
+              <TouchableOpacity style={styles.cta} onPress={() => router.push('/assistance/new')} activeOpacity={0.85}>
                 <Text style={styles.ctaText}>{t('Ouvrir un ticket')}</Text>
               </TouchableOpacity>
             </View>
