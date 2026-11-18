@@ -1,18 +1,21 @@
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, type LayoutChangeEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { COLORS } from '@/constants/api';
+import {
+  addDays,
+  atNoon,
+  isSameDay,
+  monthGrid,
+  returnLimit,
+  stayIsFree,
+  toIsoDate,
+  weekdayNames,
+} from '@/utils/dates';
 
-import { t, jsLocale, dirIcon } from '@/i18n';
+import { t, jsLocale, dirIcon, useLocale } from '@/i18n';
 
-const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
-export function toIsoDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+export { toIsoDate };
 
 export function formatFrenchDate(d: Date): string {
   return d.toLocaleDateString(jsLocale(), {
@@ -31,39 +34,14 @@ function formatChip(d: Date) {
   };
 }
 
-function normalize(d: Date): Date {
-  const n = new Date(d);
-  n.setHours(12, 0, 0, 0);
-  return n;
+/** "1 jour", "3 jours" — as on the website (a day is a night, the return day is not charged) */
+export function daysLabel(days: number): string {
+  return days === 1 ? t('1 jour') : t(':count jours', { count: days });
 }
 
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function dayStart(d: Date): number {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x.getTime();
-}
-
-function buildMonthGrid(year: number, month: number): (Date | null)[] {
-  const first = new Date(year, month, 1, 12, 0, 0, 0);
-  let offset = first.getDay() - 1;
-  if (offset < 0) offset = 6;
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells: (Date | null)[] = Array.from({ length: offset }, () => null);
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push(new Date(year, month, d, 12, 0, 0, 0));
-  }
-  while (cells.length % 7 !== 0) cells.push(null);
-  return cells;
-}
+const TAKEN_BG = '#FEF2F2';
+const TAKEN_TEXT = '#F87171';
+const BAND = '#E3EEF8';
 
 type PickerTarget = 'start' | 'end';
 
@@ -74,8 +52,16 @@ type Props = {
   onEndChange: (d: Date) => void;
   minStart: Date;
   days: number;
+  /** Jours (Y-m-d) où le véhicule ne peut pas être pris : en rouge léger, non cliquables. */
+  unavailable?: ReadonlySet<string>;
+  /** Les jours pris sont en cours de chargement. */
+  loadingAvailability?: boolean;
 };
 
+/**
+ * Le calendrier d'une location, comme celui du site : un jour est une nuit ; les jours où le véhicule est réservé ou au
+ * garage ne peuvent pas être choisis, sauf le premier d'entre eux comme jour de retour (le véhicule est rendu le matin).
+ */
 export default function BookingDateRangePicker({
   startDate,
   endDate,
@@ -83,237 +69,213 @@ export default function BookingDateRangePicker({
   onEndChange,
   minStart,
   days,
+  unavailable,
+  loadingAvailability,
 }: Props) {
-  const { width: screenW } = useWindowDimensions();
-  const isCompact = screenW < 360;
+  useLocale(); // redessiné quand la langue change (noms des jours et des mois)
+  const taken = useMemo(() => unavailable ?? new Set<string>(), [unavailable]);
+  const hasAvailability = unavailable !== undefined;
 
-  const rs = useMemo(() => {
-    const cellSize = Math.floor(Math.min((screenW - 80) / 7, 46));
-    return {
-      cellSize,
-      chipDay: isCompact ? 24 : 28,
-      chipPad: isCompact ? 8 : 12,
-      middleW: isCompact ? 40 : 48,
-      navSize: isCompact ? 34 : 38,
-      iconSm: isCompact ? 14 : 16,
-      iconMd: isCompact ? 16 : 18,
-    };
-  }, [screenW, isCompact]);
-
+  const [gridWidth, setGridWidth] = useState(0);
   const [active, setActive] = useState<PickerTarget>('start');
-  const [viewMonth, setViewMonth] = useState(() => ({
-    year: startDate.getFullYear(),
-    month: startDate.getMonth(),
-  }));
+  const [viewMonth, setViewMonth] = useState(() => ({ year: startDate.getFullYear(), month: startDate.getMonth() }));
 
-  const startChip = formatChip(startDate);
-  const endChip = formatChip(endDate);
-  const minDate =
-    active === 'start'
-      ? minStart
-      : (() => {
-          const d = new Date(startDate);
-          d.setDate(d.getDate() + 1);
-          return normalize(d);
-        })();
+  const cellW = gridWidth > 0 ? gridWidth / 7 : 44;
+  const cellH = Math.max(42, Math.min(54, cellW));
+  const circle = Math.min(cellW, cellH) - 6;
 
-  const monthLabel = new Date(viewMonth.year, viewMonth.month, 1).toLocaleDateString(jsLocale(), {
-    month: 'long',
-    year: 'numeric',
-  });
+  const weekdays = useMemo(() => weekdayNames(jsLocale()), []);
+  const grid = useMemo(() => monthGrid(viewMonth.year, viewMonth.month), [viewMonth.year, viewMonth.month]);
+  const limit = useMemo(() => (active === 'end' ? returnLimit(startDate, taken) : null), [active, startDate, taken]);
+  const min = atNoon(minStart);
 
-  const grid = useMemo(
-    () => buildMonthGrid(viewMonth.year, viewMonth.month),
-    [viewMonth.year, viewMonth.month],
-  );
-
-  const canGoPrev = useMemo(() => {
-    const prev = new Date(viewMonth.year, viewMonth.month - 1, 1);
-    const minM = new Date(minStart.getFullYear(), minStart.getMonth(), 1);
-    return prev >= minM;
-  }, [viewMonth, minStart]);
+  const monthLabel = new Date(viewMonth.year, viewMonth.month, 1, 12).toLocaleDateString(jsLocale(), { month: 'long', year: 'numeric' });
+  const canGoPrev = new Date(viewMonth.year, viewMonth.month, 1) > new Date(min.getFullYear(), min.getMonth(), 1);
 
   const shiftMonth = (delta: number) => {
     setViewMonth((v) => {
-      const d = new Date(v.year, v.month + delta, 1);
+      const d = new Date(v.year, v.month + delta, 1, 12);
       return { year: d.getFullYear(), month: d.getMonth() };
     });
   };
 
-  const handleDayPress = (day: Date) => {
-    if (dayStart(day) < dayStart(minDate)) return;
-
-    const date = normalize(day);
-    if (active === 'start') {
-      onStartChange(date);
-      if (date >= endDate) {
-        const newEnd = new Date(date);
-        newEnd.setDate(newEnd.getDate() + 1);
-        onEndChange(newEnd);
-      }
-      setActive('end');
-    } else {
-      if (date <= startDate) return;
-      onEndChange(date);
+  const pickStart = (day: Date) => {
+    onStartChange(day);
+    // the stay keeps its end when it is still possible, else it becomes one night (always possible)
+    if (endDate <= day || !stayIsFree(day, endDate, taken)) {
+      onEndChange(addDays(day, 1));
     }
+    setActive('end');
   };
 
-  const isInRange = (day: Date) => {
-    const time = dayStart(day);
-    return time > dayStart(startDate) && time < dayStart(endDate);
+  const dayState = (day: Date) => {
+    const iso = toIsoDate(day);
+    const past = day < min;
+    const isTaken = taken.has(iso);
+    const choosingEnd = active === 'end';
+    const returnDay = choosingEnd && limit !== null && isSameDay(day, limit);
+    const beforeStart = choosingEnd && day <= startDate;
+    const tooFar = choosingEnd && limit !== null && day > limit;
+
+    let disabled: boolean;
+    if (!choosingEnd) {
+      disabled = past || isTaken;
+    } else {
+      // an earlier day than the start begins the stay again; a later one ends it, up to the return day
+      disabled = past || (beforeStart ? isTaken || isSameDay(day, startDate) : (isTaken && !returnDay) || tooFar);
+    }
+
+    return { past, taken: isTaken && !returnDay, returnDay, blocked: tooFar && !isTaken, disabled };
   };
+
+  const handleDayPress = (day: Date) => {
+    if (dayState(day).disabled) return;
+
+    if (active === 'start' || day < startDate) {
+      pickStart(day);
+      return;
+    }
+    onEndChange(day);
+  };
+
+  const today = atNoon(new Date());
+  const startChip = formatChip(startDate);
+  const endChip = formatChip(endDate);
 
   return (
     <View style={styles.root}>
       <View style={styles.chipsRow}>
-        <TouchableOpacity
-          style={[styles.chip, { paddingVertical: rs.chipPad }, active === 'start' && styles.chipActive]}
+        <DateChip
+          label={t('Départ')}
+          icon="log-in-outline"
+          chip={startChip}
+          active={active === 'start'}
           onPress={() => {
             setActive('start');
             setViewMonth({ year: startDate.getFullYear(), month: startDate.getMonth() });
           }}
-          activeOpacity={0.9}
-        >
-          <View style={styles.chipLabelRow}>
-            <Ionicons
-              name="log-in-outline"
-              size={rs.iconSm}
-              color={active === 'start' ? 'rgba(255,255,255,0.85)' : COLORS.secondary}
-            />
-            <Text style={[styles.chipLabel, active === 'start' && styles.chipLabelActive]}>{t('Départ')}</Text>
-          </View>
-          <Text style={[styles.chipDay, { fontSize: rs.chipDay }, active === 'start' && styles.chipDayActive]}>
-            {startChip.day}
-          </Text>
-          <Text style={[styles.chipMeta, active === 'start' && styles.chipMetaActive]}>
-            {startChip.month} · {startChip.weekday}
-          </Text>
-        </TouchableOpacity>
-
-        <View style={[styles.middle, { width: rs.middleW }]}>
+        />
+        <View style={styles.middle}>
           <View style={styles.durationBadge}>
-            <Text style={styles.durationTxt}>{days > 0 ? `${days}j` : '—'}</Text>
+            <Text style={styles.durationTxt}>{days > 0 ? daysLabel(days) : '—'}</Text>
           </View>
-          <Ionicons name={dirIcon('arrow-forward-circle')} size={isCompact ? 20 : 22} color={COLORS.secondary} />
+          <Ionicons name={dirIcon('arrow-forward')} size={18} color={COLORS.secondary} />
         </View>
-
-        <TouchableOpacity
-          style={[styles.chip, { paddingVertical: rs.chipPad }, active === 'end' && styles.chipActive]}
+        <DateChip
+          label={t('Retour')}
+          icon="log-out-outline"
+          chip={endChip}
+          active={active === 'end'}
           onPress={() => {
             setActive('end');
             setViewMonth({ year: endDate.getFullYear(), month: endDate.getMonth() });
           }}
-          activeOpacity={0.9}
-        >
-          <View style={styles.chipLabelRow}>
-            <Ionicons
-              name="log-out-outline"
-              size={rs.iconSm}
-              color={active === 'end' ? 'rgba(255,255,255,0.85)' : COLORS.secondary}
-            />
-            <Text style={[styles.chipLabel, active === 'end' && styles.chipLabelActive]}>{t('Retour')}</Text>
-          </View>
-          <Text style={[styles.chipDay, { fontSize: rs.chipDay }, active === 'end' && styles.chipDayActive]}>
-            {endChip.day}
-          </Text>
-          <Text style={[styles.chipMeta, active === 'end' && styles.chipMetaActive]}>
-            {endChip.month} · {endChip.weekday}
-          </Text>
-        </TouchableOpacity>
+        />
       </View>
 
       <View style={styles.calendarCard}>
         <View style={styles.calendarHeader}>
-          <Text style={styles.calendarHeaderTxt} numberOfLines={1}>
-            {active === 'start' ? t('Date de départ') : t('Date de retour')}
-          </Text>
-          <View style={styles.monthNav}>
-            <TouchableOpacity
-              style={[styles.navBtn, { width: rs.navSize, height: rs.navSize }]}
-              onPress={() => shiftMonth(-1)}
-              disabled={!canGoPrev}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={dirIcon('chevron-back')}
-                size={rs.iconMd}
-                color={canGoPrev ? COLORS.primary : COLORS.border}
-              />
-            </TouchableOpacity>
-            <Text style={[styles.monthLabel, isCompact && styles.monthLabelCompact]} numberOfLines={1}>
-              {monthLabel}
+          <TouchableOpacity
+            style={[styles.navBtn, !canGoPrev && styles.navBtnOff]}
+            onPress={() => shiftMonth(-1)}
+            disabled={!canGoPrev}
+            activeOpacity={0.75}
+            accessibilityLabel={t('Mois précédent')}
+          >
+            <Ionicons name={dirIcon('chevron-back')} size={20} color={canGoPrev ? COLORS.primary : '#CBD5E1'} />
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <Text style={styles.monthLabel} numberOfLines={1}>{monthLabel}</Text>
+            <Text style={styles.hint} numberOfLines={1}>
+              {loadingAvailability ? t('Chargement des disponibilités…') : active === 'start' ? t('Choisissez le jour de départ') : t('Choisissez le jour de retour')}
             </Text>
-            <TouchableOpacity
-              style={[styles.navBtn, { width: rs.navSize, height: rs.navSize }]}
-              onPress={() => shiftMonth(1)}
-              activeOpacity={0.75}
-            >
-              <Ionicons name={dirIcon('chevron-forward')} size={rs.iconMd} color={COLORS.primary} />
-            </TouchableOpacity>
           </View>
+          <TouchableOpacity style={styles.navBtn} onPress={() => shiftMonth(1)} activeOpacity={0.75} accessibilityLabel={t('Mois suivant')}>
+            <Ionicons name={dirIcon('chevron-forward')} size={20} color={COLORS.primary} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.weekRow}>
-          {WEEKDAYS.map((w) => (
-            <Text key={w} style={[styles.weekday, { width: rs.cellSize }]}>
+          {weekdays.map((w, i) => (
+            <Text key={`${w}-${i}`} style={[styles.weekday, { width: cellW }]} numberOfLines={1}>
               {w}
             </Text>
           ))}
         </View>
 
-        <View style={styles.grid}>
+        <View style={styles.grid} onLayout={(e: LayoutChangeEvent) => setGridWidth(e.nativeEvent.layout.width)}>
           {grid.map((day, i) => {
             if (!day) {
-              return <View key={`e-${i}`} style={{ width: rs.cellSize, height: rs.cellSize }} />;
+              return <View key={`e-${i}`} style={{ width: cellW, height: cellH }} />;
             }
 
-            const disabled = dayStart(day) < dayStart(minDate);
+            const state = dayState(day);
             const isStart = isSameDay(day, startDate);
             const isEnd = isSameDay(day, endDate);
-            const inRange = isInRange(day);
             const selected = isStart || isEnd;
+            const inRange = day > startDate && day < endDate;
+            const hasRange = endDate > startDate;
+            const label = day.toLocaleDateString(jsLocale(), { weekday: 'long', day: 'numeric', month: 'long' })
+              + (state.taken ? ` — ${t('Indisponible')}` : state.returnDay ? ` — ${t('Retour possible ce jour-là')}` : '');
 
             return (
               <TouchableOpacity
-                key={day.toISOString()}
-                style={[
-                  styles.dayCell,
-                  { width: rs.cellSize, height: rs.cellSize },
-                  inRange && styles.dayInRange,
-                  isStart && styles.dayStart,
-                  isEnd && styles.dayEnd,
-                ]}
+                key={toIsoDate(day)}
+                style={{ width: cellW, height: cellH, alignItems: 'center', justifyContent: 'center' }}
                 onPress={() => handleDayPress(day)}
-                disabled={disabled}
+                disabled={state.disabled}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={label}
+                accessibilityState={{ disabled: state.disabled, selected }}
               >
+                {inRange ? <View style={[styles.band, styles.bandFull]} /> : null}
+                {isStart && hasRange ? <View style={[styles.band, styles.bandToEnd]} /> : null}
+                {isEnd && hasRange ? <View style={[styles.band, styles.bandToStart]} /> : null}
                 <View
                   style={[
-                    styles.dayInner,
-                    selected && styles.dayInnerSelected,
-                    disabled && styles.dayInnerDisabled,
+                    styles.circle,
+                    { width: circle, height: circle, borderRadius: circle / 2 },
+                    state.taken && styles.circleTaken,
+                    state.returnDay && !selected && styles.circleReturn,
+                    selected && styles.circleSelected,
                   ]}
                 >
                   <Text
                     style={[
                       styles.dayText,
-                      isCompact && styles.dayTextCompact,
+                      (state.past || state.blocked) && styles.dayTextMuted,
+                      state.taken && styles.dayTextTaken,
                       selected && styles.dayTextSelected,
-                      disabled && styles.dayTextDisabled,
                     ]}
                   >
                     {day.getDate()}
                   </Text>
+                  {isSameDay(day, today) && !selected ? <View style={styles.todayDot} /> : null}
                 </View>
               </TouchableOpacity>
             );
           })}
         </View>
+
+        <View style={styles.legend}>
+          <View style={styles.legendItem}>
+            <View style={[styles.swatch, { backgroundColor: COLORS.primary }]} />
+            <Text style={styles.legendTxt}>{t('Votre sélection')}</Text>
+          </View>
+          {hasAvailability ? (
+            <View style={styles.legendItem}>
+              <View style={[styles.swatch, styles.swatchTaken]} />
+              <Text style={styles.legendTxt}>{t('Indisponible')}</Text>
+            </View>
+          ) : null}
+          {loadingAvailability ? <ActivityIndicator size="small" color={COLORS.secondary} /> : null}
+        </View>
       </View>
 
       <View style={styles.footer}>
-        <Ionicons name="calendar-outline" size={rs.iconSm} color={COLORS.secondary} />
-        <Text style={[styles.footerTxt, isCompact && styles.footerTxtCompact]} numberOfLines={2}>
+        <Ionicons name="calendar-outline" size={16} color={COLORS.secondary} />
+        <Text style={styles.footerTxt} numberOfLines={2}>
           {formatFrenchDate(startDate)} → {formatFrenchDate(endDate)}
         </Text>
       </View>
@@ -321,154 +283,114 @@ export default function BookingDateRangePicker({
   );
 }
 
+function DateChip({ label, icon, chip, active, onPress }: {
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  chip: { day: string; month: string; weekday: string };
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={[styles.chip, active && styles.chipActive]} onPress={onPress} activeOpacity={0.9} accessibilityState={{ selected: active }}>
+      <View style={styles.chipLabelRow}>
+        <Ionicons name={icon} size={14} color={active ? 'rgba(255,255,255,0.85)' : COLORS.secondary} />
+        <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{label}</Text>
+      </View>
+      <Text style={[styles.chipDay, active && styles.chipDayActive]}>{chip.day}</Text>
+      <Text style={[styles.chipMeta, active && styles.chipMetaActive]} numberOfLines={1}>
+        {chip.weekday} · {chip.month}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { gap: 12 },
-  chipsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  chipsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   chip: {
     flex: 1,
-    backgroundColor: COLORS.background,
-    borderRadius: 16,
+    minWidth: 0,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 18,
+    paddingVertical: 12,
     paddingHorizontal: 8,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-    minWidth: 0,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   chipActive: {
     backgroundColor: COLORS.primary,
-    borderColor: COLORS.primaryDark,
+    borderColor: COLORS.primary,
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
     elevation: 4,
   },
-  chipLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  chipLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.gray,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  chipLabelActive: { color: 'rgba(255,255,255,0.75)' },
-  chipDay: { fontWeight: '800', color: COLORS.primary, lineHeight: 32 },
+  chipLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
+  chipLabel: { fontSize: 11, fontWeight: '700', color: COLORS.gray, textTransform: 'uppercase', letterSpacing: 0.4 },
+  chipLabelActive: { color: 'rgba(255,255,255,0.8)' },
+  chipDay: { fontSize: 30, fontWeight: '800', color: COLORS.primary, lineHeight: 36 },
   chipDayActive: { color: COLORS.white },
-  chipMeta: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.secondary,
-    marginTop: 2,
-    textTransform: 'capitalize',
-    textAlign: 'center',
-  },
-  chipMetaActive: { color: 'rgba(255,255,255,0.85)' },
+  chipMeta: { fontSize: 12, fontWeight: '600', color: COLORS.secondary, textTransform: 'capitalize' },
+  chipMetaActive: { color: 'rgba(255,255,255,0.88)' },
   middle: { alignItems: 'center', justifyContent: 'center', gap: 6 },
   durationBadge: {
     backgroundColor: COLORS.white,
     borderRadius: 20,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderWidth: 1,
-    borderColor: COLORS.lightGray,
+    borderColor: '#E2E8F0',
   },
   durationTxt: { fontSize: 11, fontWeight: '800', color: COLORS.primary },
   calendarCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    overflow: 'hidden',
-    paddingBottom: 8,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 6,
+    paddingBottom: 12,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 2,
   },
-  calendarHeader: {
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.border,
-    gap: 10,
-  },
-  calendarHeaderTxt: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  monthNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
+  calendarHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 6, paddingTop: 12, paddingBottom: 6 },
+  headerCenter: { flex: 1, alignItems: 'center', minWidth: 0 },
+  monthLabel: { fontSize: 18, fontWeight: '800', color: COLORS.primary, textTransform: 'capitalize' },
+  hint: { fontSize: 12, color: COLORS.gray, marginTop: 2 },
   navBtn: {
-    borderRadius: 12,
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  monthLabel: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.primary,
-    textTransform: 'capitalize',
-  },
-  monthLabelCompact: { fontSize: 14 },
-  weekRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    paddingTop: 10,
-    paddingBottom: 4,
-  },
-  weekday: {
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.gray,
-    textTransform: 'uppercase',
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  },
-  dayCell: { alignItems: 'center', justifyContent: 'center' },
-  dayInRange: { backgroundColor: 'rgba(174,214,241,0.35)' },
-  dayStart: { borderTopLeftRadius: 20, borderBottomLeftRadius: 20 },
-  dayEnd: { borderTopRightRadius: 20, borderBottomRightRadius: 20 },
-  dayInner: {
-    width: '82%',
-    height: '82%',
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayInnerSelected: { backgroundColor: COLORS.primary },
-  dayInnerDisabled: { opacity: 0.35 },
-  dayText: { fontSize: 14, fontWeight: '600', color: COLORS.black },
-  dayTextCompact: { fontSize: 13 },
+  navBtnOff: { backgroundColor: '#F8FAFC' },
+  weekRow: { flexDirection: 'row', paddingTop: 8, paddingBottom: 4 },
+  weekday: { textAlign: 'center', fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'capitalize' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  band: { position: 'absolute', top: 4, bottom: 4, backgroundColor: BAND },
+  bandFull: { start: 0, end: 0 },
+  bandToEnd: { start: '50%', end: 0 },
+  bandToStart: { start: 0, end: '50%' },
+  circle: { alignItems: 'center', justifyContent: 'center' },
+  circleSelected: { backgroundColor: COLORS.primary },
+  circleTaken: { backgroundColor: TAKEN_BG },
+  circleReturn: { borderWidth: 1.5, borderColor: '#FCA5A5', borderStyle: 'dashed' },
+  dayText: { fontSize: 16, fontWeight: '600', color: '#0F172A' },
+  dayTextMuted: { color: '#CBD5E1' },
+  dayTextTaken: { color: TAKEN_TEXT, textDecorationLine: 'line-through' },
   dayTextSelected: { color: COLORS.white, fontWeight: '800' },
-  dayTextDisabled: { color: COLORS.gray },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    gap: 6,
-    paddingTop: 2,
-  },
-  footerTxt: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.secondary,
-    textAlign: 'center',
-  },
-  footerTxtCompact: { fontSize: 11 },
+  todayDot: { position: 'absolute', bottom: 5, width: 4, height: 4, borderRadius: 2, backgroundColor: COLORS.secondary },
+  legend: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 14, paddingHorizontal: 8, paddingTop: 10 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  swatch: { width: 14, height: 14, borderRadius: 7 },
+  swatchTaken: { backgroundColor: TAKEN_BG, borderWidth: 1, borderColor: '#FCA5A5' },
+  legendTxt: { fontSize: 12, color: COLORS.gray, fontWeight: '600' },
+  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  footerTxt: { flexShrink: 1, fontSize: 13, fontWeight: '600', color: COLORS.secondary, textAlign: 'center' },
 });

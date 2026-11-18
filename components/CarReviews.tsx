@@ -50,6 +50,7 @@ export default function CarReviews({ carId }: { carId: number }) {
   });
 
   const summary = data?.summary;
+  // reviews come from customers (one per finished rental): an agency or an admin does not write one
   const canWrite = role === 'client' || !isAuthenticated;
 
   return (
@@ -74,8 +75,15 @@ export default function CarReviews({ carId }: { carId: number }) {
             <Text style={styles.author}>{review.author}</Text>
             <Stars value={review.rating} size={12} />
           </View>
+          {review.title ? <Text style={styles.reviewTitle}>{review.title}</Text> : null}
           {review.comment ? <Text style={styles.comment}>{review.comment}</Text> : null}
           {review.created_at ? <Text style={styles.date}>{new Date(review.created_at).toLocaleDateString(jsLocale(), { day: 'numeric', month: 'long', year: 'numeric' })}</Text> : null}
+          {review.agency_reply ? (
+            <View style={styles.reply}>
+              <Text style={styles.replyLabel}>{t('Réponse de l\'agence')}</Text>
+              <Text style={styles.comment}>{review.agency_reply}</Text>
+            </View>
+          ) : null}
         </View>
       ))}
 
@@ -100,7 +108,7 @@ export default function CarReviews({ carId }: { carId: number }) {
               value={comment}
               onChangeText={setComment}
             />
-            <Text style={styles.note}>{t('Votre avis sera publié après vérification.')}</Text>
+            <Text style={styles.note}>{t('Votre avis est publié aussitôt ; l\'agence peut y répondre. Il faut avoir terminé une location de ce véhicule.')}</Text>
             <View style={styles.actions}>
               <TouchableOpacity style={styles.cancel} onPress={() => setOpen(false)} activeOpacity={0.8}>
                 <Text style={styles.cancelText}>{t('Annuler')}</Text>
@@ -128,6 +136,9 @@ const styles = StyleSheet.create({
   reviewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   author: { fontSize: 13, fontWeight: '700', color: '#111827' },
   comment: { fontSize: 13, color: '#4B5563', lineHeight: 19 },
+  reviewTitle: { fontSize: 13, fontWeight: '700', color: '#111827' },
+  reply: { backgroundColor: '#EEF2F7', borderRadius: 10, padding: 10, gap: 4, borderStartWidth: 3, borderStartColor: '#457B9D' },
+  replyLabel: { fontSize: 11, fontWeight: '800', color: '#457B9D', textTransform: 'uppercase' },
   date: { fontSize: 11, color: '#9CA3AF' },
   writeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#1D3557', marginTop: 4 },
   writeText: { fontSize: 14, fontWeight: '800', color: '#1D3557' },

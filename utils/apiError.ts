@@ -24,3 +24,12 @@ export function describeApiError(err: unknown): string {
   const msg = (err.response?.data as { message?: string } | undefined)?.message;
   return msg || err.message;
 }
+
+/** Ce que le serveur dit (première erreur de validation, sinon son message), à défaut le texte donné. */
+export function serverMessage(err: unknown, fallback: string): string {
+  if (!axios.isAxiosError(err)) return fallback;
+  if (!err.response) return describeApiError(err);
+  const data = err.response.data as { message?: string; errors?: Record<string, string[]> } | undefined;
+  const first = data?.errors ? Object.values(data.errors)[0]?.[0] : undefined;
+  return first ?? data?.message ?? fallback;
+}

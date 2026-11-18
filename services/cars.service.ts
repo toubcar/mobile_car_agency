@@ -1,5 +1,5 @@
 import apiClient from './api';
-import { Car, CarReviewsResult, CatalogueFilters, PaginatedResponse, SearchParams } from '../types';
+import { Car, CarAvailability, CarReviewsResult, CatalogueFilters, PaginatedResponse, SearchParams } from '../types';
 import { normalizeCarImages } from '@/utils/carImages';
 
 type BackofficeScope = 'admin' | 'agence';
@@ -90,7 +90,13 @@ export const carsService = {
     return data;
   },
 
-  /** Laisse un avis (le client a loué le véhicule) : il est publié après modération. */
+  /** Les jours où le véhicule ne peut pas être pris (réservé ou au garage), entre deux dates Y-m-d. */
+  async getAvailability(carId: number, from: string, to: string): Promise<CarAvailability> {
+    const { data } = await apiClient.get<{ data: CarAvailability }>(`/cars/${carId}/availability`, { params: { from, to } });
+    return data.data;
+  },
+
+  /** Laisse un avis sur une location terminée de ce véhicule : il est publié aussitôt. */
   async postReview(carId: number, rating: number, comment?: string): Promise<{ message: string }> {
     const { data } = await apiClient.post<{ message: string }>(`/cars/${carId}/reviews`, { rating, comment: comment || undefined });
     return data;
@@ -144,6 +150,12 @@ export const carsService = {
   async getAll(page = 1, search = '', scope: BackofficeScope = 'admin'): Promise<PaginatedResponse<Car>> {
     const { data } = await apiClient.get(`/${scope}/cars`, { params: { page, search } });
     return data;
+  },
+
+  /** The agency's whole fleet (up to 100 cars), for the pickers of the maintenance and offer forms */
+  async listOwn(): Promise<Array<Car & { customer_price_per_day?: number; commission_rate?: number }>> {
+    const { data } = await apiClient.get<{ data: Array<Car & { customer_price_per_day?: number; commission_rate?: number }> }>('/agence/cars', { params: { per_page: 100 } });
+    return data.data ?? [];
   },
 
   async create(payload: Partial<Car>, scope: BackofficeScope = 'admin'): Promise<Car> {

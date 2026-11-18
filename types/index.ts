@@ -2,6 +2,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  /** Nouvelle adresse en attente : le lien de confirmation lui a été envoyé, l'adresse actuelle reste utilisée jusque-là. */
+  pending_email?: string | null;
   phone?: string;
   avatar?: string;
   role: 'client' | 'agence' | 'admin';
@@ -62,6 +64,17 @@ export interface Booking {
   payment_status?: 'unpaid' | 'paid' | 'refunded';
   notes?: string;
   created_at: string;
+  /** Libellé du statut, dans la langue de l'app (fourni par le serveur). */
+  status_label?: string;
+  /** Une réservation non payée garde le véhicule 15 minutes : l'heure limite (ISO). */
+  pay_before?: string | null;
+  can_pay?: boolean;
+  can_cancel?: boolean;
+  can_review?: boolean;
+  /** L'avis laissé sur cette location. */
+  review?: CarReview | null;
+  cancelled_by?: 'customer' | 'agency' | 'admin' | 'system' | null;
+  agency?: { id: number; name: string; city?: string | null } | null;
 }
 
 /** Devis serveur — `GET /bookings/quote` (même calcul que POST /bookings). */
@@ -178,9 +191,31 @@ export interface CarReview {
   id: number;
   author: string;
   rating: number;
+  title?: string | null;
   comment?: string | null;
+  verified?: boolean;
+  /** La réponse publique de l'agence. */
+  agency_reply?: string | null;
+  agency_replied_at?: string | null;
   status?: string;
   created_at?: string;
+}
+
+/** Un avis vu depuis l'espace agence ou admin (`GET /reviews`). */
+export interface BackofficeReview extends CarReview {
+  rental_id?: number | null;
+  customer?: string | null;
+  car?: string | null;
+  agency?: string | null;
+  is_public: boolean;
+}
+
+/** Les jours où un véhicule ne peut pas être pris (`GET /cars/{id}/availability`). */
+export interface CarAvailability {
+  from: string;
+  to: string;
+  bookable: boolean;
+  unavailable: string[];
 }
 
 export interface CarReviewsResult {

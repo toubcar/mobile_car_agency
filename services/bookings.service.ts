@@ -1,6 +1,15 @@
 import apiClient from './api';
-import { Booking, BookingQuote, Car, PaginatedResponse, User, type AdminBookingStatistics } from '../types';
+import { Booking, BookingQuote, Car, CarReview, PaginatedResponse, User, type AdminBookingStatistics } from '../types';
 import { toAmount } from '@/utils/money';
+
+export interface PaymentStart {
+  approve_url: string;
+  order_id: string;
+  /** Montant débité par PayPal (en euros, comme sur le site) */
+  amount: number;
+  currency: string;
+  amount_mad: number;
+}
 
 export interface AdminBookingsResult extends PaginatedResponse<Booking> {
   statistics: AdminBookingStatistics;
@@ -97,6 +106,14 @@ function normalizeClientRental(raw: unknown, viewer: User | null): Booking {
     total_price: Number(r.total_price) || 0,
     status: mapApiRentalStatus(String(r.status ?? 'pending')),
     payment_status: (r.payment_status as Booking['payment_status']) ?? 'unpaid',
+    status_label: r.status_label != null ? String(r.status_label) : undefined,
+    pay_before: typeof r.pay_before === 'string' ? r.pay_before : null,
+    can_pay: r.can_pay === true,
+    can_cancel: r.can_cancel === true,
+    can_review: r.can_review === true,
+    review: r.review && typeof r.review === 'object' ? (r.review as CarReview) : null,
+    cancelled_by: (r.cancelled_by as Booking['cancelled_by']) ?? null,
+    agency: agency.id != null ? { id: Number(agency.id), name: String(agency.name ?? ''), city: agency.city != null ? String(agency.city) : null } : null,
     notes: r.notes != null ? String(r.notes) : undefined,
     created_at:
       typeof r.created_at === 'string'
@@ -138,8 +155,34 @@ export const bookingsService = {
     return normalizeClientRental(response.data.data, viewer ?? null);
   },
 
-  async cancelBooking(id: number): Promise<void> {
-    await apiClient.delete(`/bookings/${id}`);
+  /** Annule une demande ou une réservation confirmée (ce qui a été payé en ligne n'est pas remboursé : politique d'annulation). */
+  async cancelBooking(id: number): Promise<string | undefined> {
+    const { data } = await apiClient.delete<{ message?: string }>(`/bookings/${id}`);
+    return data?.message;
+  },
+
+  /** Paiement PayPal, le même que sur le site : l'adresse de la page PayPal, à ouvrir dans le navigateur intégré. */
+  async startPayment(id: number, returnUrl: string): Promise<PaymentStart> {
+    const { data } = await apiClient.post<{ data: PaymentStart }>(`/bookings/${id}/payment`, { return_url: returnUrl });
+    return data.data;
+  },
+
+  /** Retour de PayPal sans confirmation (navigateur fermé trop tôt) : le serveur vérifie le paiement auprès de PayPal. */
+  async capturePayment(id: number): Promise<{ status: 'paid'; booking_status: string }> {
+    const { data } = await apiClient.post<{ data: { status: 'paid'; booking_status: string } }>(`/bookings/${id}/payment/capture`);
+    return data.data;
+  },
+
+  /** L'avis du client sur sa location terminée (publié aussitôt, l'agence peut y répondre). */
+  async review(id: number, payload: { rating: number; title?: string; comment?: string }): Promise<{ message: string; data: CarReview }> {
+    const { data } = await apiClient.post<{ message: string; data: CarReview }>(`/bookings/${id}/review`, payload);
+    return data;
+  },
+
+  /** Agence : un lien vers la facture imprimable, valable 30 minutes, à ouvrir dans le navigateur. */
+  async invoiceLink(id: number): Promise<string> {
+    const { data } = await apiClient.get<{ url: string }>(`/agence/bookings/${id}/invoice`);
+    return data.url;
   },
 
   // ── Admin / Agence ───────────────────────────────────────────────────────
