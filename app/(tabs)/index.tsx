@@ -25,6 +25,7 @@ import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { patchCarsFavorite, patchFavoritesList } from '@/utils/favoritesCache';
 
 import { describeApiError } from '@/utils/apiError';
+import HomeBanners from '@/components/HomeBanners';
 import { t } from '@/i18n';
 
 const { width: W } = Dimensions.get('window');
@@ -162,6 +163,9 @@ export default function HomeScreen() {
 
       {/* ── Scrollable content ── */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+
+        {/* ── ToubCar's banners (Contenu > Bannières) ── */}
+        <HomeBanners />
 
         {/* ── Featured ── */}
         <View style={styles.block}>

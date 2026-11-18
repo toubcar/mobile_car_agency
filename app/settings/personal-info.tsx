@@ -249,7 +249,13 @@ export default function PersonalInfoScreen() {
             <View style={[styles.field, styles.fieldBorder]}>
               <Text style={styles.fieldLabel}>{t('E-mail')}</Text>
               <Text style={[styles.fieldInput, styles.readonly]}>{user?.email}</Text>
-              <Text style={styles.hint}>{t('L\'adresse e-mail ne se change pas depuis l\'application.')}</Text>
+              <TouchableOpacity onPress={() => router.push('/settings/login-security')} activeOpacity={0.7}>
+                <Text style={[styles.hint, styles.emailLink]}>
+                  {user?.pending_email
+                    ? t('Nouvelle adresse en attente de confirmation : :email', { email: user.pending_email })
+                    : t('Changer d\'adresse e-mail (Connexion et sécurité)')}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View style={[styles.field, isClient && styles.fieldBorder]}>
               <Text style={styles.fieldLabel}>{t('Téléphone')}</Text>
@@ -424,6 +430,7 @@ const styles = StyleSheet.create({
   smallBtnDanger: { borderColor: '#EF4444' },
   smallBtnDangerText: { color: '#EF4444' },
   readonly: { color: COLORS.gray },
+  emailLink: { color: COLORS.primary, fontWeight: '700' },
   hint: { fontSize: 11, color: COLORS.gray, marginTop: 4 },
   chips: { flexDirection: 'row', gap: 8, marginTop: 4 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.white },

@@ -18,6 +18,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { profileService } from '@/services/profile.service';
 import PageHeader from '@/components/PageHeader';
+import EmailChangeCard from '@/components/EmailChangeCard';
 import { COLORS } from '@/constants/api';
 import { useResponsiveLayout } from '@/utils/responsiveLayout';
 
@@ -126,7 +127,10 @@ export default function LoginSecurityScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.sectionTitle}>{t('Changer le mot de passe')}</Text>
+          <Text style={styles.sectionTitle}>{t('Adresse e-mail')}</Text>
+          <EmailChangeCard />
+
+          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>{t('Changer le mot de passe')}</Text>
           <View style={styles.card}>
             <PasswordField
               label={t('Mot de passe actuel')}

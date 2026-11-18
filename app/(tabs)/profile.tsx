@@ -38,6 +38,7 @@ const MENU: {
   { get label() { return t('Assistance'); }, get sub() { return t('Vos tickets et notre équipe'); }, route: '/assistance', icon: 'help-buoy-outline' },
   { get label() { return t('Voir mon profil'); }, get sub() { return t('Nom, photo et infos publiques'); }, route: '/view-profile', icon: 'person-outline' },
   { get label() { return t('Paramètres du compte'); }, get sub() { return t('Sécurité, notifications, paiements'); }, route: '/account-settings', icon: 'settings-outline' },
+  { get label() { return t('Aide'); }, get sub() { return t('Questions fréquentes, contact, conditions'); }, route: '/help', icon: 'help-circle-outline' },
 ];
 
 function getDisplayIdentity(user: { email?: string; phone?: string } | null): string {
@@ -160,6 +161,10 @@ export default function ProfileScreen() {
             <View style={{ marginTop: 18, alignSelf: 'stretch' }}>
               <LanguageSwitcher />
             </View>
+            <TouchableOpacity style={styles.guestHelp} onPress={() => router.push('/help' as never)} activeOpacity={0.75}>
+              <Ionicons name="help-circle-outline" size={18} color={COLORS.secondary} />
+              <Text style={styles.guestHelpText}>{t('Aide et questions fréquentes')}</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -326,6 +331,8 @@ const styles = StyleSheet.create({
   pageTitleCompact: { fontSize: 22, paddingBottom: 12 },
 
   guestScroll: { flexGrow: 1, justifyContent: 'center', paddingTop: 40 },
+  guestHelp: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16, paddingVertical: 6 },
+  guestHelpText: { fontSize: 14, fontWeight: '700', color: COLORS.secondary },
   guestCard: {
     backgroundColor: COLORS.white,
     borderRadius: 20,

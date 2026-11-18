@@ -34,6 +34,8 @@ export interface PickedFile {
   uri: string;
   name: string;
   type: string;
+  /** The file itself in the browser version of the app (a phone sends it by its uri) */
+  file?: Blob;
 }
 
 function fileForm(fields: Record<string, PickedFile>): FormData {
@@ -78,6 +80,25 @@ export const profileService = {
   async deleteDocument(type: DocumentType): Promise<ProfileData> {
     const { data } = await apiClient.delete<{ data: ProfileData }>(`/profile/documents/${type}`);
     return data.data;
+  },
+
+  /**
+   * Nouvelle adresse e-mail, comme sur le site : le mot de passe actuel est demandé, un lien est envoyé à la nouvelle
+   * adresse et le compte garde l'actuelle jusqu'à ce que le lien soit ouvert.
+   */
+  async requestEmailChange(email: string, current_password: string): Promise<{ message: string; user: ProfileData }> {
+    const { data } = await apiClient.put<{ message: string; data: ProfileData }>('/profile/email', { email, current_password });
+    return { message: data.message, user: data.data };
+  },
+
+  async resendEmailChange(): Promise<string> {
+    const { data } = await apiClient.post<{ message: string }>('/profile/email/resend');
+    return data.message;
+  },
+
+  async cancelEmailChange(): Promise<{ message: string; user: ProfileData }> {
+    const { data } = await apiClient.delete<{ message: string; data: ProfileData }>('/profile/email');
+    return { message: data.message, user: data.data };
   },
 
   async getPreferences(): Promise<ClientPreferences> {
