@@ -422,7 +422,16 @@ export default function CarDetailScreen() {
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>{t('Inclus dans la location')}</Text>
                   <View style={styles.includesGrid}>
-                    {INCLUDES.map((item) => (
+                    {(car.has_delivery
+                      ? [
+                          { icon: 'car-outline', label: t('Livraison incluse') },
+                          ...INCLUDES,
+                        ]
+                      : [
+                          { icon: 'walk-outline', label: t('Retrait sur place') },
+                          ...INCLUDES,
+                        ]
+                    ).map((item) => (
                       <View key={item.label} style={styles.includeItem}>
                         <View style={styles.includeIcon}>
                           <Ionicons name={item.icon as any} size={16} color="#1D3557" />
@@ -533,8 +542,6 @@ export default function CarDetailScreen() {
 }
 
 const INCLUDES = [
-  { icon: 'shield-checkmark-outline', get label() { return t('Assurance'); } },
-  { icon: 'location-outline', get label() { return t('Livraison gratuite'); } },
   { icon: 'headset-outline', get label() { return t('Support 24/7'); } },
   { icon: 'refresh-outline', get label() { return t('Annulation flexible'); } },
 ];

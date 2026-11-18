@@ -52,10 +52,30 @@ function normalizePaginatedCars(body: unknown): PaginatedResponse<Car> {
 
 /** Featured / list endpoints: array at root, or { data: [] }, or nested. */
 function withNormalizedImages(car: Car): Car {
-  const extra = car as Car & { image?: string; photos?: unknown };
+  const extra = car as Car & {
+    image?: string;
+    photos?: unknown;
+    delivery?: unknown;
+    free_delivery?: unknown;
+    delivery_included?: unknown;
+    district?: unknown;
+    neighborhood?: unknown;
+    agency?: { city?: string; quartier?: string; address?: string };
+  };
+  const deliveryRaw =
+    car.has_delivery ?? extra.delivery ?? extra.free_delivery ?? extra.delivery_included;
+  const quartierRaw =
+    car.quartier ??
+    extra.district ??
+    extra.neighborhood ??
+    extra.agency?.quartier;
   return {
     ...car,
     images: normalizeCarImages(car.images, extra.image ?? extra.photos),
+    has_delivery: Boolean(deliveryRaw),
+    ...(quartierRaw != null && String(quartierRaw).trim()
+      ? { quartier: String(quartierRaw).trim() }
+      : {}),
   };
 }
 
@@ -109,17 +129,13 @@ export const carsService = {
       root && typeof root === 'object' && 'data' in (root as object)
         ? (root as { data: Car }).data
         : (root as Car);
-    const extra = raw as Car & { image?: string; photos?: unknown };
-    return {
-      ...raw,
-      images: normalizeCarImages(raw.images, extra.image ?? extra.photos),
-    };
+    return withNormalizedImages(raw);
   },
 
   /** Détail back-office — `GET /admin|agence/cars/{id}` */
   async getScoped(id: number, scope: BackofficeScope = 'admin'): Promise<Car> {
     const { data } = await apiClient.get<{ data: Car }>(`/${scope}/cars/${id}`);
-    return data.data;
+    return withNormalizedImages(data.data);
   },
 
   /** Filtres sur la liste paginée — le backend expose `GET /cars` (pas `/cars/search`). */
@@ -186,6 +202,7 @@ export const carsService = {
 function toBackofficePayload(payload: Partial<Car>): Partial<Car> {
   return {
     ...payload,
+    has_delivery: Boolean(payload.has_delivery),
     status: payload.status ?? (payload.is_available === false ? 'maintenance' : 'available'),
   };
 }

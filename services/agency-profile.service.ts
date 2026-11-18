@@ -17,6 +17,7 @@ export interface AgencyProfile {
   phone?: string;
   address?: string;
   city?: string;
+  quartier?: string;
   postal_code?: string;
   country?: string;
   latitude?: string | number;
@@ -58,6 +59,7 @@ export const agencyProfileService = {
   async updateLocations(payload: {
     address: string;
     city: string;
+    quartier?: string;
     postal_code: string;
     country: string;
     latitude?: number;

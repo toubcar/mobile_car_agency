@@ -39,6 +39,7 @@ export interface Car {
   category_id?: number;
   price_per_day: number;
   location: string;
+  quartier?: string;
   rating: number;
   reviews_count: number;
   images: string[];
@@ -48,6 +49,8 @@ export interface Car {
   fuel_type: string;
   status?: 'available' | 'rented' | 'maintenance';
   is_available: boolean;
+  /** L’agence propose la livraison du véhicule. */
+  has_delivery?: boolean;
   agency_id?: number;
   is_favorite?: boolean;
   owner?: User;
@@ -96,6 +99,8 @@ export interface PartnerAgency {
   phone?: string;
   address?: string;
   city?: string;
+  /** Présent sur certaines fiches partenaire / admin. */
+  quartier?: string;
   responsable_name?: string;
   registration_number?: string;
   commercial_register_number?: string;
@@ -159,6 +164,7 @@ export interface SearchParams {
   q?: string;
   /** Ville ou adresse (le « où » du site). */
   location?: string;
+  quartier?: string;
   start_date?: string;
   end_date?: string;
   category?: string;

@@ -20,6 +20,8 @@ import { daysLabel } from '@/components/BookingDateRangePicker';
 import { Button, Field, Sheet } from '@/components/backoffice/ui';
 
 import { t, jsLocale, dirIcon } from '@/i18n';
+import BookingCancellationFlow from '@/components/BookingCancellationFlow';
+import { canMessageBooking } from '@/utils/rentalMessaging';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 };
 
@@ -54,7 +56,7 @@ function fmtFull(d: string) {
 }
 
 export default function BookingDetailScreen() {
-  const { id }      = useLocalSearchParams<{ id: string }>();
+  const { id, openManage } = useLocalSearchParams<{ id: string; openManage?: string }>();
   const router      = useRouter();
   const queryClient = useQueryClient();
   const role              = useAuthStore((s) => s.role);
@@ -63,6 +65,11 @@ export default function BookingDetailScreen() {
 
   const canManage = role === 'admin' || role === 'agence';
   const isClient = isAuthenticated && !canManage;
+  const [cancelFlowOpen, setCancelFlowOpen] = useState(openManage === '1');
+
+  useEffect(() => {
+    if (openManage === '1') setCancelFlowOpen(true);
+  }, [openManage]);
 
   const [paying, setPaying] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -74,12 +81,13 @@ export default function BookingDetailScreen() {
   const cancelMutation = useMutation({
     mutationFn: () => bookingsService.cancelBooking(Number(id)),
     onSuccess: (message) => {
+      setCancelFlowOpen(false);
       queryClient.invalidateQueries({ queryKey: ['booking', id] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      Alert.alert(t('Annulée'), message ?? t('Réservation annulée.'));
+      Alert.alert(t('Réservation annulée'), message ?? t('Votre annulation a bien été prise en compte.'));
       router.back();
     },
-    onError: (err) => Alert.alert(t('Erreur'), serverMessage(err, t('Impossible d’annuler.'))),
+    onError: (err) => Alert.alert(t('Erreur'), serverMessage(err, t('Impossible d’annuler pour le moment. Réessayez ou contactez l’agence.'))),
   });
 
   const reviewMutation = useMutation({
@@ -141,21 +149,6 @@ export default function BookingDetailScreen() {
     } else if (outcome === 'failed') {
       Alert.alert(t('Le paiement n\'a pas abouti'), t('Aucun montant n\'a été débité. Vous pouvez réessayer.'));
     }
-  };
-
-  const confirmCancel = () => {
-    const paidOnline = booking?.status === 'confirmed' && booking.payment_status === 'paid';
-    Alert.alert(
-      t('Annuler la réservation'),
-      paidOnline
-        ? t('Comme prévu par la politique d\'annulation, le montant payé ne sera pas remboursé. Annuler quand même ?')
-        : t('Confirmer l’annulation ?'),
-      [
-        { text: t('Non'), style: 'cancel' },
-        ...(paidOnline ? [{ text: t('Voir la politique'), onPress: () => router.push('/pages/annulation' as never) }] : []),
-        { text: t('Oui, annuler'), style: 'destructive' as const, onPress: () => cancelMutation.mutate() },
-      ],
-    );
   };
 
   if (isLoading || !booking) {
@@ -302,25 +295,28 @@ export default function BookingDetailScreen() {
           </>
         ) : null}
 
-        {isClient && booking.can_cancel ? (
-          <>
-            <Text style={styles.section}>{t('Actions')}</Text>
-            <View style={styles.actionsWrap}>
+        {isClient && (canMessageBooking(booking) || booking.can_cancel) ? (
+          <View style={styles.clientActions}>
+            {canMessageBooking(booking) ? (
               <TouchableOpacity
-                style={styles.actionBtn}
+                style={styles.contactAgencyBtn}
                 onPress={() => router.push(`/messages/${booking.id}`)}
+                activeOpacity={0.88}
               >
-                <Text style={[styles.actionBtnTxt, { color: COLORS.primary }]}>{t('Contacter l’agence')}</Text>
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#FFF" />
+                <Text style={styles.contactAgencyTxt}>{t('Contacter l’agence')}</Text>
               </TouchableOpacity>
+            ) : null}
+            {booking.can_cancel ? (
               <TouchableOpacity
-                style={[styles.actionBtn, { borderColor: '#FF3B30' }]}
-                onPress={confirmCancel}
-                disabled={cancelMutation.isPending}
+                style={styles.manageLink}
+                onPress={() => setCancelFlowOpen(true)}
+                activeOpacity={0.7}
               >
-                <Text style={[styles.actionBtnTxt, { color: '#FF3B30' }]}>{t('Annuler la réservation')}</Text>
+                <Text style={styles.manageLinkTxt}>{t('Un imprévu ? Gérer cette réservation')}</Text>
               </TouchableOpacity>
-            </View>
-          </>
+            ) : null}
+          </View>
         ) : null}
 
         {/* Actions (admin/agence only) */}
@@ -378,6 +374,17 @@ export default function BookingDetailScreen() {
           hint={t('Votre avis est publié aussitôt ; l\'agence peut y répondre.')}
         />
       </Sheet>
+
+      {isClient && booking ? (
+        <BookingCancellationFlow
+          visible={cancelFlowOpen}
+          booking={booking}
+          onClose={() => setCancelFlowOpen(false)}
+          onConfirmCancel={() => cancelMutation.mutate()}
+          isCancelling={cancelMutation.isPending}
+          paidOnline={booking.status === 'confirmed' && booking.payment_status === 'paid'}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -433,4 +440,20 @@ const styles = StyleSheet.create({
   actionBtn:        { borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1.5, backgroundColor: '#FFF', ...SHADOW },
   actionBtnDisabled: { opacity: 0.5 },
   actionBtnTxt:     { fontSize: 15, fontWeight: '700' },
+
+  clientActions: { marginTop: 24, gap: 14, alignItems: 'center', paddingBottom: 8 },
+  contactAgencyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 14,
+    paddingVertical: 15,
+    ...SHADOW,
+  },
+  contactAgencyTxt: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+  manageLink: { paddingVertical: 10, paddingHorizontal: 8 },
+  manageLinkTxt: { fontSize: 13, color: '#9CA3AF', fontWeight: '600', textDecorationLine: 'underline' },
 });

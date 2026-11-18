@@ -5,11 +5,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { messagesService, type RentalMessage } from '@/services/messages.service';
+import { carsService } from '@/services/cars.service';
 import { COLORS } from '@/constants/api';
 import { useAuthStore } from '@/store/authStore';
+import { isRentalMessagingOpen } from '@/utils/rentalMessaging';
 
 import { t, jsLocale, dirIcon } from '@/i18n';
 
@@ -28,6 +31,25 @@ export default function MessageThreadScreen() {
     enabled: Number.isFinite(rid),
   });
 
+  const conversation = data?.conversation;
+  const messagingOpen =
+    conversation?.messaging_open ?? isRentalMessagingOpen(conversation?.status ?? '');
+  const agency = conversation?.agency;
+  const car = conversation?.car;
+  const carId = car?.id;
+
+  const { data: carDetail } = useQuery({
+    queryKey: ['car', carId, 'message-thread'],
+    queryFn: () => carsService.getCar(carId!),
+    enabled: Number.isFinite(carId) && !car?.image,
+  });
+
+  const carImage = car?.image ?? carDetail?.images?.[0];
+  const carLabel = car?.name || carDetail?.name || conversation?.subtitle || t('Véhicule');
+
+  const agencyName = agency?.name ?? conversation?.title ?? t('Conversation');
+  const agencyAvatar = agency?.profile_picture;
+
   const sendMutation = useMutation({
     mutationFn: (message: string) => messagesService.sendRental(rid, { message }),
     onSuccess: () => {
@@ -42,10 +64,66 @@ export default function MessageThreadScreen() {
   });
 
   const messages = data?.messages ?? [];
-  const conversation = data?.conversation;
-  const agency = conversation?.agency;
-  const agencyName = agency?.name ?? conversation?.title ?? 'Conversation';
-  const carSubtitle = conversation?.subtitle;
+
+  const openAgency = () => {
+    if (agency?.id) router.push(`/agency/${agency.id}`);
+  };
+
+  const openCar = () => {
+    if (carId) router.push(`/car/${carId}`);
+  };
+
+  const listHeader = useMemo(
+    () => (
+      <View style={styles.contextBlock}>
+        {agency ? (
+          <TouchableOpacity
+            style={styles.agencyCard}
+            onPress={openAgency}
+            activeOpacity={0.85}
+            disabled={!agency.id}
+          >
+            {agencyAvatar ? (
+              <Image source={{ uri: agencyAvatar }} style={styles.agencyAvatar} contentFit="cover" />
+            ) : (
+              <View style={[styles.agencyAvatar, styles.avatarFallback]}>
+                <Ionicons name="business" size={22} color={COLORS.secondary} />
+              </View>
+            )}
+            <View style={styles.agencyBody}>
+              <Text style={styles.agencyLabel}>{t('Agence')}</Text>
+              <Text style={styles.agencyName} numberOfLines={1}>{agencyName}</Text>
+              {agency.city ? (
+                <Text style={styles.agencyCity} numberOfLines={1}>{agency.city}</Text>
+              ) : null}
+            </View>
+            {agency.id ? (
+              <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+            ) : null}
+          </TouchableOpacity>
+        ) : null}
+
+        {carId ? (
+          <TouchableOpacity style={styles.rentalCard} onPress={openCar} activeOpacity={0.88}>
+            {carImage ? (
+              <Image source={{ uri: carImage }} style={styles.rentalThumb} contentFit="cover" />
+            ) : (
+              <View style={[styles.rentalThumb, styles.avatarFallback]}>
+                <Ionicons name="car-sport-outline" size={26} color={COLORS.primary} />
+              </View>
+            )}
+            <View style={styles.rentalBody}>
+              <Text style={styles.rentalLabel}>{t('Véhicule de la location')}</Text>
+              <Text style={styles.rentalTitle} numberOfLines={2}>{carLabel}</Text>
+              <Text style={styles.rentalLink}>{t('Voir le détail du véhicule')}</Text>
+            </View>
+            <Ionicons name="open-outline" size={18} color={COLORS.primary} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    ),
+    [agency, agencyAvatar, agencyName, carId, carImage, carLabel],
+  );
 
   const renderItem = ({ item }: { item: RentalMessage }) => {
     const mine = item.sender_id === userId;
@@ -70,21 +148,8 @@ export default function MessageThreadScreen() {
           <Ionicons name={dirIcon('chevron-back')} size={24} color={COLORS.primary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          {agency?.id ? (
-            <TouchableOpacity
-              style={styles.headerTitleBtn}
-              onPress={() => router.push(`/agency/${agency.id}`)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.headerTitle} numberOfLines={1}>{agencyName}</Text>
-              <Ionicons name={dirIcon('chevron-forward')} size={14} color={COLORS.primary} />
-            </TouchableOpacity>
-          ) : (
-            <Text style={styles.headerTitle} numberOfLines={1}>{agencyName}</Text>
-          )}
-          {carSubtitle ? (
-            <Text style={styles.headerSub} numberOfLines={1}>{carSubtitle}</Text>
-          ) : null}
+          <Text style={styles.headerTitle} numberOfLines={1}>{t('Messages')}</Text>
+          <Text style={styles.headerSub} numberOfLines={1}>{agencyName}</Text>
         </View>
         <View style={{ width: 24 }} />
       </View>
@@ -102,35 +167,45 @@ export default function MessageThreadScreen() {
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={styles.list}
             inverted
+            ListFooterComponent={listHeader}
             renderItem={renderItem}
           />
-          {sendError ? (
+          {sendError && messagingOpen ? (
             <View style={styles.sendErrorBar}>
               <Ionicons name="alert-circle-outline" size={16} color="#B45309" />
               <Text style={styles.sendErrorTxt}>{sendError}</Text>
             </View>
           ) : null}
-          <View style={styles.composer}>
-            <TextInput
-              style={styles.input}
-              value={text}
-              onChangeText={setText}
-              placeholder={t('Votre message…')}
-              placeholderTextColor="#9CA3AF"
-              multiline
-            />
-            <TouchableOpacity
-              style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
-              disabled={!text.trim() || sendMutation.isPending}
-              onPress={() => sendMutation.mutate(text.trim())}
-            >
-              {sendMutation.isPending ? (
-                <ActivityIndicator color="#FFF" size="small" />
-              ) : (
-                <Ionicons name="send" size={18} color="#FFF" />
-              )}
-            </TouchableOpacity>
-          </View>
+          {messagingOpen ? (
+            <View style={styles.composer}>
+              <TextInput
+                style={styles.input}
+                value={text}
+                onChangeText={setText}
+                placeholder={t('Votre message…')}
+                placeholderTextColor="#9CA3AF"
+                multiline
+              />
+              <TouchableOpacity
+                style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
+                disabled={!text.trim() || sendMutation.isPending}
+                onPress={() => sendMutation.mutate(text.trim())}
+              >
+                {sendMutation.isPending ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Ionicons name="send" size={18} color="#FFF" />
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.closedBar}>
+              <Ionicons name="lock-closed-outline" size={16} color="#6B7280" />
+              <Text style={styles.closedBarTxt}>
+                {t('Réservation terminée ou annulée — historique en lecture seule.')}
+              </Text>
+            </View>
+          )}
         </KeyboardAvoidingView>
       )}
     </SafeAreaView>
@@ -145,10 +220,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB',
   },
   headerCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  headerTitleBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: '100%' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: COLORS.primary, textAlign: 'center', flexShrink: 1 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: COLORS.primary, textAlign: 'center' },
   headerSub: { fontSize: 12, color: '#6B7280', marginTop: 2, textAlign: 'center' },
-  list: { padding: 16, gap: 8 },
+  list: { padding: 16, gap: 8, paddingBottom: 8 },
+  contextBlock: { gap: 10, marginBottom: 16, marginTop: 4 },
+  agencyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  agencyAvatar: { width: 52, height: 52, borderRadius: 14 },
+  avatarFallback: {
+    backgroundColor: '#EBF5FB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  agencyBody: { flex: 1, minWidth: 0 },
+  agencyLabel: { fontSize: 11, fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.4 },
+  agencyName: { fontSize: 16, fontWeight: '800', color: '#111827', marginTop: 2 },
+  agencyCity: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  rentalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#D6EAF8',
+  },
+  rentalThumb: { width: 72, height: 56, borderRadius: 12 },
+  rentalBody: { flex: 1, minWidth: 0 },
+  rentalLabel: { fontSize: 11, fontWeight: '700', color: COLORS.secondary, textTransform: 'uppercase', letterSpacing: 0.4 },
+  rentalTitle: { fontSize: 15, fontWeight: '800', color: '#111827', marginTop: 2 },
+  rentalLink: { fontSize: 13, fontWeight: '700', color: COLORS.primary, marginTop: 4 },
   bubbleWrap: { alignItems: 'flex-start', marginBottom: 8 },
   bubbleWrapMine: { alignItems: 'flex-end' },
   bubble: {
@@ -188,4 +298,15 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.45 },
+  closedBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#F3F4F6',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E5E7EB',
+  },
+  closedBarTxt: { flex: 1, fontSize: 13, color: '#6B7280', fontWeight: '600', lineHeight: 18 },
 });

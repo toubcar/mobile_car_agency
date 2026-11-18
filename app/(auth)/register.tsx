@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,8 +19,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { replaceRootByRole } from '@/utils/replaceByRole';
+import { CITIES, getQuartersForCity } from '@/constants/locations';
 
-import { t, dirIcon } from '@/i18n';
+import { t, tl, dirIcon } from '@/i18n';
 
 const { width: W } = Dimensions.get('window');
 
@@ -48,9 +49,12 @@ export default function RegisterScreen() {
   const [name,  setName]  = useState('');
   const [email, setEmail] = useState(typeof emailParam === 'string' ? emailParam : '');
   const [phone, setPhone] = useState('');
-  // an agency also gives where it is (the website asks the same)
+  // an agency also gives where it is: city and district, as on the website
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
+  const [quartier, setQuartier] = useState('');
+
+  const quarters = useMemo(() => getQuartersForCity(city), [city]);
 
   /* ── Step 2 fields ── */
   const [password,     setPassword]     = useState('');
@@ -70,11 +74,12 @@ export default function RegisterScreen() {
   const passwordValid = rules.every((r) => r.ok);
 
   /* ── Step 1 validation ── */
+  const step1BaseValid =
+    name.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && phone.trim().length >= 8;
+  const step1AgencyValid =
+    address.trim().length >= 3 && Boolean(city) && Boolean(quartier);
   const step1Valid =
-    name.trim().length >= 2 &&
-    /\S+@\S+\.\S+/.test(email) &&
-    phone.trim().length >= 8 &&
-    (accountType !== 'agency' || (address.trim().length >= 3 && city.trim().length >= 2));
+    accountType === 'agency' ? step1BaseValid && step1AgencyValid : step1BaseValid;
 
   /* ── Navigation ── */
   const goBack = () => {
@@ -102,7 +107,14 @@ export default function RegisterScreen() {
         email.trim(),
         password,
         phone.trim(),
-        accountType === 'agency' ? { address: address.trim(), city: city.trim() } : undefined,
+        accountType === 'agency'
+          ? {
+              role: 'agence',
+              address: address.trim(),
+              city,
+              quartier,
+            }
+          : undefined,
       );
       replaceRootByRole(router, useAuthStore.getState().role);
     } catch (error: any) {
@@ -205,7 +217,7 @@ export default function RegisterScreen() {
                 {accountType === 'agency' ? (
                   <>
                     <View style={styles.inputWrap}>
-                      <Ionicons name="location-outline" size={17} color="#6B7280" style={styles.inputIcon} />
+                      <Ionicons name="home-outline" size={17} color="#6B7280" style={styles.inputIcon} />
                       <TextInput
                         style={styles.input}
                         placeholder={t('Adresse de l\'agence')}
@@ -214,17 +226,41 @@ export default function RegisterScreen() {
                         onChangeText={setAddress}
                       />
                     </View>
-                    <View style={styles.inputWrap}>
-                      <Ionicons name="business-outline" size={17} color="#6B7280" style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.input}
-                        placeholder={t('Ville')}
-                        placeholderTextColor="#9CA3AF"
-                        value={city}
-                        onChangeText={setCity}
-                        autoCapitalize="words"
-                      />
+
+                    <Text style={styles.chipSectionLabel}>{t('Ville')}</Text>
+                    <View style={styles.chipGrid}>
+                      {CITIES.map((c) => (
+                        <TouchableOpacity
+                          key={c}
+                          style={[styles.chip, city === c && styles.chipActive]}
+                          onPress={() => {
+                            setCity(c);
+                            setQuartier('');
+                          }}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={[styles.chipText, city === c && styles.chipTextActive]}>{tl(c)}</Text>
+                        </TouchableOpacity>
+                      ))}
                     </View>
+
+                    <Text style={styles.chipSectionLabel}>{t('Quartier')}</Text>
+                    {!city ? (
+                      <Text style={styles.chipHint}>{t('Choisissez d\'abord une ville.')}</Text>
+                    ) : (
+                      <View style={styles.chipGrid}>
+                        {quarters.map((q) => (
+                          <TouchableOpacity
+                            key={q}
+                            style={[styles.chip, quartier === q && styles.chipActive]}
+                            onPress={() => setQuartier(quartier === q ? '' : q)}
+                            activeOpacity={0.75}
+                          >
+                            <Text style={[styles.chipText, quartier === q && styles.chipTextActive]}>{q}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
                     <Text style={styles.stepSub}>
                       {t('Votre compte sera actif après validation par l\'équipe ToubCar. Vous pourrez compléter votre profil et vos documents en attendant.')}
                     </Text>
@@ -422,6 +458,26 @@ const styles = StyleSheet.create({
     color: '#1A1A2E',
   },
   eyeBtn: { paddingLeft: 8 },
+  chipSectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1A1A2E',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  chipHint: { fontSize: 13, color: '#6B7280', marginBottom: 10 },
+  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+  },
+  chipActive: { backgroundColor: '#1D3557', borderColor: '#1D3557' },
+  chipText: { fontSize: 13, fontWeight: '600', color: '#4B5563' },
+  chipTextActive: { color: '#FFFFFF' },
 
   /* Password rules */
   rules: { gap: 10, marginTop: 4 },

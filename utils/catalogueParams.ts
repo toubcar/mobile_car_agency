@@ -7,6 +7,8 @@ import type { CatalogueSort, SearchParams } from '@/types';
 export interface CatalogueQuery {
   q?: string;
   location?: string;
+  /** Quartier (district) de la ville */
+  quartier?: string;
   category?: string;
   brand?: string;
   start_date?: string;
@@ -45,6 +47,7 @@ export function queryFromRoute(params: RouteParams): CatalogueQuery {
   return {
     q: first(params.q),
     location: first(params.location),
+    quartier: first(params.quartier),
     category: first(params.category),
     brand: first(params.brand),
     start_date: first(params.start_date),

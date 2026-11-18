@@ -149,9 +149,20 @@ export default function LoginScreen() {
                 </Text>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity style={styles.footerLink} onPress={() => goToHome(router)} activeOpacity={0.7}>
-                <Text style={styles.footerLinkText}>{t('Retour à l’accueil voyageur')}</Text>
-              </TouchableOpacity>
+              <View style={styles.staffFooter}>
+                <TouchableOpacity
+                  style={styles.staffFooterLink}
+                  onPress={() => router.push({ pathname: '/(auth)/register', params: { type: 'agency' } })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.footerLinkText}>
+                    {t('Nouvelle agence ?')} <Text style={styles.footerLinkBold}>{t('S’inscrire')}</Text>
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.staffFooterLink} onPress={() => goToHome(router)} activeOpacity={0.7}>
+                  <Text style={styles.footerLinkText}>{t('Retour à l’accueil voyageur')}</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -200,6 +211,8 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   footerLink: { marginTop: 28, alignItems: 'center' },
+  staffFooter: { marginTop: 28, gap: 12, alignItems: 'center' },
+  staffFooterLink: { alignItems: 'center' },
   footerLinkText: { fontSize: 14, color: '#6B7280' },
   footerLinkBold: { color: COLORS.primary, fontWeight: '700' },
 });

@@ -14,7 +14,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +23,7 @@ import { bookingsService } from '../../services/bookings.service';
 import { COLORS } from '../../constants/api';
 import { Booking, Car } from '../../types';
 import { formatMoney } from '@/utils/money';
+import { canMessageBooking } from '@/utils/rentalMessaging';
 import { useAuthStore } from '../../store/authStore';
 import { useAuthSheet } from '@/contexts/AuthSheetContext';
 import { formatFrenchDate, toIsoDate } from '@/components/BookingDateRangePicker';
@@ -389,16 +390,7 @@ function BookingCard({
   const router = useRouter();
   const statusConfig = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.pending;
 
-  const cancelMutation = useMutation({
-    mutationFn: () => bookingsService.cancelBooking(booking.id),
-    onSuccess: () => {
-      Alert.alert(t('Annulée'), t('Votre réservation a été annulée.'));
-      onRefresh();
-    },
-    onError: () => Alert.alert(t('Erreur'), t('Impossible d’annuler cette réservation.')),
-  });
-
-  const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
+  const canManageBooking = booking.status === 'pending' || booking.status === 'confirmed';
   const carLabel = booking.car?.name || [booking.car?.brand, booking.car?.model].filter(Boolean).join(' ');
 
   return (
@@ -439,24 +431,23 @@ function BookingCard({
           {t('Total :')} <Text style={styles.totalPriceNum}>{formatMoney(booking.total_price)}</Text>
         </Text>
         <View style={[styles.cardActions, isCompact && styles.cardActionsCompact]}>
-          <TouchableOpacity
-            style={[styles.msgBtn, isCompact && styles.actionBtnCompact]}
-            onPress={(e) => { e.stopPropagation?.(); router.push(`/messages/${booking.id}`); }}
-          >
-            <Text style={[styles.msgBtnTxt, isCompact && styles.actionTxtCompact]}>{t('Messages')}</Text>
-          </TouchableOpacity>
-          {canCancel ? (
+          {canMessageBooking(booking) ? (
             <TouchableOpacity
-              style={[styles.cancelBtn, isCompact && styles.actionBtnCompact]}
+              style={[styles.msgBtn, isCompact && styles.actionBtnCompact]}
+              onPress={(e) => { e.stopPropagation?.(); router.push(`/messages/${booking.id}`); }}
+            >
+              <Text style={[styles.msgBtnTxt, isCompact && styles.actionTxtCompact]}>{t('Messages')}</Text>
+            </TouchableOpacity>
+          ) : null}
+          {canManageBooking ? (
+            <TouchableOpacity
+              style={[styles.manageBtn, isCompact && styles.actionBtnCompact]}
               onPress={(e) => {
                 e.stopPropagation?.();
-                Alert.alert(t('Annuler'), t('Confirmer l’annulation de cette réservation ?'), [
-                  { text: t('Non'), style: 'cancel' },
-                  { text: t('Oui'), style: 'destructive', onPress: () => cancelMutation.mutate() },
-                ]);
+                router.push(`/booking/${booking.id}?openManage=1`);
               }}
             >
-              <Text style={[styles.cancelBtnTxt, isCompact && styles.actionTxtCompact]}>{t('Annuler')}</Text>
+              <Text style={[styles.manageBtnTxt, isCompact && styles.actionTxtCompact]}>{t('Gérer')}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -611,8 +602,8 @@ const styles = StyleSheet.create({
   cardActionsCompact: { justifyContent: 'flex-start' },
   msgBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: COLORS.primary },
   msgBtnTxt: { color: COLORS.white, fontSize: 12, fontWeight: '700' },
-  cancelBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: COLORS.error + '18' },
-  cancelBtnTxt: { color: COLORS.error, fontSize: 12, fontWeight: '700' },
+  manageBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB' },
+  manageBtnTxt: { color: '#6B7280', fontSize: 12, fontWeight: '700' },
   actionBtnCompact: { paddingHorizontal: 10, paddingVertical: 8 },
   actionTxtCompact: { fontSize: 11 },
   totalPrice: { fontSize: 14, color: COLORS.gray },

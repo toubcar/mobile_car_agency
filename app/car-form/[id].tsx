@@ -50,7 +50,7 @@ export default function CarFormScreen() {
     brand: '', model: '', registration_number: '', year: new Date().getFullYear(),
     price_per_day: 0, seats: 5,
     transmission: 'manual', fuel_type: 'Essence',
-    is_available: true, description: '',
+    is_available: true, has_delivery: false, description: '',
   });
 
   // ToubCar's rate on this agency's prices: the price customers see is shown under the agency's price
@@ -211,12 +211,28 @@ export default function CarFormScreen() {
           {/* Availability */}
           <Text style={styles.section}>{t('Disponibilité')}</Text>
           <View style={[styles.card, styles.availabilityCard]}>
-            <View style={[styles.rowField, { paddingVertical: 14 }]}>
+            <View style={[styles.rowField, styles.fieldBorder, { paddingVertical: 14 }]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.availabilityTitle}>{t('Disponible à la location')}</Text>
                 <Text style={styles.availabilitySub}>{form.is_available ? t('Visible aux clients et prêt à réserver') : t('Masqué aux clients, gardé côté back-office')}</Text>
               </View>
               <Switch value={form.is_available ?? true} onValueChange={(v) => set('is_available', v)} trackColor={{ false: '#E5E5EA', true: COLORS.primary }} thumbColor="#FFF" />
+            </View>
+            <View style={[styles.rowField, { paddingVertical: 14 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.availabilityTitle}>{t('Livraison du véhicule')}</Text>
+                <Text style={styles.availabilitySub}>
+                  {form.has_delivery
+                    ? t('Affiché aux clients comme inclus dans la location')
+                    : t('Le client devra récupérer le véhicule sur place')}
+                </Text>
+              </View>
+              <Switch
+                value={form.has_delivery ?? false}
+                onValueChange={(v) => set('has_delivery', v)}
+                trackColor={{ false: '#E5E5EA', true: COLORS.primary }}
+                thumbColor="#FFF"
+              />
             </View>
           </View>
 

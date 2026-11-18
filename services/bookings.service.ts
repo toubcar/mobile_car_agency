@@ -67,6 +67,7 @@ function rentalPayloadToCar(carRaw: unknown, agencyRaw: unknown): Car {
     category: (c.category as Car['category']) ?? 'Economy',
     price_per_day: Number(c.price_per_day) || 0,
     location: a.city != null ? String(a.city) : '',
+    quartier: a.quartier != null ? String(a.quartier) : undefined,
     rating: Number(c.rating) || 0,
     reviews_count: Number(c.reviews_count) || 0,
     images,
@@ -85,6 +86,9 @@ function normalizeClientRental(raw: unknown, viewer: User | null): Booking {
   const agency = (r.agency && typeof r.agency === 'object' ? r.agency : {}) as Record<string, unknown>;
   if (!car.location && agency.city) {
     car.location = String(agency.city);
+  }
+  if (!car.quartier && agency.quartier) {
+    car.quartier = String(agency.quartier);
   }
 
   const vu =

@@ -58,6 +58,7 @@ export default function SearchScreen() {
   const filters = useMemo(() => ({ ...query, q: typed || undefined }), [query, typed]);
   const filterCount = activeFilterCount(filters);
   const sort = filters.sort ?? 'default';
+  const quartier = filters.quartier;
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching, isError } = useInfiniteQuery({
     queryKey: ['cars', 'search', filters],
@@ -74,6 +75,12 @@ export default function SearchScreen() {
 
   const openFilters = () => {
     router.push({ pathname: '/(tabs)/search-filters', params: routeFromQuery({ ...query, q: typed || undefined }) });
+  };
+
+  const resetFilters = () => {
+    setText('');
+    setTyped('');
+    router.replace('/(tabs)/search');
   };
 
   const changeSort = (next: CatalogueSort) => {
@@ -115,12 +122,18 @@ export default function SearchScreen() {
         </View>
 
         {filterCount > 0 ? (
-          <TouchableOpacity style={styles.filtersSummary} onPress={openFilters} activeOpacity={0.85}>
-            <View style={styles.filtersSummaryBody}>
+          <View style={styles.filtersSummary}>
+            <TouchableOpacity style={styles.filtersSummaryBody} onPress={openFilters} activeOpacity={0.85}>
               {filters.location ? (
                 <View style={styles.filterTag}>
                   <Ionicons name="location-outline" size={12} color="#1D3557" />
                   <Text style={styles.filterTagText}>{filters.location}</Text>
+                </View>
+              ) : null}
+              {quartier ? (
+                <View style={styles.filterTag}>
+                  <Ionicons name="map-outline" size={12} color="#1D3557" />
+                  <Text style={styles.filterTagText}>{quartier}</Text>
                 </View>
               ) : null}
               {startLabel && endLabel ? (
@@ -153,9 +166,19 @@ export default function SearchScreen() {
                   </Text>
                 </View>
               ) : null}
-            </View>
-            <Text style={styles.editFilters}>{t('Modifier')}</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={openFilters} hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}>
+              <Text style={styles.editFilters}>{t('Modifier')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.resetFilterBtn}
+              onPress={resetFilters}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+              accessibilityLabel={t('Réinitialiser les filtres')}
+            >
+              <Ionicons name="close-circle" size={22} color="#1D3557" />
+            </TouchableOpacity>
+          </View>
         ) : (
           <TouchableOpacity style={styles.addFiltersBtn} onPress={openFilters} activeOpacity={0.85}>
             <Ionicons name="options-outline" size={16} color="#1D3557" />
@@ -347,6 +370,12 @@ const styles = StyleSheet.create({
   filterTag: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   filterTagText: { fontSize: 12, fontWeight: '600', color: '#1D3557', flex: 1 },
   editFilters: { fontSize: 12, fontWeight: '800', color: '#1D3557' },
+  resetFilterBtn: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   addFiltersBtn: {
     flexDirection: 'row',
     alignItems: 'center',

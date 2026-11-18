@@ -19,8 +19,8 @@ const SECTIONS = [
   {
     get title() { return t('Compte'); },
     items: [
-      { get label() { return t('Informations personnelles'); }, get sub() { return t('Nom, e-mail, téléphone'); }, route: '/settings/personal-info' },
-      { get label() { return t('Connexion et sécurité'); }, get sub() { return t('Mot de passe, comptes liés'); }, route: '/settings/login-security' },
+      { get label() { return t('Informations personnelles'); }, get sub() { return t('Nom et téléphone'); }, route: '/settings/personal-info' },
+      { get label() { return t('Connexion et sécurité'); }, get sub() { return t('Adresse e-mail, mot de passe'); }, route: '/settings/login-security' },
     ],
   },
   {

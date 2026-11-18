@@ -3,9 +3,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -16,42 +14,24 @@ import { LinearGradient } from 'expo-linear-gradient';
 import PageHeader from '@/components/PageHeader';
 import { COLORS } from '@/constants/api';
 import { agencyService } from '@/services/agency.service';
+import { t } from '@/i18n';
 
-import { t, dirIcon } from '@/i18n';
+function firstNameOnly(full?: string | null): string | null {
+  const trimmed = full?.trim();
+  if (!trimmed) return null;
+  return trimmed.split(/\s+/)[0] ?? null;
+}
 
-function InfoRow({
-  icon,
-  label,
-  value,
-  onPress,
-}: {
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  value?: string | null;
-  onPress?: () => void;
-}) {
-  if (!value) return null;
-  const content = (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIcon}>
-        <Ionicons name={icon} size={18} color={COLORS.primary} />
-      </View>
-      <View style={styles.infoBody}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={[styles.infoValue, onPress && styles.infoValueLink]}>{value}</Text>
-      </View>
-      {onPress ? <Ionicons name={dirIcon('chevron-forward')} size={16} color={COLORS.gray} /> : null}
-    </View>
-  );
-
-  if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
-        {content}
-      </TouchableOpacity>
-    );
-  }
-  return content;
+function formatAddress(agency: {
+  address?: string | null;
+  quartier?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+}): string | null {
+  const line = [agency.address, agency.quartier, agency.city, agency.postal_code]
+    .filter(Boolean)
+    .join(', ');
+  return line || null;
 }
 
 export default function AgencyProfileScreen() {
@@ -63,6 +43,10 @@ export default function AgencyProfileScreen() {
     queryFn: () => agencyService.getPublicProfile(agencyId),
     enabled: Number.isFinite(agencyId),
   });
+
+  const prenom =
+    firstNameOnly(agency?.responsable_name) ?? firstNameOnly(agency?.name) ?? agency?.name ?? null;
+  const adresse = agency ? formatAddress(agency) : null;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -83,61 +67,15 @@ export default function AgencyProfileScreen() {
               <Image source={{ uri: agency.profile_picture }} style={styles.avatar} contentFit="cover" />
             ) : (
               <View style={[styles.avatar, styles.avatarFallback]}>
-                <Ionicons name="business" size={36} color={COLORS.secondary} />
+                <Ionicons name="person-outline" size={36} color={COLORS.secondary} />
               </View>
             )}
-            <Text style={styles.agencyName}>{agency.name}</Text>
-            {agency.city ? (
-              <View style={styles.cityRow}>
-                <Ionicons name="location-outline" size={14} color={COLORS.secondary} />
-                <Text style={styles.cityText}>{agency.city}</Text>
+            {prenom ? <Text style={styles.prenom}>{prenom}</Text> : null}
+            {adresse ? (
+              <View style={styles.addressRow}>
+                <Ionicons name="location-outline" size={16} color={COLORS.secondary} />
+                <Text style={styles.addressText}>{adresse}</Text>
               </View>
-            ) : null}
-            {agency.available_cars_count != null ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeTxt}>
-                  {agency.available_cars_count} {t('véhicule')}{agency.available_cars_count > 1 ? 's' : ''} disponible
-                  {agency.available_cars_count > 1 ? 's' : ''}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          {agency.description ? (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{t('À propos')}</Text>
-              <Text style={styles.description}>{agency.description}</Text>
-            </View>
-          ) : null}
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('Contact')}</Text>
-            <InfoRow
-              icon="call-outline"
-              label={t('Téléphone')}
-              value={agency.phone}
-              onPress={agency.phone ? () => Linking.openURL(`tel:${agency.phone}`) : undefined}
-            />
-            <InfoRow
-              icon="mail-outline"
-              label={t('E-mail')}
-              value={agency.email}
-              onPress={agency.email ? () => Linking.openURL(`mailto:${agency.email}`) : undefined}
-            />
-            <InfoRow
-              icon="location-outline"
-              label={t('Adresse')}
-              value={[agency.address, agency.city, agency.postal_code].filter(Boolean).join(', ') || null}
-            />
-            {agency.responsable_name ? (
-              <InfoRow icon="person-outline" label={t('Responsable')} value={agency.responsable_name} />
-            ) : null}
-            {agency.years_in_business ? (
-              <InfoRow
-                icon="time-outline"
-                label={t('Expérience')}
-                value={`${agency.years_in_business} an${agency.years_in_business > 1 ? 's' : ''} d'activité`}
-              />
             ) : null}
           </View>
         </ScrollView>
@@ -176,47 +114,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGray,
   },
-  agencyName: { fontSize: 22, fontWeight: '800', color: COLORS.primary, textAlign: 'center' },
-  cityRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
-  cityText: { fontSize: 14, color: COLORS.gray, fontWeight: '600' },
-  badge: {
-    marginTop: 12,
-    backgroundColor: COLORS.background,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-  },
-  badgeTxt: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
-  section: {
-    backgroundColor: COLORS.white,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-  },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: COLORS.primary, marginBottom: 12 },
-  description: { fontSize: 14, color: COLORS.gray, lineHeight: 21 },
-  infoRow: {
+  prenom: { fontSize: 22, fontWeight: '800', color: COLORS.primary, textAlign: 'center' },
+  addressRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.border,
+    alignItems: 'flex-start',
+    gap: 8,
+    marginTop: 14,
+    paddingHorizontal: 8,
   },
-  infoIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: COLORS.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+  addressText: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.gray,
+    fontWeight: '600',
+    lineHeight: 20,
+    textAlign: 'center',
   },
-  infoBody: { flex: 1 },
-  infoLabel: { fontSize: 11, fontWeight: '600', color: COLORS.gray, textTransform: 'uppercase', letterSpacing: 0.3 },
-  infoValue: { fontSize: 15, fontWeight: '600', color: COLORS.black, marginTop: 2 },
-  infoValueLink: { color: COLORS.primary },
 });

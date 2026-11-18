@@ -12,13 +12,18 @@ export const authService = {
     return response.data;
   },
 
-  /** Inscription client, ou agence partenaire (`agency` : compte en attente de validation par l'administrateur). */
+  /** Inscription client, ou agence partenaire (`extras.role` : compte en attente de validation par l'administrateur). */
   async register(
     name: string,
     email: string,
     password: string,
     phone?: string,
-    agency?: { address: string; city: string },
+    extras?: {
+      role?: 'agence';
+      address?: string;
+      city?: string;
+      quartier?: string;
+    },
   ): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/register', {
       name,
@@ -26,7 +31,10 @@ export const authService = {
       password,
       password_confirmation: password,
       phone,
-      ...(agency ? { role: 'agence', address: agency.address, city: agency.city } : {}),
+      ...(extras?.role ? { role: extras.role } : {}),
+      ...(extras?.address ? { address: extras.address } : {}),
+      ...(extras?.city ? { city: extras.city } : {}),
+      ...(extras?.quartier ? { quartier: extras.quartier } : {}),
     });
     await tokenStorage.set(response.data.token);
     return response.data;

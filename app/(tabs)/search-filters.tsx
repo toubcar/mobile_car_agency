@@ -17,10 +17,9 @@ import BookingDateRangePicker, { toIsoDate } from '@/components/BookingDateRange
 import { rentalDays } from '@/utils/rental';
 import { carsService } from '@/services/cars.service';
 import { CatalogueQuery, queryFromRoute, routeFromQuery } from '@/utils/catalogueParams';
+import { CITIES, getQuartersForCity } from '@/constants/locations';
 import { t, tl } from '@/i18n';
 
-// Shown until the catalogue answers (or if it cannot): the cities the website lists first
-const FALLBACK_CITIES = ['Casablanca', 'Rabat', 'Marrakech', 'Fès', 'Tanger', 'Agadir', 'Meknès', 'Oujda'];
 const SEAT_CHOICES = [2, 4, 5, 7];
 
 function defaultStartDate(): Date {
@@ -68,6 +67,7 @@ export default function SearchFiltersScreen() {
   const initialStart = parseIsoDate(initial.start_date);
   const [useDates, setUseDates] = useState(Boolean(initialStart) || !Object.keys(params).length);
   const [city, setCity] = useState(initial.location ?? '');
+  const [quartier, setQuartier] = useState(initial.quartier ?? '');
   const [category, setCategory] = useState(initial.category ?? '');
   const [brand, setBrand] = useState(initial.brand ?? '');
   const [transmission, setTransmission] = useState<string[]>(initial.transmission ?? []);
@@ -78,7 +78,7 @@ export default function SearchFiltersScreen() {
   const [startDate, setStartDate] = useState(initialStart ?? defaultStartDate());
   const [endDate, setEndDate] = useState(() => parseIsoDate(initial.end_date) ?? defaultEndDate(initialStart ?? defaultStartDate()));
 
-  const cities = options?.cities?.length ? options.cities : FALLBACK_CITIES;
+  const quarters = useMemo(() => getQuartersForCity(city), [city]);
 
   const minStart = useMemo(() => {
     const d = new Date();
@@ -88,6 +88,11 @@ export default function SearchFiltersScreen() {
 
   const days = rentalDays(toIsoDate(startDate), toIsoDate(endDate));
 
+  const selectCity = (c: string) => {
+    setCity(city === c ? '' : c);
+    setQuartier('');
+  };
+
   const handleSearch = () => {
     const min = Number(minPrice);
     const max = Number(maxPrice);
@@ -96,6 +101,7 @@ export default function SearchFiltersScreen() {
       q: initial.q,
       sort: initial.sort,
       location: city.trim() || undefined,
+      quartier: city.trim() && quartier ? quartier : undefined,
       category: category || undefined,
       brand: brand || undefined,
       transmission,
@@ -112,6 +118,7 @@ export default function SearchFiltersScreen() {
   const handleReset = () => {
     const start = defaultStartDate();
     setCity('');
+    setQuartier('');
     setCategory('');
     setBrand('');
     setTransmission([]);
@@ -134,7 +141,7 @@ export default function SearchFiltersScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.lead}>
-          {t('Choisissez une ville, vos dates et le type de véhicule pour afficher les résultats.')}
+          {t('Choisissez une ville, un quartier, vos dates et le type de véhicule pour afficher les résultats.')}
         </Text>
 
         {/* Ville */}
@@ -150,27 +157,56 @@ export default function SearchFiltersScreen() {
               placeholder={t('Ex. Casablanca, Rabat...')}
               placeholderTextColor="#9CA3AF"
               value={city}
-              onChangeText={setCity}
+              onChangeText={(v) => { setCity(v); setQuartier(''); }}
               autoCorrect={false}
             />
             {city.length > 0 && (
-              <TouchableOpacity onPress={() => setCity('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity onPress={() => { setCity(''); setQuartier(''); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Ionicons name="close-circle" size={18} color="#9CA3AF" />
               </TouchableOpacity>
             )}
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityChips}>
-            {cities.map((c) => (
+          <View style={styles.cityGrid}>
+            {CITIES.map((c) => (
               <TouchableOpacity
                 key={c}
                 style={[styles.cityChip, city === c && styles.cityChipActive]}
-                onPress={() => setCity(city === c ? '' : c)}
+                onPress={() => selectCity(c)}
                 activeOpacity={0.75}
               >
-                <Text style={[styles.cityChipText, city === c && styles.cityChipTextActive]}>{c}</Text>
+                <Ionicons
+                  name={city === c ? 'location' : 'location-outline'}
+                  size={14}
+                  color={city === c ? '#FFFFFF' : '#6B7280'}
+                />
+                <Text style={[styles.cityChipText, city === c && styles.cityChipTextActive]}>{tl(c)}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
+        </View>
+
+        {/* Quartier */}
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Ionicons name="map-outline" size={18} color="#1D3557" />
+            <Text style={styles.sectionTitle}>{t('Quartier')}</Text>
+          </View>
+          {!city ? (
+            <Text style={styles.hint}>{t('Sélectionnez d’abord une ville pour voir les quartiers.')}</Text>
+          ) : (
+            <View style={styles.cityGrid}>
+              {quarters.map((q) => (
+                <TouchableOpacity
+                  key={q}
+                  style={[styles.cityChip, quartier === q && styles.cityChipActive]}
+                  onPress={() => setQuartier(quartier === q ? '' : q)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.cityChipText, quartier === q && styles.cityChipTextActive]}>{q}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Dates */}
@@ -325,22 +361,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
   },
+  hint: { fontSize: 12, color: '#9CA3AF' },
   section: { gap: 12 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
-  cityInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  cityInput: { flex: 1, fontSize: 15, color: '#111827', fontWeight: '500' },
-  cityChips: { gap: 8, paddingVertical: 2 },
+  cityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   cityChip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -381,7 +406,6 @@ const styles = StyleSheet.create({
   },
   priceInput: { flex: 1, fontSize: 15, color: '#111827', fontWeight: '600', padding: 0 },
   priceUnit: { fontSize: 12, color: '#9CA3AF', fontWeight: '600' },
-  hint: { fontSize: 12, color: '#9CA3AF' },
   footer: {
     flexDirection: 'row',
     gap: 10,
@@ -392,6 +416,29 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
   },
+  validateBtn: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 15,
+    borderRadius: 14,
+    backgroundColor: '#1D3557',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  validateBtnText: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
+  cityInputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  cityInput: { flex: 1, fontSize: 15, color: '#111827', fontWeight: '500' },
+  cityChips: { gap: 8, paddingVertical: 2 },
   resetBtn: {
     flex: 1,
     paddingVertical: 14,
