@@ -6,10 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { carsService } from '@/services/cars.service';
 import { formatMoneyPerDay } from '@/utils/money';
+import { exportsService } from '@/services/exports.service';
+import { openInBrowser } from '@/utils/openLink';
+import { serverMessage } from '@/utils/apiError';
 import type { Car } from '@/types';
 
 import { t } from '@/i18n';
@@ -23,9 +26,18 @@ export default function AdminCarsScreen() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['admin-cars', search],
-    queryFn:  () => carsService.getAll(1, search),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => carsService.getAll(pageParam, search),
+    getNextPageParam: (last) => (last.current_page < last.last_page ? last.current_page + 1 : undefined),
+  });
+
+  // the website's Véhicules > Exporter (CSV), through a link valid 10 minutes
+  const exportMutation = useMutation({
+    mutationFn: () => exportsService.adminLink('vehicles'),
+    onSuccess: (url) => void openInBrowser(url),
+    onError: (err) => Alert.alert(t('Erreur'), serverMessage(err, t('L\'export n\'a pas pu être préparé.'))),
   });
 
   const toggleMutation = useMutation({
@@ -47,7 +59,8 @@ export default function AdminCarsScreen() {
     );
   }, []);
 
-  const cars = data?.data ?? [];
+  const cars = data?.pages.flatMap((page) => page.data) ?? [];
+  const total = data?.pages[0]?.total ?? 0;
   const filtered = filter ? cars.filter((c) => String(c.is_available) === filter) : cars;
   const availableCount = cars.filter((c) => c.is_available).length;
   const unavailableCount = cars.length - availableCount;
@@ -55,6 +68,15 @@ export default function AdminCarsScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
+        <TouchableOpacity
+          style={[styles.addBtn, styles.exportBtn]}
+          onPress={() => exportMutation.mutate()}
+          disabled={exportMutation.isPending}
+          activeOpacity={0.8}
+          accessibilityLabel={t('Exporter (CSV)')}
+        >
+          {exportMutation.isPending ? <ActivityIndicator color={COLORS.primary} size="small" /> : <Ionicons name="download-outline" size={20} color={COLORS.primary} />}
+        </TouchableOpacity>
         <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/car-form/new' as any)} activeOpacity={0.8}>
           <Ionicons name="add" size={22} color="#FFF" />
         </TouchableOpacity>
@@ -67,12 +89,12 @@ export default function AdminCarsScreen() {
         <View style={{ flex: 1 }}>
           <Text style={styles.heroKicker}>{t('Catalogue admin')}</Text>
           <Text style={styles.heroTitle}>{t('Gestion véhicules')}</Text>
-          <Text style={styles.heroSub}>{data?.total ?? 0} {t('véhicules')}</Text>
+          <Text style={styles.heroSub}>{total} {t('véhicules')}</Text>
         </View>
       </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}><Text style={styles.statVal}>{cars.length}</Text><Text style={styles.statLabel}>{t('Total')}</Text></View>
+        <View style={styles.statCard}><Text style={styles.statVal}>{total}</Text><Text style={styles.statLabel}>{t('Total')}</Text></View>
         <View style={styles.statCard}><Text style={[styles.statVal, { color: '#065F46' }]}>{availableCount}</Text><Text style={styles.statLabel}>{t('Disponibles')}</Text></View>
         <View style={styles.statCard}><Text style={[styles.statVal, { color: '#991B1B' }]}>{unavailableCount}</Text><Text style={styles.statLabel}>{t('Indispo.')}</Text></View>
       </View>
@@ -115,6 +137,9 @@ export default function AdminCarsScreen() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} tintColor={COLORS.primary} />}
+          onEndReached={() => { if (hasNextPage && !isFetchingNextPage) void fetchNextPage(); }}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={isFetchingNextPage ? <ActivityIndicator color={COLORS.primary} style={{ marginVertical: 16 }} /> : null}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.card} onPress={() => router.push(`/car-form/${item.id}` as any)} activeOpacity={0.8}>
               <View style={styles.cardBody}>
@@ -141,7 +166,10 @@ export default function AdminCarsScreen() {
                     <View style={styles.spec}><Ionicons name="settings-outline" size={12} color="#8E8E93" /><Text style={styles.specTxt}>{item.transmission === 'automatic' ? t('Auto') : t('Man.')}</Text></View>
                     {item.rating ? <View style={styles.spec}><Ionicons name="star" size={12} color="#F59E0B" /><Text style={styles.specTxt}>{item.rating.toFixed(1)}</Text></View> : null}
                   </View>
-                  <Text style={styles.price}>{formatMoneyPerDay(item.price_per_day)}</Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.price}>{formatMoneyPerDay((item as Car & { customer_price_per_day?: number }).customer_price_per_day ?? item.price_per_day)}</Text>
+                    <Text style={styles.agencyPrice}>{t('Prix agence : :price', { price: formatMoneyPerDay(item.price_per_day) })}</Text>
+                  </View>
                 </View>
               </View>
             </TouchableOpacity>
@@ -160,7 +188,7 @@ export default function AdminCarsScreen() {
 
 const styles = StyleSheet.create({
   root:  { flex: 1, backgroundColor: '#F2F2F7' },
-  header: { alignItems: 'flex-end', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8 },
+  header: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8 },
   addBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.28, shadowRadius: 8, elevation: 5 },
   heroCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: COLORS.primary, borderRadius: 22, padding: 16, marginHorizontal: 16, marginBottom: 12, shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 8 },
   heroIcon: { width: 58, height: 58, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' },
@@ -196,6 +224,8 @@ const styles = StyleSheet.create({
   spec:       { flexDirection: 'row', alignItems: 'center', gap: 3 },
   specTxt:    { fontSize: 12, color: '#8E8E93' },
   price:      { fontSize: 15, fontWeight: '700', color: '#111827' },
+  agencyPrice: { fontSize: 11, color: '#8E8E93', marginTop: 2 },
+  exportBtn: { backgroundColor: '#FFF', marginEnd: 8, shadowOpacity: 0.08 },
   priceUnit:  { fontSize: 11, fontWeight: '400', color: '#8E8E93' },
   empty:      { alignItems: 'center', paddingTop: 80, gap: 8 },
   emptyTitle: { fontSize: 15, fontWeight: '600', color: '#6B7280' },

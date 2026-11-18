@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { carsService } from '@/services/cars.service';
+import { agencyProfileService } from '@/services/agency-profile.service';
+import { formatMoneyPerDay } from '@/utils/money';
 import { useAuthStore } from '@/store/authStore';
 import type { Car } from '@/types';
 
@@ -51,6 +53,13 @@ export default function CarFormScreen() {
     is_available: true, description: '',
   });
 
+  // ToubCar's rate on this agency's prices: the price customers see is shown under the agency's price
+  const { data: agencyProfile } = useQuery({
+    queryKey: ['agency-profile'],
+    queryFn: () => agencyProfileService.get(),
+    enabled: role === 'agence',
+  });
+
   const { data: car, isLoading } = useQuery({
     queryKey: ['car', id, scope],
     queryFn:  () =>
@@ -61,6 +70,9 @@ export default function CarFormScreen() {
   });
 
   useEffect(() => { if (car) setForm(car); }, [car]);
+
+  const carRate = (car as (Car & { commission_rate?: number }) | undefined)?.commission_rate;
+  const commissionRate: number | null = typeof carRate === 'number' ? carRate : agencyProfile?.commission_rate ?? null;
 
   const set = (key: keyof Car, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -171,6 +183,16 @@ export default function CarFormScreen() {
           <Text style={styles.section}>{t('Tarif')}</Text>
           <View style={styles.card}>
             <Field label={t('Prix / jour (DH)')} value={String(form.price_per_day ?? '')} onChangeText={(v) => set('price_per_day', parseFloat(v) || 0)} placeholder="5000" keyboardType="numeric" />
+            {commissionRate !== null && (form.price_per_day ?? 0) > 0 ? (
+              <View style={styles.pricePreview}>
+                <Text style={styles.pricePreviewMain}>
+                  {t('Prix affiché aux clients :')} <Text style={styles.pricePreviewValue}>{formatMoneyPerDay(customerPrice(form.price_per_day ?? 0, commissionRate))}</Text>
+                </Text>
+                <Text style={styles.pricePreviewHint}>
+                  {t('(commission ToubCar de :rate % incluse, vous recevez votre prix)', { rate: commissionRate })}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           {/* Description */}
@@ -216,7 +238,16 @@ export default function CarFormScreen() {
   );
 }
 
+/** Same rounding as the server (BookingPricing::customerDayPrice) */
+function customerPrice(agencyPrice: number, rate: number): number {
+  return Math.round(agencyPrice * (1 + rate / 100) * 100) / 100;
+}
+
 const styles = StyleSheet.create({
+  pricePreview: { marginHorizontal: 16, marginBottom: 14, padding: 12, borderRadius: 12, backgroundColor: '#F0F9FF', gap: 4 },
+  pricePreviewMain: { fontSize: 13, color: '#0C4A6E', fontWeight: '600' },
+  pricePreviewValue: { fontWeight: '800', color: COLORS.primary },
+  pricePreviewHint: { fontSize: 12, color: '#0369A1', lineHeight: 17 },
   root:        { flex: 1, backgroundColor: '#F2F2F7' },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 

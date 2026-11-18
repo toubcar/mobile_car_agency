@@ -7,76 +7,52 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import type { BackofficeCustomer } from '@/services/customers.service';
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { customersService } from '@/services/customers.service';
 import { formatMoney } from '@/utils/money';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
 import { ADMIN_BG } from '@/constants/adminTheme';
 
-import { t } from '@/i18n';
+import { t, dirIcon } from '@/i18n';
 
 export default function AdminCustomersScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<'clients' | 'reviews'>('clients');
 
   const clientsQuery = useQuery({
     queryKey: ['customers', search],
     queryFn: () => customersService.list({ page: 1, search: search || undefined }),
-    enabled: tab === 'clients',
-  });
-
-  const reviewsQuery = useQuery({
-    queryKey: ['reviews'],
-    queryFn: () => customersService.reviews({ per_page: 30 }),
-    enabled: tab === 'reviews',
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: ({ id, action }: { id: number; action: 'approve' | 'reject' }) =>
-      action === 'approve' ? customersService.approveReview(id) : customersService.rejectReview(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reviews'] }),
   });
 
   const clients = clientsQuery.data?.data ?? [];
-  const reviews = reviewsQuery.data?.data ?? [];
-  const isLoading = tab === 'clients' ? clientsQuery.isLoading : reviewsQuery.isLoading;
-  const refetch = tab === 'clients' ? clientsQuery.refetch : reviewsQuery.refetch;
-  const isRefetching = tab === 'clients' ? clientsQuery.isRefetching : reviewsQuery.isRefetching;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <AdminStackHeader title={t('Clients & avis')} subtitle={t('Gestion des clients')} />
 
-      <View style={styles.tabs}>
-        <TouchableOpacity style={[styles.tab, tab === 'clients' && styles.tabOn]} onPress={() => setTab('clients')}>
-          <Text style={[styles.tabTxt, tab === 'clients' && styles.tabTxtOn]}>{t('Clients')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.tab, tab === 'reviews' && styles.tabOn]} onPress={() => setTab('reviews')}>
-          <Text style={[styles.tabTxt, tab === 'reviews' && styles.tabTxtOn]}>{t('Avis')}</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.reviewsLink} onPress={() => router.push('/(admin)/reviews')} activeOpacity={0.85}>
+        <Ionicons name="star-outline" size={18} color={COLORS.primary} />
+        <Text style={styles.reviewsLinkTxt}>{t('Modération des avis clients')}</Text>
+        <Ionicons name={dirIcon('chevron-forward')} size={18} color="#9CA3AF" />
+      </TouchableOpacity>
 
-      {tab === 'clients' ? (
-        <TextInput
-          style={styles.search}
-          value={search}
-          onChangeText={setSearch}
-          placeholder={t('Rechercher un client…')}
-          placeholderTextColor="#9CA3AF"
-        />
-      ) : null}
+      <TextInput
+        style={styles.search}
+        value={search}
+        onChangeText={setSearch}
+        placeholder={t('Rechercher un client…')}
+        placeholderTextColor="#9CA3AF"
+      />
 
-      {isLoading ? (
+      {clientsQuery.isLoading ? (
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
-      ) : tab === 'clients' ? (
+      ) : (
         <FlatList
           data={clients}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
+          refreshControl={<RefreshControl refreshing={clientsQuery.isRefetching} onRefresh={clientsQuery.refetch} tintColor={COLORS.primary} />}
           renderItem={({ item }: { item: BackofficeCustomer }) => (
             <TouchableOpacity
               style={styles.card}
@@ -84,36 +60,11 @@ export default function AdminCustomersScreen() {
               onPress={() => router.push(`/(admin)/customer/${item.id}`)}
             >
               <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardSub}>{item.email ?? '—'} · {item.total_rentals} locations</Text>
+              <Text style={styles.cardSub}>{item.email ?? '—'} · {t(':count locations', { count: item.total_rentals })}</Text>
               <Text style={styles.cardMeta}>{formatMoney(item.total_spent)} · {item.loyalty_status}</Text>
             </TouchableOpacity>
           )}
           ListEmptyComponent={<Text style={styles.empty}>{t('Aucun client.')}</Text>}
-        />
-      ) : (
-        <FlatList
-          data={reviews}
-          keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primary} />}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{item.user ?? t('Client')} · ★{item.rating}</Text>
-              <Text style={styles.cardSub}>{item.target ?? item.review_type} · {item.status}</Text>
-              {item.comment ? <Text style={styles.cardComment}>{item.comment}</Text> : null}
-              {item.status === 'pending' ? (
-                <View style={styles.actions}>
-                  <TouchableOpacity style={styles.btnPrimary} onPress={() => reviewMutation.mutate({ id: item.id, action: 'approve' })}>
-                    <Text style={styles.btnPrimaryTxt}>{t('Approuver')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.btnDanger} onPress={() => reviewMutation.mutate({ id: item.id, action: 'reject' })}>
-                    <Text style={styles.btnDangerTxt}>{t('Rejeter')}</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
-            </View>
-          )}
-          ListEmptyComponent={<Text style={styles.empty}>{t('Aucun avis.')}</Text>}
         />
       )}
     </SafeAreaView>
@@ -122,13 +73,13 @@ export default function AdminCustomersScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: ADMIN_BG },
-  tabs: { flexDirection: 'row', margin: 12, backgroundColor: '#E5E7EB', borderRadius: 10, padding: 4 },
-  tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  tabOn: { backgroundColor: '#FFF' },
-  tabTxt: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
-  tabTxtOn: { color: COLORS.primary },
+  reviewsLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 12, marginTop: 12, marginBottom: 4,
+    backgroundColor: '#FFF', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: '#E5E7EB',
+  },
+  reviewsLinkTxt: { flex: 1, fontSize: 14, fontWeight: '700', color: COLORS.primary },
   search: {
-    marginHorizontal: 12, marginBottom: 8, backgroundColor: '#FFF', borderRadius: 10,
+    marginHorizontal: 12, marginTop: 8, marginBottom: 8, backgroundColor: '#FFF', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#E5E7EB',
   },
   list: { padding: 12, paddingBottom: 32, gap: 10 },
@@ -136,11 +87,5 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
   cardSub: { fontSize: 12, color: '#6B7280', marginTop: 4 },
   cardMeta: { fontSize: 12, color: COLORS.primary, marginTop: 4, fontWeight: '600' },
-  cardComment: { fontSize: 13, color: '#374151', marginTop: 8, lineHeight: 18 },
-  actions: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  btnPrimary: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: COLORS.primary },
-  btnPrimaryTxt: { fontSize: 12, fontWeight: '600', color: '#FFF' },
-  btnDanger: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FEE2E2' },
-  btnDangerTxt: { fontSize: 12, fontWeight: '600', color: '#991B1B' },
   empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 40 },
 });

@@ -61,6 +61,12 @@ export const marketingService = {
     await apiClient.patch(`/admin/agencies/${agencyId}/cancellations/reset`);
   },
 
+  /** The agency's offers (website: Tarification > Offres) and its cars to choose from */
+  async listOffers(): Promise<{ data: Array<SpecialOfferRecord & { is_running?: boolean }>; cars: Array<{ id: number; name: string; registration_number?: string | null }> }> {
+    const { data } = await apiClient.get<{ data: Array<SpecialOfferRecord & { is_running?: boolean }>; cars: Array<{ id: number; name: string; registration_number?: string | null }> }>('/agence/marketing/offers');
+    return { data: data.data ?? [], cars: data.cars ?? [] };
+  },
+
   async createOffer(payload: SpecialOfferPayload): Promise<SpecialOfferRecord> {
     const { data } = await apiClient.post<{ data: SpecialOfferRecord }>('/agence/marketing/offers', payload);
     return data.data;

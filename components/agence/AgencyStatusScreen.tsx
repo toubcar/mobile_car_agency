@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, BACKEND_URL } from '@/constants/api';
+import { COLORS } from '@/constants/api';
 import { useAuthStore } from '@/store/authStore';
 import { useLogout } from '@/hooks/useLogout';
 import { profileService } from '@/services/profile.service';
@@ -82,8 +82,8 @@ export default function AgencyStatusScreen({ agency }: { agency: UserAgencyStatu
         </TouchableOpacity>
 
         {status === 'rejected' ? (
-          <TouchableOpacity style={styles.secondary} onPress={() => void Linking.openURL(`${BACKEND_URL}/login`)} activeOpacity={0.85}>
-            <Text style={styles.secondaryText}>{t('Corriger ma demande sur le site')}</Text>
+          <TouchableOpacity style={styles.secondary} onPress={() => router.push('/agency-application' as never)} activeOpacity={0.85}>
+            <Text style={styles.secondaryText}>{t('Corriger et renvoyer ma demande')}</Text>
           </TouchableOpacity>
         ) : null}
 

@@ -26,6 +26,8 @@ export interface AgencyProfile {
   profile_picture?: string;
   status?: string;
   completion?: number;
+  /** ToubCar's rate, added to the agency's prices for its customers */
+  commission_rate?: number;
 }
 
 const unwrapProfile = (body: { data: AgencyProfile } | AgencyProfile): AgencyProfile =>

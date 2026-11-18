@@ -12,6 +12,14 @@ export interface ExternalSiteRecord {
 }
 
 export const externalSitesService = {
+  /** The external sites of the agency's cars (of one car with carId) */
+  async list(carId?: number): Promise<Array<ExternalSiteRecord & { car?: { id: number; name: string } | null }>> {
+    const { data } = await apiClient.get<{ data: Array<ExternalSiteRecord & { car?: { id: number; name: string } | null }> }>('/fleet/external-sites', {
+      params: carId ? { car_id: carId } : undefined,
+    });
+    return data.data ?? [];
+  },
+
   async create(carId: number, payload: {
     site_name: string;
     site_url: string;

@@ -1,192 +1,52 @@
 import { useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { COLORS } from '@/constants/api';
-import { adminContentService } from '@/services/admin-content.service';
-import { carsService } from '@/services/cars.service';
-import { agenciesService } from '@/services/agencies.service';
 import AdminStackHeader from '@/components/admin/AdminStackHeader';
-import type { Car, PartnerAgency } from '@/types';
+import { ADMIN_BG } from '@/constants/adminTheme';
+import { Chips } from '@/components/backoffice/ui';
+import SettingsPanel from '@/components/admin/content/SettingsPanel';
+import BannersPanel from '@/components/admin/content/BannersPanel';
+import FaqPanel from '@/components/admin/content/FaqPanel';
+import PagesPanel from '@/components/admin/content/PagesPanel';
+import FeaturedPanel from '@/components/admin/content/FeaturedPanel';
 
 import { t } from '@/i18n';
 
+type Tab = 'settings' | 'banners' | 'faq' | 'pages' | 'featured';
+
+/** The admin's Contenu, as on the website: settings, banners, help, pages (in the three languages) and featured items. */
 export default function AdminContentScreen() {
-  const queryClient = useQueryClient();
-  const [selectedCarId, setSelectedCarId] = useState<number | null>(null);
-  const [selectedAgencyId, setSelectedAgencyId] = useState<number | null>(null);
-  const [priority, setPriority] = useState('10');
-
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['admin-content'],
-    queryFn: () => adminContentService.overview(),
-  });
-
-  const { data: carsPage, isLoading: carsLoading } = useQuery({
-    queryKey: ['admin-content-cars'],
-    queryFn: () => carsService.getAll(1, ''),
-  });
-
-  const { data: agenciesPage, isLoading: agenciesLoading } = useQuery({
-    queryKey: ['admin-content-agencies'],
-    queryFn: () => agenciesService.list({ page: 1 }),
-  });
-
-  const cars = carsPage?.data ?? [];
-  const agencies = agenciesPage?.data ?? [];
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['admin-content'] });
-
-  const requireCar = () => {
-    if (!selectedCarId) {
-      Alert.alert(t('Sélection'), t('Choisissez un véhicule dans la liste.'));
-      return false;
-    }
-    return true;
-  };
-
-  const requireAgency = () => {
-    if (!selectedAgencyId) {
-      Alert.alert(t('Sélection'), t('Choisissez une agence dans la liste.'));
-      return false;
-    }
-    return true;
-  };
-
-  const carFeatured = useMutation({
-    mutationFn: () => adminContentService.toggleCarFeatured(selectedCarId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', t('Mise en avant véhicule basculée.')); },
-  });
-  const carHomepage = useMutation({
-    mutationFn: () => adminContentService.toggleCarHomepage(selectedCarId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', t('Affichage page d’accueil basculé.')); },
-  });
-  const carPriority = useMutation({
-    mutationFn: () => adminContentService.updateCarPriority(selectedCarId!, Number(priority)),
-    onSuccess: () => { invalidate(); Alert.alert('OK', t('Priorité mise à jour.')); },
-  });
-  const agencyFeatured = useMutation({
-    mutationFn: () => adminContentService.toggleAgencyFeatured(selectedAgencyId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', t('Mise en avant agence basculée.')); },
-  });
-  const agencyHomepage = useMutation({
-    mutationFn: () => adminContentService.toggleAgencyHomepage(selectedAgencyId!),
-    onSuccess: () => { invalidate(); Alert.alert('OK', t('Affichage page d’accueil basculé.')); },
-  });
-
-  const loading = isLoading || carsLoading || agenciesLoading;
+  const [tab, setTab] = useState<Tab>('settings');
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <AdminStackHeader title={t('Contenu')} subtitle={t('À la une, accueil, priorités')} />
-
-      {loading ? (
-        <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
-      ) : (
-        <ScrollView contentContainerStyle={styles.scroll}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('Vue d’ensemble')}</Text>
-            <Text style={styles.cardSub}>{t('Bannières :')} {data?.banners?.length ?? 0}</Text>
-            <Text style={styles.cardSub}>{t('FAQ :')} {data?.faqs?.length ?? 0}</Text>
-            <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 8 }}>
-              <Text style={styles.link}>{t('Synchroniser')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.section}>{t('Véhicule')}</Text>
-          <Text style={styles.hint}>{t('Sélectionnez un véhicule du parc (plus besoin de saisir l’ID).')}</Text>
-          <View style={styles.picker}>
-            {cars.length === 0 ? (
-              <Text style={styles.empty}>{t('Aucun véhicule.')}</Text>
-            ) : (
-              cars.slice(0, 30).map((car: Car) => (
-                <PickerRow
-                  key={car.id}
-                  label={carLabel(car)}
-                  selected={selectedCarId === car.id}
-                  onPress={() => setSelectedCarId(car.id)}
-                />
-              ))
-            )}
-          </View>
-          <TextInput
-            style={styles.input}
-            value={priority}
-            onChangeText={setPriority}
-            placeholder={t('Priorité homepage (ex. 10)')}
-            keyboardType="numeric"
-          />
-          <View style={styles.row}>
-            <Btn label={t('À la une')} onPress={() => requireCar() && carFeatured.mutate()} />
-            <Btn label={t('Accueil')} onPress={() => requireCar() && carHomepage.mutate()} />
-            <Btn label={t('Priorité')} onPress={() => requireCar() && carPriority.mutate()} />
-          </View>
-
-          <Text style={styles.section}>{t('Agence')}</Text>
-          <Text style={styles.hint}>{t('Sélectionnez une agence partenaire.')}</Text>
-          <View style={styles.picker}>
-            {agencies.length === 0 ? (
-              <Text style={styles.empty}>{t('Aucune agence.')}</Text>
-            ) : (
-              agencies.slice(0, 30).map((agency: PartnerAgency) => (
-                <PickerRow
-                  key={agency.id}
-                  label={agency.name ?? t('Agence #:id', { id: agency.id })}
-                  selected={selectedAgencyId === agency.id}
-                  onPress={() => setSelectedAgencyId(agency.id)}
-                />
-              ))
-            )}
-          </View>
-          <View style={styles.row}>
-            <Btn label={t('À la une')} onPress={() => requireAgency() && agencyFeatured.mutate()} />
-            <Btn label={t('Accueil')} onPress={() => requireAgency() && agencyHomepage.mutate()} />
-          </View>
-        </ScrollView>
-      )}
+      <AdminStackHeader title={t('Contenu')} subtitle={t('Le contenu du site et de l\'application')} />
+      <View style={styles.tabs}>
+        <Chips
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: 'settings', label: t('Paramètres') },
+            { value: 'banners', label: t('Bannières') },
+            { value: 'faq', label: t('FAQ') },
+            { value: 'pages', label: t('Pages') },
+            { value: 'featured', label: t('À la une') },
+          ]}
+        />
+      </View>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        {tab === 'settings' ? <SettingsPanel /> : null}
+        {tab === 'banners' ? <BannersPanel /> : null}
+        {tab === 'faq' ? <FaqPanel /> : null}
+        {tab === 'pages' ? <PagesPanel /> : null}
+        {tab === 'featured' ? <FeaturedPanel /> : null}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-function carLabel(car: Car): string {
-  const name = car.name ?? `${car.brand ?? ''} ${car.model ?? ''}`.trim();
-  return name ? `${name} (#${car.id})` : t('Véhicule #:id', { id: car.id });
-}
-
-function PickerRow({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
-  return (
-    <TouchableOpacity style={[styles.pickerRow, selected && styles.pickerRowOn]} onPress={onPress} activeOpacity={0.7}>
-      <Text style={[styles.pickerLabel, selected && styles.pickerLabelOn]} numberOfLines={1}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
-function Btn({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <TouchableOpacity style={styles.btn} onPress={onPress}>
-      <Text style={styles.btnTxt}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
-  scroll: { padding: 16, paddingBottom: 40 },
-  section: { fontSize: 12, fontWeight: '700', color: '#6B7280', marginTop: 16, marginBottom: 6, textTransform: 'uppercase' },
-  hint: { fontSize: 12, color: '#9CA3AF', marginBottom: 8 },
-  card: { backgroundColor: '#FFF', borderRadius: 12, padding: 14, marginBottom: 12 },
-  cardTitle: { fontSize: 16, fontWeight: '800' },
-  cardSub: { fontSize: 13, color: '#6B7280', marginTop: 4 },
-  link: { color: COLORS.primary, fontWeight: '600' },
-  picker: { backgroundColor: '#FFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 10, maxHeight: 220 },
-  pickerRow: { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#EFEFF4' },
-  pickerRowOn: { backgroundColor: '#EBF5FB' },
-  pickerLabel: { fontSize: 14, color: '#374151', fontWeight: '500' },
-  pickerLabelOn: { color: COLORS.primary, fontWeight: '700' },
-  empty: { padding: 14, color: '#9CA3AF', fontSize: 13 },
-  input: { backgroundColor: '#FFF', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB', padding: 12, marginBottom: 8 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  btn: { backgroundColor: COLORS.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
-  btnTxt: { color: '#FFF', fontWeight: '700', fontSize: 12 },
+  root: { flex: 1, backgroundColor: ADMIN_BG },
+  tabs: { paddingHorizontal: 12, paddingTop: 10 },
+  scroll: { padding: 14, paddingBottom: 48 },
 });

@@ -29,16 +29,26 @@ export const ADMIN_MENU_GROUPS: { title: string; items: AdminMenuItem[] }[] = [
     items: [
       { get title() { return t('Agences partenaires'); }, route: '/(admin)/agencies' },
       { get title() { return t('Clients & avis'); }, route: '/(admin)/customers' },
+      { get title() { return t('Avis'); }, route: '/(admin)/reviews' },
       { get title() { return t('Support'); }, route: '/(admin)/support' },
+    ],
+  },
+  {
+    get title() { return t('Finance et analyses'); },
+    items: [
+      { get title() { return t('Finance'); }, route: '/(admin)/finance' },
+      { get title() { return t('Commissions ToubCar'); }, route: '/(admin)/commissions' },
+      { get title() { return t('Rapports et exports'); }, route: '/(admin)/reports' },
+      { get title() { return t('Concurrents'); }, route: '/(admin)/competitors' },
     ],
   },
   {
     get title() { return t('Plateforme'); },
     items: [
-      { get title() { return t('Finance'); }, route: '/(admin)/finance' },
-      { get title() { return t('Notifications'); }, route: '/(admin)/notifications' },
       { get title() { return t('Contenu'); }, route: '/(admin)/content' },
+      { get title() { return t('Notifications'); }, route: '/(admin)/notifications' },
       { get title() { return t('Système'); }, route: '/(admin)/system' },
+      { get title() { return t('Aide'); }, route: '/help' },
       { get title() { return t('Langue'); }, route: '/settings/language' },
     ],
   },

@@ -33,14 +33,33 @@ export const AGENCE_MENU_GROUPS: { title: string; items: AgenceMenuItem[] }[] = 
     ],
   },
   {
+    get title() { return t('Flotte'); },
+    items: [
+      { get title() { return t('Maintenance'); }, route: '/(agence)/maintenance' },
+      { get title() { return t('Catégories'); }, route: '/(agence)/categories' },
+      { get title() { return t('Sites externes'); }, route: '/(agence)/external-sites' },
+    ],
+  },
+  {
+    get title() { return t('Clients et marketing'); },
+    items: [
+      { get title() { return t('Avis clients'); }, route: '/(agence)/reviews' },
+      { get title() { return t('Offres spéciales'); }, route: '/(agence)/offers' },
+    ],
+  },
+  {
     get title() { return t('Finance'); },
-    items: [{ get title() { return t('Demande de paiement'); }, route: '/(agence)/finance' }],
+    items: [
+      { get title() { return t('Finance et virements'); }, route: '/(agence)/finance' },
+      { get title() { return t('Commissions ToubCar'); }, route: '/(agence)/commissions' },
+    ],
   },
   {
     get title() { return t('Aide et réglages'); },
     items: [
       { get title() { return t('Notifications'); }, route: '/my-notifications' },
       { get title() { return t('Assistance'); }, route: '/assistance' },
+      { get title() { return t('Aide'); }, route: '/help' },
       { get title() { return t('Langue'); }, route: '/settings/language' },
     ],
   },
