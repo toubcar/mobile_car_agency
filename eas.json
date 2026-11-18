@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "https://toubcar.com",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "3b82d783-3301-4004-b232-4ce13a436249",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "657848171991-gj1ff92q22bu52cvdj7dp9op4u8vl4et.apps.googleusercontent.com"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "https://toubcar.com",
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "3b82d783-3301-4004-b232-4ce13a436249",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "657848171991-gj1ff92q22bu52cvdj7dp9op4u8vl4et.apps.googleusercontent.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

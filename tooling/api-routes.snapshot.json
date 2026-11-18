@@ -1,0 +1,755 @@
+{
+  "$schema": "ToubCar — routes HTTP sous préfixe /api (Laravel CarAgency routes/api.php). Mettre à jour via npm run sync:api.",
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/auth/login"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/phone/send"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/phone/verify"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/google"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/apple"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/forgot-password"
+    },
+    {
+      "method": "GET",
+      "path": "/cars"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/featured"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/filters"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/{id}"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/{id}/reviews"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/{id}/availability"
+    },
+    {
+      "method": "GET",
+      "path": "/content/faq"
+    },
+    {
+      "method": "GET",
+      "path": "/content/pages"
+    },
+    {
+      "method": "GET",
+      "path": "/content/pages/{slug}"
+    },
+    {
+      "method": "GET",
+      "path": "/content/banners"
+    },
+    {
+      "method": "GET",
+      "path": "/content/settings"
+    },
+    {
+      "method": "GET",
+      "path": "/bookings/quote"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/email/resend"
+    },
+    {
+      "method": "GET",
+      "path": "/profile"
+    },
+    {
+      "method": "PUT",
+      "path": "/profile"
+    },
+    {
+      "method": "PUT",
+      "path": "/profile/password"
+    },
+    {
+      "method": "PUT",
+      "path": "/profile/email"
+    },
+    {
+      "method": "POST",
+      "path": "/profile/email/resend"
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/email"
+    },
+    {
+      "method": "POST",
+      "path": "/profile/picture"
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/picture"
+    },
+    {
+      "method": "POST",
+      "path": "/profile/documents"
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/documents/{type}"
+    },
+    {
+      "method": "GET",
+      "path": "/profile/preferences"
+    },
+    {
+      "method": "PATCH",
+      "path": "/profile/preferences"
+    },
+    {
+      "method": "POST",
+      "path": "/device-tokens"
+    },
+    {
+      "method": "DELETE",
+      "path": "/device-tokens"
+    },
+    {
+      "method": "GET",
+      "path": "/bookings"
+    },
+    {
+      "method": "POST",
+      "path": "/bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/bookings/{id}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/bookings/{id}"
+    },
+    {
+      "method": "POST",
+      "path": "/bookings/{id}/payment"
+    },
+    {
+      "method": "POST",
+      "path": "/bookings/{id}/payment/capture"
+    },
+    {
+      "method": "POST",
+      "path": "/bookings/{id}/review"
+    },
+    {
+      "method": "POST",
+      "path": "/cars/{id}/reviews"
+    },
+    {
+      "method": "POST",
+      "path": "/cars/{id}/favorite"
+    },
+    {
+      "method": "GET",
+      "path": "/favorites"
+    },
+    {
+      "method": "GET",
+      "path": "/agencies/{agency}/public"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications"
+    },
+    {
+      "method": "PATCH",
+      "path": "/notifications/read-all"
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/clear"
+    },
+    {
+      "method": "PATCH",
+      "path": "/notifications/{notification}/read"
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/{notification}"
+    },
+    {
+      "method": "GET",
+      "path": "/support/tickets"
+    },
+    {
+      "method": "POST",
+      "path": "/support/tickets"
+    },
+    {
+      "method": "GET",
+      "path": "/support/tickets/{ticket}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/support/tickets/{ticket}/status"
+    },
+    {
+      "method": "PATCH",
+      "path": "/support/tickets/{ticket}/priority"
+    },
+    {
+      "method": "POST",
+      "path": "/support/tickets/{ticket}/reply"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/bookings/{booking}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/bookings/{booking}/status"
+    },
+    {
+      "method": "PATCH",
+      "path": "/fleet/cars/{car}/status"
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/maintenances"
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/maintenances"
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/maintenances/{maintenance}"
+    },
+    {
+      "method": "PUT",
+      "path": "/fleet/maintenances/{maintenance}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fleet/maintenances/{maintenance}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/fleet/maintenances/{maintenance}/status"
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/external-sites"
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/cars/{car}/external-sites"
+    },
+    {
+      "method": "PUT",
+      "path": "/fleet/external-sites/{externalSite}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/fleet/external-sites/{externalSite}/toggle"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fleet/external-sites/{externalSite}"
+    },
+    {
+      "method": "GET",
+      "path": "/customers"
+    },
+    {
+      "method": "GET",
+      "path": "/customers/{client}"
+    },
+    {
+      "method": "GET",
+      "path": "/reviews"
+    },
+    {
+      "method": "PUT",
+      "path": "/reviews/{avis}/reply"
+    },
+    {
+      "method": "DELETE",
+      "path": "/reviews/{avis}/reply"
+    },
+    {
+      "method": "PATCH",
+      "path": "/reviews/{avis}/publish"
+    },
+    {
+      "method": "PATCH",
+      "path": "/reviews/{avis}/hide"
+    },
+    {
+      "method": "DELETE",
+      "path": "/reviews/{avis}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/reviews/{avis}/approve"
+    },
+    {
+      "method": "PATCH",
+      "path": "/reviews/{avis}/reject"
+    },
+    {
+      "method": "GET",
+      "path": "/messages/conversations"
+    },
+    {
+      "method": "GET",
+      "path": "/messages/support/{ticket}"
+    },
+    {
+      "method": "POST",
+      "path": "/messages/support/{ticket}"
+    },
+    {
+      "method": "GET",
+      "path": "/messages/rentals/{rental}"
+    },
+    {
+      "method": "POST",
+      "path": "/messages/rentals/{rental}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/messages/{message}/read"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/content/settings"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/banners"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/content/banners"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/content/banners/{banner}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/content/banners/{banner}"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/faqs"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/content/faqs"
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/content/faqs/{faq}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/content/faqs/{faq}"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/pages"
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/content/pages/{page}"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/dashboard/stats"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/dashboard/recent-bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/cars"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/cars"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/cars/{car}"
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/cars/{car}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/cars/{car}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/cars/{car}/toggle-availability"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/backoffice/overview"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/backoffice/modules/{module}"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/agencies"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/agencies/{agency}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/agencies/{agency}/approve"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/agencies/{agency}/reject"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/agencies/{agency}/suspend"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/agencies/{agency}/unsuspend"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/agencies/{agency}/commission"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/finance/agencies/{agency}/payout"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/agencies/{agency}/cancellations/reset"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/{user}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/users/{user}/toggle-verify"
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/users/{user}"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/system/users"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/system/health"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/system/cache/clear"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/system/optimize"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/system/maintenance/toggle"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/content/cars/{car}/featured"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/content/cars/{car}/homepage"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/content/cars/{car}/priority"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/content/agencies/{agency}/featured"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/content/agencies/{agency}/homepage"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/content/agencies/{agency}/priority"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/analytics/reports"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/analytics/reports/custom"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/analytics/competitors"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/analytics/competitors/pricing"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/finance/payment-requests"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/finance/payment-requests/{transaction}/approve"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/finance/payment-requests/{transaction}/reject"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/finance/commissions"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/finance/commissions/validate"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/exports"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/backoffice/overview"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/backoffice/modules/{module}"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/profile"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/general"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/opening-hours"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/locations"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/profile/documents"
+    },
+    {
+      "method": "DELETE",
+      "path": "/agence/profile/documents/{index}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/profile/security"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/application"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/application"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/dashboard/stats"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/dashboard/recent-bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/cars"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/cars"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/cars/{car}"
+    },
+    {
+      "method": "PUT",
+      "path": "/agence/cars/{car}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/agence/cars/{car}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/cars/{car}/toggle-availability"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/finance"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/finance/commissions"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/finance/request-payment"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/categories"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/categories"
+    },
+    {
+      "method": "PUT",
+      "path": "/agence/categories/{category}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/agence/categories/{category}"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/bookings/{rental}/invoice"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/pricing/car-price"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/reports/overview"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/cancellations/stats"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/cancellations/rentals/{rental}"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/marketing/offers"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/marketing/offers"
+    },
+    {
+      "method": "PUT",
+      "path": "/agence/marketing/offers/{offer}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/agence/marketing/offers/{offer}/toggle"
+    },
+    {
+      "method": "DELETE",
+      "path": "/agence/marketing/offers/{offer}"
+    },
+    {
+      "method": "POST",
+      "path": "/cars/check-availability"
+    },
+    {
+      "method": "POST",
+      "path": "/external-sites/register"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/{registration_number}/external-sites"
+    }
+  ],
+  "optionalPublicIntegrations": [
+    {
+      "method": "POST",
+      "path": "/cars/check-availability"
+    },
+    {
+      "method": "POST",
+      "path": "/external-sites/register"
+    },
+    {
+      "method": "GET",
+      "path": "/cars/{registration_number}/external-sites"
+    }
+  ]
+}
