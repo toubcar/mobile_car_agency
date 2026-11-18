@@ -51,6 +51,30 @@
     },
     {
       "method": "GET",
+      "path": "/cars/{id}/availability"
+    },
+    {
+      "method": "GET",
+      "path": "/content/faq"
+    },
+    {
+      "method": "GET",
+      "path": "/content/pages"
+    },
+    {
+      "method": "GET",
+      "path": "/content/pages/{slug}"
+    },
+    {
+      "method": "GET",
+      "path": "/content/banners"
+    },
+    {
+      "method": "GET",
+      "path": "/content/settings"
+    },
+    {
+      "method": "GET",
       "path": "/bookings/quote"
     },
     {
@@ -72,6 +96,18 @@
     {
       "method": "PUT",
       "path": "/profile/password"
+    },
+    {
+      "method": "PUT",
+      "path": "/profile/email"
+    },
+    {
+      "method": "POST",
+      "path": "/profile/email/resend"
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/email"
     },
     {
       "method": "POST",
@@ -120,6 +156,18 @@
     {
       "method": "DELETE",
       "path": "/bookings/{id}"
+    },
+    {
+      "method": "POST",
+      "path": "/bookings/{id}/payment"
+    },
+    {
+      "method": "POST",
+      "path": "/bookings/{id}/payment/capture"
+    },
+    {
+      "method": "POST",
+      "path": "/bookings/{id}/review"
     },
     {
       "method": "POST",
@@ -202,8 +250,28 @@
       "path": "/fleet/maintenances"
     },
     {
+      "method": "GET",
+      "path": "/fleet/maintenances"
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/maintenances/{maintenance}"
+    },
+    {
+      "method": "PUT",
+      "path": "/fleet/maintenances/{maintenance}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fleet/maintenances/{maintenance}"
+    },
+    {
       "method": "PATCH",
       "path": "/fleet/maintenances/{maintenance}/status"
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/external-sites"
     },
     {
       "method": "POST",
@@ -234,12 +302,32 @@
       "path": "/reviews"
     },
     {
-      "method": "PATCH",
-      "path": "/reviews/{review}/approve"
+      "method": "PUT",
+      "path": "/reviews/{avis}/reply"
+    },
+    {
+      "method": "DELETE",
+      "path": "/reviews/{avis}/reply"
     },
     {
       "method": "PATCH",
-      "path": "/reviews/{review}/reject"
+      "path": "/reviews/{avis}/publish"
+    },
+    {
+      "method": "PATCH",
+      "path": "/reviews/{avis}/hide"
+    },
+    {
+      "method": "DELETE",
+      "path": "/reviews/{avis}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/reviews/{avis}/approve"
+    },
+    {
+      "method": "PATCH",
+      "path": "/reviews/{avis}/reject"
     },
     {
       "method": "GET",
@@ -264,6 +352,54 @@
     {
       "method": "PATCH",
       "path": "/messages/{message}/read"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/content/settings"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/banners"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/content/banners"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/content/banners/{banner}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/content/banners/{banner}"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/faqs"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/content/faqs"
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/content/faqs/{faq}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/content/faqs/{faq}"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/content/pages"
+    },
+    {
+      "method": "PUT",
+      "path": "/admin/content/pages/{page}"
     },
     {
       "method": "GET",
@@ -442,6 +578,10 @@
       "path": "/admin/finance/commissions/validate"
     },
     {
+      "method": "POST",
+      "path": "/admin/exports"
+    },
+    {
       "method": "GET",
       "path": "/agence/backoffice/overview"
     },
@@ -479,6 +619,14 @@
     },
     {
       "method": "GET",
+      "path": "/agence/application"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/application"
+    },
+    {
+      "method": "GET",
       "path": "/agence/dashboard/stats"
     },
     {
@@ -510,8 +658,36 @@
       "path": "/agence/cars/{car}/toggle-availability"
     },
     {
+      "method": "GET",
+      "path": "/agence/finance"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/finance/commissions"
+    },
+    {
       "method": "POST",
       "path": "/agence/finance/request-payment"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/categories"
+    },
+    {
+      "method": "POST",
+      "path": "/agence/categories"
+    },
+    {
+      "method": "PUT",
+      "path": "/agence/categories/{category}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/agence/categories/{category}"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/bookings/{rental}/invoice"
     },
     {
       "method": "PATCH",
@@ -528,6 +704,10 @@
     {
       "method": "POST",
       "path": "/agence/cancellations/rentals/{rental}"
+    },
+    {
+      "method": "GET",
+      "path": "/agence/marketing/offers"
     },
     {
       "method": "POST",

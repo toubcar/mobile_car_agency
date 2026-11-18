@@ -173,6 +173,19 @@ async function main() {
     return expectStatus(res, 200);
   });
 
+  await check('contenu : aide, pages, bannières, coordonnées (Contenu de l\'admin)', async () => {
+    for (const url of ['/content/faq', '/content/pages', '/content/pages/annulation', '/content/banners', '/content/settings']) {
+      const problem = expectStatus(await call('GET', url), 200);
+      if (problem) return `${url} : ${problem}`;
+    }
+    return null;
+  });
+  await check('calendrier : jours pris d\'un véhicule (GET /cars/{id}/availability)', async () => {
+    if (!firstCarId) return 'aucun véhicule';
+    const res = await call('GET', `/cars/${firstCarId}/availability`);
+    return expectStatus(res, 200) ?? (Array.isArray(res.json?.data?.unavailable) ? null : 'pas de liste de jours');
+  });
+
   // ── agence ──────────────────────────────────────────────────────────────
   const agency = await login('agency');
   const a = agency.token;
@@ -183,6 +196,17 @@ async function main() {
       if (problem) return `${url} : ${problem}`;
     }
     return null;
+  });
+  await check('agence : finance, commissions, maintenance, catégories, offres, sites externes, avis', async () => {
+    for (const url of ['/agence/finance', '/agence/finance/commissions', '/fleet/maintenances', '/agence/categories', '/agence/marketing/offers', '/fleet/external-sites', '/reviews']) {
+      const problem = expectStatus(await call('GET', url, { token: a }), 200);
+      if (problem) return `${url} : ${problem}`;
+    }
+    return null;
+  });
+  await check('agence : le taux de commission est dans le profil (aperçu du prix client)', async () => {
+    const res = await call('GET', '/agence/profile', { token: a });
+    return expectStatus(res, 200) ?? (typeof res.json?.data?.commission_rate === 'number' ? null : 'pas de commission_rate');
   });
   await check('agence : tickets et notifications', async () => {
     for (const url of ['/support/tickets', '/notifications']) {
@@ -201,6 +225,19 @@ async function main() {
       if (problem) return `${url} : ${problem}`;
     }
     return null;
+  });
+  await check('admin : commissions, avis, contenu, concurrents', async () => {
+    for (const url of ['/admin/finance/commissions', '/reviews', '/admin/content/settings', '/admin/content/banners', '/admin/content/faqs', '/admin/content/pages', '/admin/analytics/competitors']) {
+      const problem = expectStatus(await call('GET', url, { token: m }), 200);
+      if (problem) return `${url} : ${problem}`;
+    }
+    return null;
+  });
+  await check('admin : un export CSV s\'ouvre par un lien signé', async () => {
+    const res = await call('POST', '/admin/exports', { token: m, body: { type: 'bookings' } });
+    if (expectStatus(res, 200) || !res.json?.url) return expectStatus(res, 200) ?? 'pas de lien';
+    const file = await fetch(res.json.url);
+    return file.status === 200 ? null : `le lien répond HTTP ${file.status}`;
   });
   await check('admin : tickets, notifications, messages', async () => {
     for (const url of ['/support/tickets', '/notifications', '/messages/conversations']) {

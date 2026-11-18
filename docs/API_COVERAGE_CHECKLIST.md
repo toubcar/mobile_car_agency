@@ -8,10 +8,11 @@ Ce document complète la vérification **automatisée** (`npm run check:api`) pa
 |----------|------|
 | `npm run check:api` | Compare `tooling/api-routes.snapshot.json` au code dans `services/` et `app/`. Échoue si une route requise n’apparaît nulle part. |
 | `npm run sync:api` | Régénère le snapshot depuis `CarAgency/routes/api.php`. |
-| `npm run test:e2e-api` | Smoke HTTP contre Laravel (login, profile, preferences, admin stats). |
-| `npm run test:all` | `typecheck` + `check:api` + `test:ci`. |
+| `npm run test:e2e-api` | Smoke HTTP contre Laravel : catalogue, contenu, calendrier, client, agence (finance, outils), admin (commissions, contenu, export signé). |
+| `npm run check:i18n` | Chaque texte `t('…')` existe en anglais et en arabe, avec les mêmes paramètres. |
+| `npm run test:all` | `typecheck` + `check:api` + `check:i18n` + `test:ci`. |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm test` / `npm run test:ci` | Jest (`__tests__/*.test.ts`) — services auth/profile + navigation rôle. |
+| `npm test` / `npm run test:ci` | Jest (`__tests__/*.test.ts`) — services, navigation par rôle, dates du calendrier, paiement PayPal, Markdown des pages, liens de l'admin. |
 | `npm run test:coverage` | Jest avec rapport de couverture (fichiers `utils/`). |
 
 **Mise à jour du snapshot** : `npm run sync:api` (lit `CarAgency/routes/api.php`), puis `npm run check:api`.
@@ -31,17 +32,18 @@ Ces endpoints existent côté Laravel pour **sites externes / disponibilité** ;
 | Zone app | Fichiers / écrans | Services principaux |
 |----------|-------------------|------------------------|
 | Auth | `(auth)/login`, `onboarding`, `phone`, `register` | `auth.service` |
-| Client | `(tabs)/*`, `car/*`, `booking/*` | `cars`, `bookings`, `auth` |
-| Admin | `(admin)/*`, `modules` | `backoffice`, `dashboard`, `agencies`, `bookings`, `users`, `admin-system`, `admin-content`, `admin-analytics`, `finance`, `support`, `customers`, `notifications`, `messages`, `cars` (`scope` admin) |
-| Agence | `(agence)/*`, `modules` | idem + `agency-profile`, `marketing`, `reports`, `pricing`, `finance`, `external-sites`, `maintenance`, `cars` (`scope` agence) |
+| Client | `(tabs)/*`, `car/*`, `booking/*`, `help`, `pages/[slug]`, `payment-return` | `cars`, `bookings` (paiement, avis), `content`, `profile` (e-mail), `auth` |
+| Admin | `(admin)/*`, `modules` | `backoffice`, `dashboard`, `agencies`, `bookings`, `users`, `admin-system`, `admin-content` (paramètres, bannières, FAQ, pages), `admin-analytics`, `finance` (commissions), `exports`, `reviews`, `support`, `customers`, `notifications`, `messages`, `cars` (`scope` admin) |
+| Agence | `(agence)/*`, `agency-application`, `modules` | idem + `agency-profile`, `agency-application`, `marketing` (offres), `reports`, `pricing`, `finance` (solde, commissions), `categories`, `external-sites`, `maintenance`, `reviews`, `cars` (`scope` agence) |
 
 ## Tests manuels recommandés (checklist courte)
 
 - [ ] Connexion client (email + OTP téléphone + Google/Apple depuis onboarding **et** AuthBottomSheet accueil).
 - [ ] Connexion staff (`scope=staff`) admin / agence → bon espace racine.
-- [ ] Liste / détail / création réservation client.
+- [ ] Liste / détail / création réservation client, paiement (PayPal simulé en local), annulation, avis.
 - [ ] Admin : agences (approve/reject/suspend), bookings statut, utilisateurs.
-- [ ] Agence : dashboard, module profil + upload document, finance demande paiement, marketing offre.
+- [ ] Agence : dashboard, profil + upload document, finance (solde, commissions, virement), maintenance, catégories, offres, sites externes, avis, facture.
+- [ ] Admin : commissions et taux, avis, rapports et exports CSV, concurrents, contenu en trois langues.
 
 ## CI GitHub Actions
 
