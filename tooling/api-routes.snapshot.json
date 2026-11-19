@@ -619,6 +619,14 @@
     },
     {
       "method": "GET",
+      "path": "/agence/bank-account"
+    },
+    {
+      "method": "PUT",
+      "path": "/agence/bank-account"
+    },
+    {
+      "method": "GET",
       "path": "/agence/application"
     },
     {

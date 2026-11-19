@@ -83,6 +83,7 @@ export default function AgenceLayout() {
       <Tabs.Screen name="pricing" options={{ href: null }} />
       <Tabs.Screen name="cancellations" options={{ href: null }} />
       <Tabs.Screen name="finance" options={{ href: null }} />
+      <Tabs.Screen name="bank-account" options={{ href: null }} />
       <Tabs.Screen name="reviews" options={{ href: null }} />
       <Tabs.Screen name="commissions" options={{ href: null }} />
       <Tabs.Screen name="maintenance" options={{ href: null }} />

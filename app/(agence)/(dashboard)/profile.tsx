@@ -108,9 +108,16 @@ export default function AgenceProfileScreen() {
         <View style={styles.group}>
           <Row
             icon="wallet-outline"
-            label={t('Demande de paiement')}
-            sub={t('Virement vers votre compte bancaire')}
+            label={t('Demander un virement')}
+            sub={t('Votre argent reste chez ToubCar jusqu\'à votre demande')}
             onPress={() => router.push('/(agence)/finance')}
+          />
+          <View style={styles.sep} />
+          <Row
+            icon="card-outline"
+            label={t('Compte bancaire')}
+            sub={t('Où ToubCar vous vire votre argent')}
+            onPress={() => router.push('/(agence)/bank-account' as never)}
           />
         </View>
 

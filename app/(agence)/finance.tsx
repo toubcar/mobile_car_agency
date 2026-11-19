@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { COLORS } from '@/constants/api';
 import { financeService, type AgencyFinanceTransaction } from '@/services/finance.service';
@@ -22,17 +22,17 @@ const STATUS_LOOK: Record<string, { color: string; bg: string }> = {
 };
 
 /**
- * The agency's money, as on the website's Finance page: what it can be paid now, what its bookings in progress will
- * bring, this month's share, its commission rate, the latest movements and its payout requests.
+ * The agency's money, as on the website's Finance page: it stays with ToubCar until the agency asks for a transfer,
+ * sent to the bank account it registered. What it can be paid now, what its bookings in progress will bring, this
+ * month's share, its commission rate, the latest movements and its transfer requests.
  */
 export default function AgenceFinanceScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  // the dashboard's "Demander un virement" opens the request at once
+  const { payout } = useLocalSearchParams<{ payout?: string }>();
   const [requestOpen, setRequestOpen] = useState(false);
   const [amount, setAmount] = useState('');
-  const [bankName, setBankName] = useState('');
-  const [rib, setRib] = useState('');
-  const [holder, setHolder] = useState('');
   const [notes, setNotes] = useState('');
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
@@ -40,13 +40,18 @@ export default function AgenceFinanceScreen() {
     queryFn: () => financeService.agencyOverview(),
   });
 
+  const openedFromLink = useRef(false);
+  useEffect(() => {
+    if (payout === '1' && data && !openedFromLink.current) {
+      openedFromLink.current = true;
+      setRequestOpen(true);
+    }
+  }, [payout, data]);
+
   const mutation = useMutation({
     mutationFn: () =>
       financeService.requestPayment({
         amount: Number(amount.replace(',', '.')),
-        bank_name: bankName.trim(),
-        rib_number: rib.trim(),
-        account_holder: holder.trim(),
         notes: notes.trim() || undefined,
       }),
     onSuccess: () => {
@@ -54,21 +59,33 @@ export default function AgenceFinanceScreen() {
       setAmount('');
       setNotes('');
       void queryClient.invalidateQueries({ queryKey: ['agency-finance'] });
-      Alert.alert(t('Demande envoyée'), t('Votre demande de virement a été transmise.'));
+      Alert.alert(t('Demande envoyée'), t('ToubCar vous vire ce montant sur votre compte bancaire.'));
     },
-    onError: (err) => Alert.alert(t('Erreur'), serverMessage(err, t('Vérifiez le montant et les coordonnées bancaires.'))),
+    onError: (err) => Alert.alert(t('Erreur'), serverMessage(err, t('Vérifiez le montant demandé.'))),
   });
 
+  const o = data?.overview;
+  const balance = o?.current_balance ?? 0;
+  const account = data?.bank_account ?? null;
+  const minimum = data?.minimum_payout ?? 100;
+
   const submit = () => {
-    if (!Number(amount.replace(',', '.')) || !bankName.trim() || !rib.trim() || !holder.trim()) {
-      Alert.alert(t('Champs requis'), t('Montant, banque, RIB et titulaire sont obligatoires.'));
+    const value = Number(amount.replace(',', '.'));
+    if (!value || value < minimum) {
+      Alert.alert(t('Montant'), t('Le montant minimum d\'un virement est de :amount MAD.', { amount: minimum }));
+      return;
+    }
+    if (value > balance) {
+      Alert.alert(t('Montant'), t('Le montant demandé dépasse votre solde disponible.'));
       return;
     }
     mutation.mutate();
   };
 
-  const o = data?.overview;
-  const balance = o?.current_balance ?? 0;
+  const openBankAccount = () => {
+    setRequestOpen(false);
+    router.push({ pathname: '/(agence)/bank-account', params: { from: 'payout' } } as never);
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -80,21 +97,30 @@ export default function AgenceFinanceScreen() {
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} tintColor={COLORS.primary} />}
         >
           <Card style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>{t('Solde disponible')}</Text>
+            <Text style={styles.balanceTitle}>{t('Votre argent chez ToubCar')}</Text>
+            <Text style={styles.balanceIntro}>{t('Il reste chez ToubCar jusqu\'à ce que vous demandiez un virement : il est alors envoyé sur votre compte bancaire.')}</Text>
+            <Text style={styles.balanceLabel}>{t('Disponible')}</Text>
             <Text style={[styles.balance, balance < 0 && { color: '#B91C1C' }]}>{formatMoney(balance, { decimals: 2 })}</Text>
             <Text style={styles.balanceHint}>
               {balance < 0
                 ? t('Commission due à ToubCar')
                 : t('Peut être viré sur votre compte')}
             </Text>
+            <TouchableOpacity style={styles.accountLine} onPress={() => router.push('/(agence)/bank-account' as never)} activeOpacity={0.8}>
+              <Ionicons name="card-outline" size={18} color={account ? '#047857' : '#B45309'} />
+              <Text style={[styles.accountText, !account && { color: '#B45309' }]} numberOfLines={1}>
+                {account ? t('Viré sur :bank · :number', { bank: account.bank_name, number: account.number }) : t('Aucun compte bancaire enregistré')}
+              </Text>
+              <Text style={styles.accountLink}>{account ? t('Modifier') : t('Ajouter')}</Text>
+            </TouchableOpacity>
             <Button
-              label={t('Demande de virement')}
-              icon="cash-outline"
-              onPress={() => setRequestOpen(true)}
-              disabled={balance < 100}
+              label={account ? t('Demander un virement') : t('Ajouter mon compte bancaire')}
+              icon={account ? 'cash-outline' : 'card-outline'}
+              onPress={() => (account ? setRequestOpen(true) : openBankAccount())}
+              disabled={!!account && balance < minimum}
               style={{ marginTop: 12 }}
             />
-            {balance < 100 ? <Text style={styles.minHint}>{t('Un virement se demande à partir de 100 DH.')}</Text> : null}
+            {account && balance < minimum ? <Text style={styles.minHint}>{t('Un virement peut être demandé à partir de :amount.', { amount: formatMoney(minimum) })}</Text> : null}
           </Card>
 
           <StatRow>
@@ -144,23 +170,54 @@ export default function AgenceFinanceScreen() {
 
       <Sheet
         visible={requestOpen}
-        title={t('Demande de virement')}
+        title={t('Demander un virement')}
         onClose={() => setRequestOpen(false)}
-        footer={(
+        footer={account ? (
           <>
             <Button label={t('Annuler')} variant="ghost" onPress={() => setRequestOpen(false)} style={{ flex: 1 }} />
-            <Button label={t('Envoyer la demande')} onPress={submit} loading={mutation.isPending} style={{ flex: 2 }} />
+            <Button label={t('Demander le virement')} onPress={submit} loading={mutation.isPending} style={{ flex: 2 }} />
+          </>
+        ) : (
+          <>
+            <Button label={t('Annuler')} variant="ghost" onPress={() => setRequestOpen(false)} style={{ flex: 1 }} />
+            <Button label={t('Ajouter mon compte bancaire')} onPress={openBankAccount} style={{ flex: 2 }} />
           </>
         )}
       >
         <Text style={styles.sheetIntro}>
-          {t('Disponible : :amount. ToubCar vire le montant demandé sur votre compte bancaire.', { amount: formatMoney(balance, { decimals: 2 }) })}
+          {t('Votre argent est conservé par ToubCar. Il est viré sur votre compte bancaire quand vous le demandez.')}
         </Text>
-        <Field label={t('Montant (DH)')} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="1000" />
-        <Field label={t('Nom de la banque')} value={bankName} onChangeText={setBankName} />
-        <Field label={t('RIB / compte bancaire')} value={rib} onChangeText={setRib} autoCapitalize="characters" />
-        <Field label={t('Titulaire du compte')} value={holder} onChangeText={setHolder} />
-        <Field label={t('Note (optionnel)')} value={notes} onChangeText={setNotes} multiline />
+        {account ? (
+          <>
+            <View style={styles.sheetAccount}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetAccountKicker}>{t('Viré sur')}</Text>
+                <Text style={styles.sheetAccountBank}>{account.bank_name} · {account.number}</Text>
+                <Text style={styles.sheetAccountHolder}>{account.account_holder}</Text>
+              </View>
+              <TouchableOpacity onPress={openBankAccount} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.accountLink}>{t('Modifier')}</Text>
+              </TouchableOpacity>
+            </View>
+            <Field
+              label={t('Montant (DH)')}
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="decimal-pad"
+              placeholder={t('Montant à virer')}
+              hint={t('Disponible : :amount · minimum :minimum', { amount: formatMoney(balance, { decimals: 2 }), minimum: formatMoney(minimum) })}
+            />
+            <TouchableOpacity onPress={() => setAmount(String(Math.max(0, Math.round(balance * 100) / 100)))} style={styles.allBalance}>
+              <Text style={styles.accountLink}>{t('Tout mon solde')}</Text>
+            </TouchableOpacity>
+            <Field label={t('Note (optionnel)')} value={notes} onChangeText={setNotes} multiline />
+          </>
+        ) : (
+          <Card style={styles.noAccount}>
+            <Text style={styles.noAccountTitle}>{t('Aucun compte bancaire enregistré')}</Text>
+            <Text style={styles.noAccountText}>{t('Ajoutez d\'abord le compte sur lequel ToubCar vous vire votre argent.')}</Text>
+          </Card>
+        )}
       </Sheet>
     </SafeAreaView>
   );
@@ -197,7 +254,20 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: ADMIN_BG },
   scroll: { padding: 14, paddingBottom: 48, gap: 10 },
   balanceCard: { alignItems: 'stretch' },
+  balanceTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
+  balanceIntro: { fontSize: 12, color: '#6B7280', lineHeight: 17, marginTop: 4, marginBottom: 12 },
   balanceLabel: { fontSize: 13, fontWeight: '700', color: '#6B7280' },
+  accountLine: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB' },
+  accountText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#111827' },
+  accountLink: { fontSize: 13, fontWeight: '800', color: COLORS.primary },
+  sheetAccount: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', padding: 12, marginBottom: 12 },
+  sheetAccountKicker: { fontSize: 11, color: '#6B7280' },
+  sheetAccountBank: { fontSize: 15, fontWeight: '800', color: '#111827', marginTop: 2 },
+  sheetAccountHolder: { fontSize: 12, color: '#4B5563', marginTop: 2 },
+  allBalance: { alignSelf: 'flex-end', marginTop: -6, marginBottom: 10 },
+  noAccount: { backgroundColor: '#FFFBEB', gap: 4 },
+  noAccountTitle: { fontSize: 14, fontWeight: '800', color: '#92400E' },
+  noAccountText: { fontSize: 13, color: '#92400E', lineHeight: 19 },
   balance: { fontSize: 32, fontWeight: '800', color: COLORS.primary, marginTop: 4 },
   balanceHint: { fontSize: 12, color: '#6B7280', marginTop: 2 },
   minHint: { fontSize: 11, color: '#9CA3AF', marginTop: 6, textAlign: 'center' },

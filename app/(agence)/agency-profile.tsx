@@ -5,6 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
 import { COLORS } from '@/constants/api';
@@ -17,9 +18,10 @@ import { t, tl } from '@/i18n';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-type Tab = 'general' | 'hours' | 'location' | 'security' | 'documents';
+type Tab = 'general' | 'hours' | 'location' | 'security' | 'documents' | 'bank';
 
 export default function AgencyProfileScreen() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('general');
 
@@ -114,6 +116,7 @@ export default function AgencyProfileScreen() {
     { key: 'hours', label: t('Horaires') },
     { key: 'location', label: t('Adresse') },
     { key: 'documents', label: t('Docs') },
+    { key: 'bank', label: t('Compte bancaire') },
     { key: 'security', label: t('Sécurité') },
   ];
 
@@ -253,6 +256,28 @@ export default function AgencyProfileScreen() {
           </>
         ) : null}
 
+        {tab === 'bank' ? (
+          <>
+            <View style={styles.bankCard}>
+              <Ionicons name="card-outline" size={22} color={profile?.bank_account ? '#047857' : '#B45309'} />
+              <View style={{ flex: 1 }}>
+                {profile?.bank_account ? (
+                  <>
+                    <Text style={styles.bankTitle}>{profile.bank_account.bank_name} · {profile.bank_account.number}</Text>
+                    <Text style={styles.bankSub}>{profile.bank_account.account_holder}</Text>
+                  </>
+                ) : (
+                  <Text style={styles.bankTitle}>{t('Aucun compte bancaire enregistré')}</Text>
+                )}
+                <Text style={styles.bankHint}>{t('C\'est sur ce compte, et seulement sur celui-ci, que ToubCar vous vire votre argent quand vous le demandez.')}</Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.saveBtn} onPress={() => router.push('/(agence)/bank-account' as never)}>
+              <Text style={styles.saveTxt}>{profile?.bank_account ? t('Changer de compte bancaire') : t('Ajouter mon compte bancaire')}</Text>
+            </TouchableOpacity>
+          </>
+        ) : null}
+
         {tab === 'security' ? (
           <>
             <Field label={t('Mot de passe actuel')} value={security.current_password} onChangeText={(v) => setSecurity((s) => ({ ...s, current_password: v }))} secure />
@@ -296,6 +321,10 @@ function SaveBtn({ loading, onPress }: { loading: boolean; onPress: () => void }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: ADMIN_BG },
+  bankCard: { flexDirection: 'row', gap: 12, backgroundColor: '#FFF', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#EEF2F7' },
+  bankTitle: { fontSize: 15, fontWeight: '800', color: '#111827' },
+  bankSub: { fontSize: 13, color: '#4B5563', marginTop: 2 },
+  bankHint: { fontSize: 12, color: '#6B7280', marginTop: 6, lineHeight: 17 },
   tabs: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
   tab: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB' },
   tabOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },

@@ -8,6 +8,14 @@ export interface AgencyDocument {
   uploaded_at?: string;
 }
 
+/** Where ToubCar transfers the agency's money: its number comes masked ("•••• 4921") */
+export interface BankAccount {
+  bank_name: string;
+  account_holder: string;
+  number: string;
+  updated_at?: string | null;
+}
+
 export interface AgencyProfile {
   id: number;
   agency_name?: string;
@@ -29,6 +37,7 @@ export interface AgencyProfile {
   completion?: number;
   /** ToubCar's rate, added to the agency's prices for its customers */
   commission_rate?: number;
+  bank_account?: BankAccount | null;
 }
 
 const unwrapProfile = (body: { data: AgencyProfile } | AgencyProfile): AgencyProfile =>
@@ -85,6 +94,23 @@ export const agencyProfileService = {
     if (payload.description) form.append('description', payload.description);
     form.append('document', { uri: payload.file.uri, name: payload.file.name, type: payload.file.type } as unknown as Blob);
     const { data } = await apiClient.post<{ data: AgencyProfile }>('/agence/profile/documents', form);
+    return data.data;
+  },
+
+  /** The registered bank account (or none) and the banks offered in the form */
+  async bankAccount(): Promise<{ account: BankAccount | null; banks: string[] }> {
+    const { data } = await apiClient.get<{ data: { account: BankAccount | null; banks: string[] } }>('/agence/bank-account');
+    return data.data;
+  },
+
+  /** Registers or replaces it: the account's password confirms the change, the agency gets an e-mail */
+  async saveBankAccount(payload: {
+    bank_name: string;
+    account_holder: string;
+    rib: string;
+    current_password: string;
+  }): Promise<{ account: BankAccount | null; banks: string[] }> {
+    const { data } = await apiClient.put<{ data: { account: BankAccount | null; banks: string[] } }>('/agence/bank-account', payload);
     return data.data;
   },
 

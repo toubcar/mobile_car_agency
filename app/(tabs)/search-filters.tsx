@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   TextInput,
   Switch,
+  Keyboard,
 } from 'react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import PageHeader from '@/components/PageHeader';
 import BookingDateRangePicker, { toIsoDate } from '@/components/BookingDateRangePicker';
 import { rentalDays } from '@/utils/rental';
 import { carsService } from '@/services/cars.service';
+import { citiesService } from '@/services/cities.service';
 import { CatalogueQuery, queryFromRoute, routeFromQuery } from '@/utils/catalogueParams';
 import { CITIES, getQuartersForCity } from '@/constants/locations';
 import { t, tl } from '@/i18n';
@@ -79,6 +81,22 @@ export default function SearchFiltersScreen() {
   const [endDate, setEndDate] = useState(() => parseIsoDate(initial.end_date) ?? defaultEndDate(initialStart ?? defaultStartDate()));
 
   const quarters = useMemo(() => getQuartersForCity(city), [city]);
+
+  // the cities offered while typing, as in the website's search bar
+  const [cityFocused, setCityFocused] = useState(false);
+  const [typed, setTyped] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setTyped(city.trim()), 150);
+    return () => clearTimeout(timer);
+  }, [city]);
+  const listedCity = (CITIES as readonly string[]).includes(city);
+  const { data: suggestions } = useQuery({
+    queryKey: ['city-suggestions', typed],
+    queryFn: () => citiesService.search(typed),
+    enabled: cityFocused && typed.length > 0 && !listedCity,
+    staleTime: 5 * 60 * 1000,
+  });
+  const showSuggestions = cityFocused && typed.length > 0 && !listedCity && (suggestions?.length ?? 0) > 0;
 
   const minStart = useMemo(() => {
     const d = new Date();
@@ -158,6 +176,8 @@ export default function SearchFiltersScreen() {
               placeholderTextColor="#9CA3AF"
               value={city}
               onChangeText={(v) => { setCity(v); setQuartier(''); }}
+              onFocus={() => setCityFocused(true)}
+              onBlur={() => setTimeout(() => setCityFocused(false), 150)}
               autoCorrect={false}
             />
             {city.length > 0 && (
@@ -166,6 +186,26 @@ export default function SearchFiltersScreen() {
               </TouchableOpacity>
             )}
           </View>
+          {showSuggestions ? (
+            <View style={styles.suggestions}>
+              {suggestions!.slice(0, 6).map((item, i) => (
+                <TouchableOpacity
+                  key={item.name}
+                  style={[styles.suggestion, i > 0 && styles.suggestionBorder]}
+                  onPress={() => { setCity(item.name); setQuartier(''); setCityFocused(false); Keyboard.dismiss(); }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.suggestionIcon}>
+                    <Ionicons name="location-outline" size={18} color="#374151" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.suggestionName}>{item.label}</Text>
+                    <Text style={[styles.suggestionSub, item.cars > 0 && styles.suggestionSubCars]}>{item.subtitle}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
           <View style={styles.cityGrid}>
             {CITIES.map((c) => (
               <TouchableOpacity
@@ -366,6 +406,23 @@ const styles = StyleSheet.create({
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
   cityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  suggestions: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    shadowColor: '#111827',
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+  suggestion: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 6 },
+  suggestionBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#F3F4F6' },
+  suggestionIcon: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  suggestionName: { fontSize: 15, fontWeight: '600', color: '#111827' },
+  suggestionSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  suggestionSubCars: { color: '#0A66C2' },
   cityChip: {
     flexDirection: 'row',
     alignItems: 'center',

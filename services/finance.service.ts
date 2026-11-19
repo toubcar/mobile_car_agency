@@ -1,4 +1,5 @@
 import apiClient from './api';
+import type { BankAccount } from './agency-profile.service';
 
 export interface FinanceTransaction {
   id: number;
@@ -88,6 +89,10 @@ export interface AgencyFinanceOverview {
   };
   transactions: AgencyFinanceTransaction[];
   payout_requests: AgencyFinanceTransaction[];
+  /** Where the transfers go (number masked); none yet: no transfer can be asked */
+  bank_account?: BankAccount | null;
+  /** The smallest transfer an agency can ask for (MAD) */
+  minimum_payout?: number;
 }
 
 export interface AgencyCommissionsPage {
@@ -110,13 +115,8 @@ export const financeService = {
     return data;
   },
 
-  async requestPayment(payload: {
-    amount: number;
-    bank_name: string;
-    rib_number: string;
-    account_holder: string;
-    notes?: string;
-  }): Promise<FinanceTransaction> {
+  /** Part or all of the balance, transferred to the bank account the agency registered */
+  async requestPayment(payload: { amount: number; notes?: string }): Promise<FinanceTransaction> {
     const { data } = await apiClient.post<{ data: FinanceTransaction }>('/agence/finance/request-payment', payload);
     return data.data;
   },

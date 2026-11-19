@@ -13,12 +13,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_BASE_URL, COLORS, APP_NAME } from '@/constants/api';
 import { describeApiError, isSessionExpiredError } from '@/utils/apiError';
 import { ADMIN_BG, adminShadow } from '@/constants/adminTheme';
 import { dashboardService, type DashboardStats } from '@/services/dashboard.service';
 import AgenceMenuDrawer from '@/components/agence/AgenceMenuDrawer';
+import MoneyCard from '@/components/agence/MoneyCard';
 import RecentActivitySection from '@/components/admin/RecentActivitySection';
 import { formatMoney, formatMoneyCompact, percentOf } from '@/utils/money';
 import type { Booking } from '@/types';
@@ -110,6 +111,7 @@ export default function AgenceDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [showMenu, setShowMenu] = useState(false);
+  const queryClient = useQueryClient();
   const fixedHeaderOffset = insets.top + FIXED_HEADER_H;
 
   const {
@@ -187,7 +189,7 @@ export default function AgenceDashboard() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { refetchStats(); refetchRecent(); }}
+            onRefresh={() => { refetchStats(); refetchRecent(); void queryClient.invalidateQueries({ queryKey: ['agency-finance'] }); }}
             tintColor="#FFF"
             progressViewOffset={fixedHeaderOffset}
           />
@@ -278,6 +280,8 @@ export default function AgenceDashboard() {
               <Ionicons name="refresh" size={18} color="#B45309" />
             </TouchableOpacity>
           )}
+
+          <MoneyCard />
 
           <Text style={styles.sectionTitle}>{t("Vue d'ensemble")}</Text>
           {statsLoading && !stats ? (

@@ -8,6 +8,7 @@ Le mobile reproduit la **logique métier** et les **routes API** de CarAgency. L
 |-------------|--------|-----|
 | Langue FR / EN / AR (menu du site) | `settings/language`, sélecteur sur le profil invité et l'écran d'attente agence | en-tête `Accept-Language`, `/profile/preferences` |
 | Client — catalogue, filtres, tri | `(tabs)/index`, `search`, `search-filters`, `car/[id]` | `/cars`, `/cars/filters`, `/favorites`, `/bookings` |
+| Client — recherche : villes proposées pendant la saisie (toutes orthographes, voitures disponibles), dates du séjour | `search-filters` (champ Ville, « Dates de location ») | `/cities/search` (route du site), `/cars?location=&start_date=&end_date=` |
 | Client — calendrier (jours pris en rouge, jour de retour) | `booking/create` (`BookingDateRangePicker`) | `/cars/{id}/availability` |
 | Client — réserver et payer (PayPal, 15 minutes pour payer) | `booking/create`, `booking/[id]`, `payment-return` | `/bookings`, `/bookings/{id}/payment`, `/bookings/{id}/payment/capture` |
 | Client — annuler (politique d'annulation) | `booking/[id]` | `DELETE /bookings/{id}` |
@@ -28,7 +29,9 @@ Le mobile reproduit la **logique métier** et les **routes API** de CarAgency. L
 | Agence — offres spéciales | `(agence)/offers` | `/agence/marketing/offers` |
 | Agence — sites externes | `(agence)/external-sites` | `/fleet/external-sites`, `/fleet/cars/{car}/external-sites` |
 | Agence — avis clients et réponses | `(agence)/reviews` | `/reviews`, `/reviews/{id}/reply` |
-| Agence — finance (solde, gains à venir, virements) et commissions | `(agence)/finance`, `(agence)/commissions`, `pricing` | `/agence/finance`, `/agence/finance/commissions`, `/agence/finance/request-payment` |
+| Agence — son argent chez ToubCar (disponible, à venir, virements en cours) sur le tableau de bord | `(agence)/(dashboard)/index` (`MoneyCard`) | `/agence/finance` |
+| Agence — finance (solde, gains à venir, virements vers le compte enregistré) et commissions | `(agence)/finance`, `(agence)/commissions`, `pricing` | `/agence/finance`, `/agence/finance/commissions`, `/agence/finance/request-payment` |
+| Agence — compte bancaire des virements (RIB vérifié, mot de passe, e-mail d'alerte) | `(agence)/bank-account`, onglet « Compte bancaire » du profil | `GET/PUT /agence/bank-account` |
 | Agence — facture d'une réservation | `booking/[id]` (bouton « Facture ») | `/agence/bookings/{id}/invoice` (lien signé 30 min) |
 | Admin — dashboard | `(admin)/index`, `modules` | `/admin/dashboard/*`, backoffice |
 | Admin — agences | `(admin)/agencies` | `/admin/agencies/*` |

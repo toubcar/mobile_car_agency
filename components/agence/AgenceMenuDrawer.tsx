@@ -51,6 +51,7 @@ export const AGENCE_MENU_GROUPS: { title: string; items: AgenceMenuItem[] }[] = 
     get title() { return t('Finance'); },
     items: [
       { get title() { return t('Finance et virements'); }, route: '/(agence)/finance' },
+      { get title() { return t('Compte bancaire'); }, route: '/(agence)/bank-account' },
       { get title() { return t('Commissions ToubCar'); }, route: '/(agence)/commissions' },
     ],
   },
